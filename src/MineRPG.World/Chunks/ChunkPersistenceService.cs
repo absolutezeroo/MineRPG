@@ -7,18 +7,11 @@ namespace MineRPG.World.Chunks;
 /// Orchestrates chunk save/load using an IChunkSerializer and IChunkStorage.
 /// Pure logic — no file I/O or Godot dependency.
 /// </summary>
-public sealed class ChunkPersistenceService
+public sealed class ChunkPersistenceService(IChunkSerializer serializer, IChunkStorage storage, ILogger logger)
 {
-    private readonly IChunkSerializer _serializer;
-    private readonly IChunkStorage _storage;
-    private readonly ILogger _logger;
-
-    public ChunkPersistenceService(IChunkSerializer serializer, IChunkStorage storage, ILogger logger)
-    {
-        _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
-        _storage = storage ?? throw new ArgumentNullException(nameof(storage));
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-    }
+    private readonly IChunkSerializer _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
+    private readonly IChunkStorage _storage = storage ?? throw new ArgumentNullException(nameof(storage));
+    private readonly ILogger _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
     /// <summary>
     /// Checks if a saved chunk exists in storage.

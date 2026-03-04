@@ -6,10 +6,9 @@ namespace MineRPG.Core.DataLoading;
 /// <summary>
 /// Loads data files from disk and deserializes them with Newtonsoft.Json.
 /// </summary>
-public sealed class JsonDataLoader : IDataLoader
+public sealed class JsonDataLoader(ILogger logger, string dataRoot) : IDataLoader
 {
-    private readonly ILogger _logger;
-    private readonly string _dataRoot;
+    private readonly string _dataRoot = dataRoot ?? throw new ArgumentNullException(nameof(dataRoot));
 
     private static readonly JsonSerializerSettings Settings = new()
     {
@@ -17,12 +16,6 @@ public sealed class JsonDataLoader : IDataLoader
         NullValueHandling = NullValueHandling.Include,
         DateFormatHandling = DateFormatHandling.IsoDateFormat,
     };
-
-    public JsonDataLoader(ILogger logger, string dataRoot)
-    {
-        _logger = logger;
-        _dataRoot = dataRoot ?? throw new ArgumentNullException(nameof(dataRoot));
-    }
 
     /// <summary>
     /// Backwards-compatible constructor. Falls back to DataPath.Root.
@@ -48,7 +41,7 @@ public sealed class JsonDataLoader : IDataLoader
             throw new InvalidOperationException(
                 $"Deserializing '{resolved}' into {typeof(T).Name} returned null.");
 
-        _logger.Debug("Loaded {0} from '{1}'", typeof(T).Name, resolved);
+        logger.Debug("Loaded {0} from '{1}'", typeof(T).Name, resolved);
         return result;
     }
 
@@ -58,7 +51,7 @@ public sealed class JsonDataLoader : IDataLoader
 
         if (!Directory.Exists(resolved))
         {
-            _logger.Warning("DataLoader: Directory '{0}' does not exist — returning empty list.", resolved);
+            logger.Warning("DataLoader: Directory '{0}' does not exist — returning empty list.", resolved);
             return [];
         }
 
@@ -76,11 +69,11 @@ public sealed class JsonDataLoader : IDataLoader
             catch (Exception ex)
             {
                 // Continue loading remaining files — partial failure is recoverable
-                _logger.Error("DataLoader: Failed to load '{0}' as {1}", ex, file, typeof(T).Name);
+                logger.Error("DataLoader: Failed to load '{0}' as {1}", ex, file, typeof(T).Name);
             }
         }
 
-        _logger.Info("DataLoader: Loaded {0} {1} entries from '{2}'", results.Count, typeof(T).Name, resolved);
+        logger.Info("DataLoader: Loaded {0} {1} entries from '{2}'", results.Count, typeof(T).Name, resolved);
         return results;
     }
 

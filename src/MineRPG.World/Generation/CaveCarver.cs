@@ -5,14 +5,9 @@ namespace MineRPG.World.Generation;
 /// Delegates all noise sampling to <see cref="TerrainSampler"/>.
 /// Thread-safe.
 /// </summary>
-public sealed class CaveCarver
+public sealed class CaveCarver(TerrainSampler sampler)
 {
-    private readonly TerrainSampler _sampler;
-
-    public CaveCarver(TerrainSampler sampler)
-    {
-        _sampler = sampler ?? throw new ArgumentNullException(nameof(sampler));
-    }
+    private readonly TerrainSampler _sampler = sampler ?? throw new ArgumentNullException(nameof(sampler));
 
     /// <summary>
     /// Returns true if the voxel at (worldX, worldY, worldZ) should be carved.

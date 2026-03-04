@@ -14,73 +14,70 @@ namespace MineRPG.World.Generation;
 ///
 /// All noise sampling is stateless per-call. Thread-safe.
 /// </summary>
-public sealed class TerrainSampler
+public sealed class TerrainSampler(BiomeSelector biomeSelector, int seed)
 {
     private const int SeaLevel = 62;
 
     // 2D terrain shape channels
-    private readonly FastNoise _continentalnessNoise;
-    private readonly FastNoise _erosionNoise;
-    private readonly FastNoise _peaksValleysNoise;
+    private readonly FastNoise _continentalnessNoise = new(seed ^ 0x11111111);
+    private readonly FastNoise _erosionNoise = new(seed ^ 0x22222222);
+    private readonly FastNoise _peaksValleysNoise = new(seed ^ 0x33333333);
 
     // 3D cave channels
-    private readonly FastNoise _cheeseCaveNoise;
-    private readonly FastNoise _spaghettiNoiseA;
-    private readonly FastNoise _spaghettiNoiseB;
-    private readonly FastNoise _noodleNoiseA;
-    private readonly FastNoise _noodleNoiseB;
+    private readonly FastNoise _cheeseCaveNoise = new(seed ^ 0x44444444);
+    private readonly FastNoise _spaghettiNoiseA = new(seed ^ 0x55555555);
+    private readonly FastNoise _spaghettiNoiseB = new(seed ^ 0x66666666);
+    private readonly FastNoise _noodleNoiseA = new(seed ^ 0x77777777);
+    private readonly FastNoise _noodleNoiseB = new(seed ^ unchecked((int)0x88888888));
 
     // Global splines mapping noise → terrain parameters
-    private readonly HeightSpline _continentalnessSpline;
-    private readonly HeightSpline _erosionSpline;
-    private readonly HeightSpline _peaksValleysSpline;
+    private readonly HeightSpline _continentalnessSpline = new(
+    [
+        new SplinePoint(-1.0f, -50f), // deep ocean
+        new SplinePoint(-0.5f, -25f), // coastal ocean
+        new SplinePoint(-0.1f, 0f),   // shore
+        new SplinePoint(0.0f, 2f),    // beach
+        new SplinePoint(0.3f, 8f),    // lowlands
+        new SplinePoint(0.6f, 12f),   // midlands
+        new SplinePoint(1.0f, 30f),   // inland plateau
+    ]);
+    private readonly HeightSpline _erosionSpline = new(
+    [
+        new SplinePoint(-1.0f, 1.0f),   // uneroded (mountains preserved)
+        new SplinePoint(-0.3f, 0.9f),
+        new SplinePoint(0.0f, 0.7f), // moderate erosion
+        new SplinePoint(0.5f, 0.4f), // quite eroded
+        new SplinePoint(1.0f, 0.2f), // extremely eroded (flat mesa)
+    ]);
+    private readonly HeightSpline _peaksValleysSpline = new(
+    [
+        new SplinePoint(-1.0f, -20f), // deep valley
+        new SplinePoint(-0.5f, -8f),  // valley edge
+        new SplinePoint(0.0f, 0f),    // neutral
+        new SplinePoint(0.3f, 10f),   // gentle hills
+        new SplinePoint(0.6f, 25f),   // hills
+        new SplinePoint(0.9f, 45f),   // mountains
+        new SplinePoint(1.0f, 60f),   // mountain peaks
+    ]);
 
-    private readonly BiomeSelector _biomeSelector;
-
-    public TerrainSampler(BiomeSelector biomeSelector, int seed)
-    {
-        _biomeSelector = biomeSelector;
-
-        _continentalnessNoise = new FastNoise(seed ^ 0x11111111);
-        _erosionNoise = new FastNoise(seed ^ 0x22222222);
-        _peaksValleysNoise = new FastNoise(seed ^ 0x33333333);
-        _cheeseCaveNoise = new FastNoise(seed ^ 0x44444444);
-        _spaghettiNoiseA = new FastNoise(seed ^ 0x55555555);
-        _spaghettiNoiseB = new FastNoise(seed ^ 0x66666666);
-        _noodleNoiseA = new FastNoise(seed ^ 0x77777777);
-        _noodleNoiseB = new FastNoise(seed ^ unchecked((int)0x88888888));
-
-        _continentalnessSpline = new HeightSpline(
-        [
-            new SplinePoint(-1.0f, -50f),   // deep ocean
-            new SplinePoint(-0.5f, -25f),   // coastal ocean
-            new SplinePoint(-0.1f, 0f),     // shore
-            new SplinePoint(0.0f, 2f),      // beach
-            new SplinePoint(0.3f, 8f),      // lowlands
-            new SplinePoint(0.6f, 12f),     // midlands
-            new SplinePoint(1.0f, 30f),     // inland plateau
-        ]);
-
-        _erosionSpline = new HeightSpline(
-        [
-            new SplinePoint(-1.0f, 1.0f),   // uneroded (mountains preserved)
-            new SplinePoint(-0.3f, 0.9f),
-            new SplinePoint(0.0f, 0.7f),    // moderate erosion
-            new SplinePoint(0.5f, 0.4f),    // quite eroded
-            new SplinePoint(1.0f, 0.2f),    // extremely eroded (flat mesa)
-        ]);
-
-        _peaksValleysSpline = new HeightSpline(
-        [
-            new SplinePoint(-1.0f, -20f),   // deep valley
-            new SplinePoint(-0.5f, -8f),    // valley edge
-            new SplinePoint(0.0f, 0f),      // neutral
-            new SplinePoint(0.3f, 10f),     // gentle hills
-            new SplinePoint(0.6f, 25f),     // hills
-            new SplinePoint(0.9f, 45f),     // mountains
-            new SplinePoint(1.0f, 60f),     // mountain peaks
-        ]);
-    }
+    // deep ocean
+    // coastal ocean
+    // shore
+    // beach
+    // lowlands
+    // midlands
+    // inland plateau
+    // uneroded (mountains preserved)
+    // moderate erosion
+    // quite eroded
+    // extremely eroded (flat mesa)
+    // deep valley
+    // valley edge
+    // neutral
+    // gentle hills
+    // hills
+    // mountains
+    // mountain peaks
 
     /// <summary>
     /// Compute all column-level (X,Z) data. Called once per column per chunk.
@@ -106,7 +103,7 @@ public sealed class TerrainSampler
         var rawHeight = SeaLevel + continentalOffset + pvOffset * erosionFactor;
 
         // Biome blending
-        var (primaryBiome, secondaryBiome, blendWeight) = _biomeSelector.SelectWeighted(worldX, worldZ);
+        var (primaryBiome, secondaryBiome, blendWeight) = biomeSelector.SelectWeighted(worldX, worldZ);
 
         // Biome-local height offset via per-biome splines
         var biomeOffsetA = primaryBiome.HeightSpline.Evaluate(pv);

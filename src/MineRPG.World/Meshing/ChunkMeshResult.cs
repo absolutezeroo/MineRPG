@@ -5,18 +5,12 @@ namespace MineRPG.World.Meshing;
 /// and translucent liquid faces. Each is rendered as a distinct
 /// surface with its own material.
 /// </summary>
-public sealed class ChunkMeshResult
+public sealed class ChunkMeshResult(MeshData opaque, MeshData liquid)
 {
     public static readonly ChunkMeshResult Empty = new(MeshData.Empty, MeshData.Empty);
 
-    public MeshData Opaque { get; }
-    public MeshData Liquid { get; }
+    public MeshData Opaque { get; } = opaque;
+    public MeshData Liquid { get; } = liquid;
 
     public bool IsEmpty => Opaque.IsEmpty && Liquid.IsEmpty;
-
-    public ChunkMeshResult(MeshData opaque, MeshData liquid)
-    {
-        Opaque = opaque;
-        Liquid = liquid;
-    }
 }

@@ -169,16 +169,10 @@ public sealed class ChunkSerializer : IChunkSerializer
         return outPos;
     }
 
-    private ref struct SpanWriter
+    private ref struct SpanWriter(Span<byte> buffer)
     {
-        private readonly Span<byte> _buffer;
-        private int _pos;
-
-        public SpanWriter(Span<byte> buffer)
-        {
-            _buffer = buffer;
-            _pos = 0;
-        }
+        private readonly Span<byte> _buffer = buffer;
+        private int _pos = 0;
 
         public void WriteBytes(ReadOnlySpan<byte> data)
         {
@@ -199,16 +193,10 @@ public sealed class ChunkSerializer : IChunkSerializer
         }
     }
 
-    private ref struct SpanReader
+    private ref struct SpanReader(ReadOnlySpan<byte> buffer)
     {
-        private readonly ReadOnlySpan<byte> _buffer;
-        private int _pos;
-
-        public SpanReader(ReadOnlySpan<byte> buffer)
-        {
-            _buffer = buffer;
-            _pos = 0;
-        }
+        private readonly ReadOnlySpan<byte> _buffer = buffer;
+        private int _pos = 0;
 
         public int Remaining => _buffer.Length - _pos;
 
