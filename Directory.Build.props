@@ -9,5 +9,11 @@
     <Optimize Condition="'$(Configuration)' == 'Release'">true</Optimize>
     <!-- Central version pin for GodotSharp NuGet - update here only -->
     <GodotSharpVersion>4.6.1</GodotSharpVersion>
+    <!-- Enable .NET analyzers for code quality enforcement -->
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <AnalysisLevel>latest-All</AnalysisLevel>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <!-- Enforce formatting rules during build (IDE0055 etc.) -->
+    <_SkipUpgradeNetAnalyzersNuGetWarning>true</_SkipUpgradeNetAnalyzersNuGetWarning>
   </PropertyGroup>
 </Project>
