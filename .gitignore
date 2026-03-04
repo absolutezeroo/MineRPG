@@ -2,6 +2,7 @@
 .godot/
 /android/
 /export_presets.cfg
+export.cfg
 
 # .NET / C# build output
 bin/
@@ -10,6 +11,10 @@ obj/
 *.suo
 *.cache
 *.DotSettings
+*.DotSettings.user
+*.userprefs
+*.csproj.nuget.*
+project.nuget.cache
 
 # NuGet
 *.nupkg
@@ -18,7 +23,11 @@ nuget.exe
 # IDE
 .vs/
 .idea/
+.vscode/
 *.sln.iml
+*.swp
+*.swo
+*~
 
 # OS
 Thumbs.db
@@ -37,3 +46,20 @@ Saves/
 
 # Mono / .NET debug
 mono_crash.*.json
+
+# Build artifacts
+builds/
+exports/
+
+# Logs
+*.log
+logs/
+
+# Temporary
+tmp/
+temp/
+
+# Test results
+test-results/
+TestResults/
+coverage/

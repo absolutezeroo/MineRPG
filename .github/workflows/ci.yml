@@ -1,0 +1,158 @@
+name: CI
+
+on:
+  push:
+    branches: [develop]
+  pull_request:
+    branches: [develop, master]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 9
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Restore dependencies
+        run: dotnet restore MineRPG.sln
+
+      - name: Build (Release)
+        run: dotnet build MineRPG.sln -c Release --no-restore
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 9
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Restore dependencies
+        run: dotnet restore MineRPG.sln
+
+      - name: Build (Release)
+        run: dotnet build MineRPG.sln -c Release --no-restore
+
+      - name: Run tests
+        run: >
+          dotnet test src/MineRPG.Tests/MineRPG.Tests.csproj
+          -c Release
+          --no-build
+          --logger "trx;LogFileName=test-results.trx"
+          --collect:"XPlat Code Coverage"
+          --results-directory ./test-results
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: ./test-results/
+          retention-days: 30
+
+      - name: Publish test summary
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: Test Results
+          path: ./test-results/**/*.trx
+          reporter: dotnet-trx
+          fail-on-error: true
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 9
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Restore dependencies
+        run: dotnet restore MineRPG.sln
+
+      - name: Check code format
+        run: |
+          dotnet format MineRPG.sln --verify-no-changes --verbosity diagnostic 2>&1 | tee format-output.txt
+          if [ ${PIPESTATUS[0]} -ne 0 ]; then
+            echo "::error::Code format violations detected. Run 'dotnet format MineRPG.sln' locally to fix."
+            exit 1
+          fi
+
+  analyze:
+    name: Analyze
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check for GD.Print usage
+        run: |
+          RESULTS=$(grep -rn "GD\.Print" --include="*.cs" src/ Bootstrap/ || true)
+          if [ -n "$RESULTS" ]; then
+            echo "::error::GD.Print() found. Use the centralized logging system instead."
+            echo "$RESULTS"
+            exit 1
+          fi
+
+      - name: Check for region directives
+        run: |
+          RESULTS=$(grep -rn "#region\|#endregion" --include="*.cs" src/ Bootstrap/ || true)
+          if [ -n "$RESULTS" ]; then
+            echo "::error::#region directives found. Remove them."
+            echo "$RESULTS"
+            exit 1
+          fi
+
+      - name: Check for blocking async calls
+        run: |
+          RESULTS=$(grep -rn "\.Result\b\|\.Wait()" --include="*.cs" src/ Bootstrap/ || true)
+          # Exclude test project from this check
+          FILTERED=$(echo "$RESULTS" | grep -v "MineRPG.Tests/" || true)
+          if [ -n "$FILTERED" ]; then
+            echo "::error::Blocking async calls (.Result / .Wait()) found outside tests."
+            echo "$FILTERED"
+            exit 1
+          fi
+
+      - name: Check for Console.WriteLine usage
+        run: |
+          RESULTS=$(grep -rn "Console\.Write" --include="*.cs" src/ Bootstrap/ || true)
+          if [ -n "$RESULTS" ]; then
+            echo "::error::Console.Write/WriteLine found. Use the centralized logging system."
+            echo "$RESULTS"
+            exit 1
+          fi
+
+      - name: Check for hardcoded GetNode paths
+        run: |
+          RESULTS=$(grep -rn 'GetNode.*("/' --include="*.cs" src/ Bootstrap/ || true)
+          if [ -n "$RESULTS" ]; then
+            echo "::warning::GetNode with hardcoded paths found. Use [Export] references instead."
+            echo "$RESULTS"
+          fi
