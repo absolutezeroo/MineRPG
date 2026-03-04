@@ -1,4 +1,6 @@
+using System;
 using System.Runtime.CompilerServices;
+
 using MineRPG.Core.Math;
 using MineRPG.World.Chunks;
 
@@ -9,109 +11,176 @@ namespace MineRPG.World.Generation;
 /// Computes blended per-column surface height and per-voxel cave densities.
 ///
 /// Three macro channels (continentalness, erosion, peaks/valleys) are mapped
-/// through global splines and combined to produce terrain height — inspired
+/// through global splines and combined to produce terrain height -- inspired
 /// by Minecraft 1.18+ density-offset approach.
 ///
 /// All noise sampling is stateless per-call. Thread-safe.
 /// </summary>
-public sealed class TerrainSampler(BiomeSelector biomeSelector, int seed)
+public sealed class TerrainSampler
 {
     private const int SeaLevel = 62;
+    private const int MinClampY = 1;
+
+    // Noise frequency and FBM parameters
+    private const float ContinentalnessFrequency = 0.0015f;
+    private const int ContinentalnessOctaves = 4;
+    private const float ContinentalnessLacunarity = 2.0f;
+    private const float ContinentalnessPersistence = 0.5f;
+
+    private const float ErosionFrequency = 0.003f;
+    private const int ErosionOctaves = 3;
+    private const float ErosionLacunarity = 2.2f;
+    private const float ErosionPersistence = 0.45f;
+
+    private const float PeaksValleysFrequency = 0.005f;
+    private const int PeaksValleysOctaves = 5;
+    private const float PeaksValleysLacunarity = 2.0f;
+    private const float PeaksValleysPersistence = 0.5f;
+
+    // Cave noise parameters
+    private const int CheeseCaveOctaves = 2;
+    private const float CheeseCaveFrequency = 0.018f;
+    private const float CheeseCaveLacunarity = 2.0f;
+    private const float CheeseCavePersistence = 0.5f;
+    private const float CheeseCaveThreshold = 0.45f;
+    private const float CaveDensityCarve = 2f;
+
+    private const float SpaghettiScale = 0.025f;
+    private const float SpaghettiThreshold = 0.15f;
+
+    private const float NoodleScale = 0.04f;
+    private const float NoodleThreshold = 0.08f;
+    private const float NoodleDensityCarve = 1f;
+
+    private const int DepthSuppressionOffset = 8;
+    private const float DepthSuppressionRange = 16f;
+    private const float OceanSuppressionMultiplier = 2f;
+    private const float SolidDensity = 1f;
+
+    // Noise seed masks
+    private const int ContinentalnessSeedMask = 0x11111111;
+    private const int ErosionSeedMask = 0x22222222;
+    private const int PeaksValleysSeedMask = 0x33333333;
+    private const int CheeseCaveSeedMask = 0x44444444;
+    private const int SpaghettiASeedMask = 0x55555555;
+    private const int SpaghettiB_SeedMask = 0x66666666;
+    private const int NoodleASeedMask = 0x77777777;
+
+    private static readonly int NoodleBSeedMask = unchecked((int)0x88888888);
 
     // 2D terrain shape channels
-    private readonly FastNoise _continentalnessNoise = new(seed ^ 0x11111111);
-    private readonly FastNoise _erosionNoise = new(seed ^ 0x22222222);
-    private readonly FastNoise _peaksValleysNoise = new(seed ^ 0x33333333);
+    private readonly FastNoise _continentalnessNoise;
+    private readonly FastNoise _erosionNoise;
+    private readonly FastNoise _peaksValleysNoise;
 
     // 3D cave channels
-    private readonly FastNoise _cheeseCaveNoise = new(seed ^ 0x44444444);
-    private readonly FastNoise _spaghettiNoiseA = new(seed ^ 0x55555555);
-    private readonly FastNoise _spaghettiNoiseB = new(seed ^ 0x66666666);
-    private readonly FastNoise _noodleNoiseA = new(seed ^ 0x77777777);
-    private readonly FastNoise _noodleNoiseB = new(seed ^ unchecked((int)0x88888888));
+    private readonly FastNoise _cheeseCaveNoise;
+    private readonly FastNoise _spaghettiNoiseA;
+    private readonly FastNoise _spaghettiNoiseB;
+    private readonly FastNoise _noodleNoiseA;
+    private readonly FastNoise _noodleNoiseB;
 
-    // Global splines mapping noise → terrain parameters
+    private readonly BiomeSelector _biomeSelector;
+
+    // Global splines mapping noise to terrain parameters
     private readonly HeightSpline _continentalnessSpline = new(
     [
-        new SplinePoint(-1.0f, -50f), // deep ocean
-        new SplinePoint(-0.5f, -25f), // coastal ocean
-        new SplinePoint(-0.1f, 0f),   // shore
-        new SplinePoint(0.0f, 2f),    // beach
-        new SplinePoint(0.3f, 8f),    // lowlands
-        new SplinePoint(0.6f, 12f),   // midlands
-        new SplinePoint(1.0f, 30f),   // inland plateau
-    ]);
-    private readonly HeightSpline _erosionSpline = new(
-    [
-        new SplinePoint(-1.0f, 1.0f),   // uneroded (mountains preserved)
-        new SplinePoint(-0.3f, 0.9f),
-        new SplinePoint(0.0f, 0.7f), // moderate erosion
-        new SplinePoint(0.5f, 0.4f), // quite eroded
-        new SplinePoint(1.0f, 0.2f), // extremely eroded (flat mesa)
-    ]);
-    private readonly HeightSpline _peaksValleysSpline = new(
-    [
-        new SplinePoint(-1.0f, -20f), // deep valley
-        new SplinePoint(-0.5f, -8f),  // valley edge
-        new SplinePoint(0.0f, 0f),    // neutral
-        new SplinePoint(0.3f, 10f),   // gentle hills
-        new SplinePoint(0.6f, 25f),   // hills
-        new SplinePoint(0.9f, 45f),   // mountains
-        new SplinePoint(1.0f, 60f),   // mountain peaks
+        new SplinePoint(-1.0f, -50f),
+        new SplinePoint(-0.5f, -25f),
+        new SplinePoint(-0.1f, 0f),
+        new SplinePoint(0.0f, 2f),
+        new SplinePoint(0.3f, 8f),
+        new SplinePoint(0.6f, 12f),
+        new SplinePoint(1.0f, 30f),
     ]);
 
-    // deep ocean
-    // coastal ocean
-    // shore
-    // beach
-    // lowlands
-    // midlands
-    // inland plateau
-    // uneroded (mountains preserved)
-    // moderate erosion
-    // quite eroded
-    // extremely eroded (flat mesa)
-    // deep valley
-    // valley edge
-    // neutral
-    // gentle hills
-    // hills
-    // mountains
-    // mountain peaks
+    private readonly HeightSpline _erosionSpline = new(
+    [
+        new SplinePoint(-1.0f, 1.0f),
+        new SplinePoint(-0.3f, 0.9f),
+        new SplinePoint(0.0f, 0.7f),
+        new SplinePoint(0.5f, 0.4f),
+        new SplinePoint(1.0f, 0.2f),
+    ]);
+
+    private readonly HeightSpline _peaksValleysSpline = new(
+    [
+        new SplinePoint(-1.0f, -20f),
+        new SplinePoint(-0.5f, -8f),
+        new SplinePoint(0.0f, 0f),
+        new SplinePoint(0.3f, 10f),
+        new SplinePoint(0.6f, 25f),
+        new SplinePoint(0.9f, 45f),
+        new SplinePoint(1.0f, 60f),
+    ]);
+
+    /// <summary>
+    /// Creates a terrain sampler with the given biome selector and world seed.
+    /// </summary>
+    /// <param name="biomeSelector">Biome selector for blending terrain heights.</param>
+    /// <param name="seed">World seed for noise generation.</param>
+    public TerrainSampler(BiomeSelector biomeSelector, int seed)
+    {
+        _biomeSelector = biomeSelector;
+        _continentalnessNoise = new FastNoise(seed ^ ContinentalnessSeedMask);
+        _erosionNoise = new FastNoise(seed ^ ErosionSeedMask);
+        _peaksValleysNoise = new FastNoise(seed ^ PeaksValleysSeedMask);
+        _cheeseCaveNoise = new FastNoise(seed ^ CheeseCaveSeedMask);
+        _spaghettiNoiseA = new FastNoise(seed ^ SpaghettiASeedMask);
+        _spaghettiNoiseB = new FastNoise(seed ^ SpaghettiB_SeedMask);
+        _noodleNoiseA = new FastNoise(seed ^ NoodleASeedMask);
+        _noodleNoiseB = new FastNoise(seed ^ NoodleBSeedMask);
+    }
 
     /// <summary>
     /// Compute all column-level (X,Z) data. Called once per column per chunk.
     /// </summary>
+    /// <param name="worldX">World X coordinate.</param>
+    /// <param name="worldZ">World Z coordinate.</param>
+    /// <returns>Precomputed terrain column data.</returns>
     public TerrainColumn SampleColumn(int worldX, int worldZ)
     {
         // Sample the three macro noise channels
-        var continental = _continentalnessNoise.FractionalBrownianMotion2D(
-            worldX, worldZ, octaves: 4, frequency: 0.0015f, lacunarity: 2.0f, persistence: 0.5f);
+        float continental = _continentalnessNoise.FractionalBrownianMotion2D(
+            worldX, worldZ,
+            octaves: ContinentalnessOctaves,
+            frequency: ContinentalnessFrequency,
+            lacunarity: ContinentalnessLacunarity,
+            persistence: ContinentalnessPersistence);
 
-        var erosion = _erosionNoise.FractionalBrownianMotion2D(
-            worldX, worldZ, octaves: 3, frequency: 0.003f, lacunarity: 2.2f, persistence: 0.45f);
+        float erosion = _erosionNoise.FractionalBrownianMotion2D(
+            worldX, worldZ,
+            octaves: ErosionOctaves,
+            frequency: ErosionFrequency,
+            lacunarity: ErosionLacunarity,
+            persistence: ErosionPersistence);
 
-        var pv = _peaksValleysNoise.FractionalBrownianMotion2D(
-            worldX, worldZ, octaves: 5, frequency: 0.005f, lacunarity: 2.0f, persistence: 0.5f);
+        float peaksValleys = _peaksValleysNoise.FractionalBrownianMotion2D(
+            worldX, worldZ,
+            octaves: PeaksValleysOctaves,
+            frequency: PeaksValleysFrequency,
+            lacunarity: PeaksValleysLacunarity,
+            persistence: PeaksValleysPersistence);
 
         // Map through global splines
-        var continentalOffset = _continentalnessSpline.Evaluate(continental);
-        var erosionFactor = _erosionSpline.Evaluate(erosion);
-        var pvOffset = _peaksValleysSpline.Evaluate(pv);
+        float continentalOffset = _continentalnessSpline.Evaluate(continental);
+        float erosionFactor = _erosionSpline.Evaluate(erosion);
+        float peaksValleysOffset = _peaksValleysSpline.Evaluate(peaksValleys);
 
         // Combine: erosion modulates the peaks/valleys amplitude
-        var rawHeight = SeaLevel + continentalOffset + pvOffset * erosionFactor;
+        float rawHeight = SeaLevel + continentalOffset + peaksValleysOffset * erosionFactor;
 
         // Biome blending
-        var (primaryBiome, secondaryBiome, blendWeight) = biomeSelector.SelectWeighted(worldX, worldZ);
+        (BiomeDefinition primaryBiome, BiomeDefinition secondaryBiome, float blendWeight) =
+            _biomeSelector.SelectWeighted(worldX, worldZ);
 
         // Biome-local height offset via per-biome splines
-        var biomeOffsetA = primaryBiome.HeightSpline.Evaluate(pv);
-        var biomeOffsetB = secondaryBiome.HeightSpline.Evaluate(pv);
-        var blendedBiomeOffset = Lerp(biomeOffsetA, biomeOffsetB, blendWeight);
+        float biomeOffsetA = primaryBiome.HeightSpline.Evaluate(peaksValleys);
+        float biomeOffsetB = secondaryBiome.HeightSpline.Evaluate(peaksValleys);
+        float blendedBiomeOffset = Lerp(biomeOffsetA, biomeOffsetB, blendWeight);
 
-        var finalHeight = (int)MathF.Round(rawHeight + blendedBiomeOffset);
-        finalHeight = Math.Clamp(finalHeight, 1, ChunkData.SizeY - 2);
+        int finalHeight = (int)MathF.Round(rawHeight + blendedBiomeOffset);
+        finalHeight = Math.Clamp(finalHeight, MinClampY, ChunkData.SizeY - 2);
 
         return new TerrainColumn
         {
@@ -128,43 +197,66 @@ public sealed class TerrainSampler(BiomeSelector biomeSelector, int seed)
     /// Returns cave density at a specific voxel. Negative values should be carved.
     /// Combines cheese (large caverns), spaghetti (worm tunnels), and noodle (thin tunnels).
     /// </summary>
+    /// <param name="worldX">World X coordinate.</param>
+    /// <param name="worldY">World Y coordinate.</param>
+    /// <param name="worldZ">World Z coordinate.</param>
+    /// <param name="surfaceY">Surface height at this column.</param>
+    /// <param name="continentalness">Continentalness noise value for ocean suppression.</param>
+    /// <returns>Cave density value. Negative means carved.</returns>
     public float SampleCaveDensity(int worldX, int worldY, int worldZ, int surfaceY, float continentalness)
     {
-        var density = 1f; // start solid
+        float density = SolidDensity;
 
         // Cheese caves: large open caverns
-        var cheese = _cheeseCaveNoise.FractionalBrownianMotion3D(
+        float cheese = _cheeseCaveNoise.FractionalBrownianMotion3D(
             worldX, worldY, worldZ,
-            octaves: 2, frequency: 0.018f, lacunarity: 2.0f, persistence: 0.5f);
+            octaves: CheeseCaveOctaves,
+            frequency: CheeseCaveFrequency,
+            lacunarity: CheeseCaveLacunarity,
+            persistence: CheeseCavePersistence);
 
-        if (cheese > 0.45f)
-            density -= 2f;
+        if (cheese > CheeseCaveThreshold)
+        {
+            density -= CaveDensityCarve;
+        }
 
         // Spaghetti caves: worm-like tunnels (two orthogonal noise channels)
-        var spaghA = _spaghettiNoiseA.Sample3D(worldX * 0.025f, worldY * 0.025f, worldZ * 0.025f);
-        var spaghB = _spaghettiNoiseB.Sample3D(worldX * 0.025f, worldY * 0.025f, worldZ * 0.025f);
-        var spaghTunnel = MathF.Sqrt(spaghA * spaghA + spaghB * spaghB);
+        float spaghettiA = _spaghettiNoiseA.Sample3D(
+            worldX * SpaghettiScale, worldY * SpaghettiScale, worldZ * SpaghettiScale);
+        float spaghettiB = _spaghettiNoiseB.Sample3D(
+            worldX * SpaghettiScale, worldY * SpaghettiScale, worldZ * SpaghettiScale);
+        float spaghettiTunnel = MathF.Sqrt(spaghettiA * spaghettiA + spaghettiB * spaghettiB);
 
-        if (spaghTunnel < 0.15f)
-            density -= 2f;
+        if (spaghettiTunnel < SpaghettiThreshold)
+        {
+            density -= CaveDensityCarve;
+        }
 
         // Noodle caves: thinner tunnels using independent noise channels
-        var noodleA = _noodleNoiseA.Sample3D(worldX * 0.04f, worldY * 0.04f, worldZ * 0.04f);
-        var noodleB = _noodleNoiseB.Sample3D(worldX * 0.04f, worldY * 0.04f, worldZ * 0.04f);
-        var noodleTunnel = MathF.Sqrt(noodleA * noodleA + noodleB * noodleB);
+        float noodleA = _noodleNoiseA.Sample3D(
+            worldX * NoodleScale, worldY * NoodleScale, worldZ * NoodleScale);
+        float noodleB = _noodleNoiseB.Sample3D(
+            worldX * NoodleScale, worldY * NoodleScale, worldZ * NoodleScale);
+        float noodleTunnel = MathF.Sqrt(noodleA * noodleA + noodleB * noodleB);
 
-        if (noodleTunnel < 0.08f)
-            density -= 1f;
+        if (noodleTunnel < NoodleThreshold)
+        {
+            density -= NoodleDensityCarve;
+        }
 
         // Depth suppression: caves rarer near surface (top 24 blocks of underground)
-        var depthFactor = Math.Clamp((surfaceY - worldY - 8) / 16f, 0f, 1f);
+        float depthFactor = Math.Clamp(
+            (surfaceY - worldY - DepthSuppressionOffset) / DepthSuppressionRange, 0f, 1f);
 
         // Ocean suppression: no caves under deep ocean
-        var oceanSuppression = Math.Clamp(continentalness * 2f + 1f, 0f, 1f);
+        float oceanSuppression = Math.Clamp(
+            continentalness * OceanSuppressionMultiplier + SolidDensity, 0f, 1f);
 
         // Only apply carving if suppression allows it
-        if (density < 1f)
-            density = 1f + (density - 1f) * depthFactor * oceanSuppression;
+        if (density < SolidDensity)
+        {
+            density = SolidDensity + (density - SolidDensity) * depthFactor * oceanSuppression;
+        }
 
         return density;
     }

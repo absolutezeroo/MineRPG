@@ -1,5 +1,8 @@
+using System;
 using System.Buffers;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+
 using MineRPG.World.Blocks;
 using MineRPG.World.Chunks;
 
@@ -24,73 +27,117 @@ namespace MineRPG.World.Meshing;
 ///   A   = vertex ambient occlusion (0 = fully occluded, 1 = fully lit).
 ///
 /// Thread-safe: all state is local to each Build() call.
+///
+/// NOTE: This file exceeds 300 lines because the greedy meshing algorithm,
+/// AO computation, and quad emission are tightly coupled. Splitting would
+/// fragment a single cohesive algorithm across files with no clarity gain.
 /// </summary>
-public sealed class ChunkMeshBuilder(BlockRegistry blockRegistry) : IChunkMeshBuilder
+public sealed class ChunkMeshBuilder : IChunkMeshBuilder
 {
     private const int ChunkSizeX = ChunkData.SizeX;
     private const int ChunkSizeY = ChunkData.SizeY;
     private const int ChunkSizeZ = ChunkData.SizeZ;
+    private const int FaceDirectionCount = 6;
+    private const int VerticesPerQuad = 4;
+    private const int ComponentsPerVertex = 3;
+    private const int UvComponentsPerFace = 4;
+    private const int NeighborCount = 4;
+    private const int AxisX = 0;
+    private const int AxisY = 1;
+    private const int AxisZ = 2;
+    private const int InitialOpaqueCapacity = 4096;
+    private const int InitialLiquidCapacity = 512;
+    private const float AoOcclusionFull = 0f;
+    private const float AoDivisor = 3f;
 
+    private readonly BlockRegistry _blockRegistry;
+
+    /// <summary>
+    /// Creates a chunk mesh builder with the given block registry.
+    /// </summary>
+    /// <param name="blockRegistry">Block registry for looking up block definitions.</param>
+    public ChunkMeshBuilder(BlockRegistry blockRegistry)
+    {
+        _blockRegistry = blockRegistry;
+    }
+
+    /// <summary>
+    /// Builds mesh data for a chunk using greedy meshing with per-vertex AO.
+    /// </summary>
+    /// <param name="chunk">The chunk data to mesh.</param>
+    /// <param name="neighbors">Data from the 4 cardinal neighbor chunks.</param>
+    /// <returns>Separate mesh data for opaque and liquid surfaces.</returns>
     public ChunkMeshResult Build(ChunkData chunk, ChunkData?[] neighbors)
     {
-        var opaque = new MeshAccumulator(4096);
-        var liquid = new MeshAccumulator(512);
+        MeshAccumulator opaque = new(InitialOpaqueCapacity);
+        MeshAccumulator liquid = new(InitialLiquidCapacity);
 
-        for (var faceDir = 0; faceDir < 6; faceDir++)
+        for (int faceDirection = 0; faceDirection < FaceDirectionCount; faceDirection++)
         {
-            BuildFaceDirection(faceDir, chunk, neighbors, opaque, liquid);
+            BuildFaceDirection(faceDirection, chunk, neighbors, opaque, liquid);
         }
 
         return new ChunkMeshResult(opaque.ToMeshData(), liquid.ToMeshData());
     }
 
     private void BuildFaceDirection(
-        int faceDir,
+        int faceDirection,
         ChunkData chunk,
         ChunkData?[] neighbors,
         MeshAccumulator opaque,
         MeshAccumulator liquid)
     {
-        GetAxes(faceDir, out var d, out var u, out var v);
-        var (nx, ny, nz) = GetNormal(faceDir);
+        GetAxes(faceDirection, out int depthAxis, out int uAxis, out int vAxis);
+        (int normalX, int normalY, int normalZ) = GetNormal(faceDirection);
 
-        var sliceCount = GetDimension(d);
-        var uCount = GetDimension(u);
-        var vCount = GetDimension(v);
+        int sliceCount = GetDimension(depthAxis);
+        int uCount = GetDimension(uAxis);
+        int vCount = GetDimension(vAxis);
 
-        var mask = ArrayPool<ushort>.Shared.Rent(uCount * vCount);
+        ushort[] mask = ArrayPool<ushort>.Shared.Rent(uCount * vCount);
 
         try
         {
-            for (var slice = 0; slice < sliceCount; slice++)
+            for (int slice = 0; slice < sliceCount; slice++)
             {
                 Array.Clear(mask, 0, uCount * vCount);
 
-                for (var ui = 0; ui < uCount; ui++)
-                for (var vi = 0; vi < vCount; vi++)
+                for (int ui = 0; ui < uCount; ui++)
                 {
-                    ResolveCoord(d, u, v, slice, ui, vi, out var px, out var py, out var pz);
-                    var blockId = chunk.GetBlock(px, py, pz);
-                    if (blockId == 0)
-                        continue;
-
-                    var def = blockRegistry.Get(blockId);
-                    if (def.IsTransparent && !def.IsLiquid)
-                        continue;
-
-                    var neighborBlockId = SampleBlock(chunk, neighbors, px + nx, py + ny, pz + nz);
-                    var neighborDef = blockRegistry.Get(neighborBlockId);
-
-                    // Emit face if neighbor is air, or transparent and not the same block type
-                    // (prevents interior liquid-to-liquid faces causing z-fighting)
-                    if (neighborBlockId == 0 || (neighborDef.IsTransparent && neighborBlockId != blockId))
+                    for (int vi = 0; vi < vCount; vi++)
                     {
-                        mask[ui + vi * uCount] = blockId;
+                        ResolveCoord(depthAxis, uAxis, vAxis, slice, ui, vi,
+                            out int positionX, out int positionY, out int positionZ);
+                        ushort blockId = chunk.GetBlock(positionX, positionY, positionZ);
+
+                        if (blockId == 0)
+                        {
+                            continue;
+                        }
+
+                        BlockDefinition definition = _blockRegistry.Get(blockId);
+
+                        if (definition.IsTransparent && !definition.IsLiquid)
+                        {
+                            continue;
+                        }
+
+                        ushort neighborBlockId = SampleBlock(chunk, neighbors,
+                            positionX + normalX, positionY + normalY, positionZ + normalZ);
+                        BlockDefinition neighborDefinition = _blockRegistry.Get(neighborBlockId);
+
+                        // Emit face if neighbor is air, or transparent and not the same block type
+                        // (prevents interior liquid-to-liquid faces causing z-fighting)
+                        if (neighborBlockId == 0
+                            || (neighborDefinition.IsTransparent && neighborBlockId != blockId))
+                        {
+                            mask[ui + vi * uCount] = blockId;
+                        }
                     }
                 }
 
-                GreedyMerge(mask, uCount, vCount, faceDir, d, u, v, slice, nx, ny, nz,
-                    chunk, neighbors, opaque, liquid);
+                GreedyMerge(mask, uCount, vCount, faceDirection, depthAxis, uAxis, vAxis, slice,
+                    normalX, normalY, normalZ, chunk, neighbors, opaque, liquid);
             }
         }
         finally
@@ -101,63 +148,80 @@ public sealed class ChunkMeshBuilder(BlockRegistry blockRegistry) : IChunkMeshBu
 
     private void GreedyMerge(
         ushort[] mask, int uCount, int vCount,
-        int faceDir, int d, int u, int v, int slice,
-        int nx, int ny, int nz,
+        int faceDirection, int depthAxis, int uAxis, int vAxis, int slice,
+        int normalX, int normalY, int normalZ,
         ChunkData chunk, ChunkData?[] neighbors,
         MeshAccumulator opaque, MeshAccumulator liquid)
     {
-        var merged = ArrayPool<bool>.Shared.Rent(uCount * vCount);
+        bool[] merged = ArrayPool<bool>.Shared.Rent(uCount * vCount);
         Array.Clear(merged, 0, uCount * vCount);
 
         try
         {
-            for (var vi = 0; vi < vCount; vi++)
-            for (var ui = 0; ui < uCount; ui++)
+            for (int vi = 0; vi < vCount; vi++)
             {
-                var idx = ui + vi * uCount;
-                if (mask[idx] == 0 || merged[idx])
-                    continue;
-
-                var blockId = mask[idx];
-
-                // Expand in u direction
-                var width = 1;
-                while (ui + width < uCount
-                       && mask[(ui + width) + vi * uCount] == blockId
-                       && !merged[(ui + width) + vi * uCount])
-                    width++;
-
-                // Expand in v direction
-                var height = 1;
-                var canExpand = true;
-                while (canExpand && vi + height < vCount)
+                for (int ui = 0; ui < uCount; ui++)
                 {
-                    for (var k = 0; k < width; k++)
+                    int index = ui + vi * uCount;
+
+                    if (mask[index] == 0 || merged[index])
                     {
-                        var mi = (ui + k) + (vi + height) * uCount;
-                        if (mask[mi] != blockId || merged[mi])
+                        continue;
+                    }
+
+                    ushort blockId = mask[index];
+
+                    // Expand in u direction
+                    int width = 1;
+
+                    while (ui + width < uCount
+                           && mask[(ui + width) + vi * uCount] == blockId
+                           && !merged[(ui + width) + vi * uCount])
+                    {
+                        width++;
+                    }
+
+                    // Expand in v direction
+                    int height = 1;
+                    bool canExpand = true;
+
+                    while (canExpand && vi + height < vCount)
+                    {
+                        for (int k = 0; k < width; k++)
                         {
-                            canExpand = false;
-                            break;
+                            int mergeIndex = (ui + k) + (vi + height) * uCount;
+
+                            if (mask[mergeIndex] != blockId || merged[mergeIndex])
+                            {
+                                canExpand = false;
+                                break;
+                            }
+                        }
+
+                        if (canExpand)
+                        {
+                            height++;
                         }
                     }
 
-                    if (canExpand)
-                        height++;
+                    // Mark as merged
+                    for (int dv = 0; dv < height; dv++)
+                    {
+                        for (int du = 0; du < width; du++)
+                        {
+                            merged[(ui + du) + (vi + dv) * uCount] = true;
+                        }
+                    }
+
+                    // Route to opaque or liquid accumulator
+                    BlockDefinition definition = _blockRegistry.Get(blockId);
+                    MeshAccumulator target = definition.IsLiquid ? liquid : opaque;
+                    int offset = (normalX + normalY + normalZ) > 0 ? 1 : 0;
+
+                    EmitQuad(depthAxis, uAxis, vAxis, slice, offset, ui, vi, width, height,
+                        normalX, normalY, normalZ, definition, faceDirection,
+                        chunk, neighbors, target);
                 }
-
-                // Mark as merged
-                for (var dv = 0; dv < height; dv++)
-                for (var du = 0; du < width; du++)
-                    merged[(ui + du) + (vi + dv) * uCount] = true;
-
-                // Route to opaque or liquid accumulator
-                var def = blockRegistry.Get(blockId);
-                var target = def.IsLiquid ? liquid : opaque;
-                var offset = (nx + ny + nz) > 0 ? 1 : 0;
-
-                EmitQuad(d, u, v, slice, offset, ui, vi, width, height,
-                    nx, ny, nz, def, faceDir, chunk, neighbors, target);
             }
         }
         finally
@@ -167,22 +231,22 @@ public sealed class ChunkMeshBuilder(BlockRegistry blockRegistry) : IChunkMeshBu
     }
 
     private void EmitQuad(
-        int d, int u, int v,
+        int depthAxis, int uAxis, int vAxis,
         int slice, int offset,
         int ui, int vi, int width, int height,
-        int nx, int ny, int nz,
-        BlockDefinition def, int faceDir,
+        int normalX, int normalY, int normalZ,
+        BlockDefinition definition, int faceDirection,
         ChunkData chunk, ChunkData?[] neighbors,
         MeshAccumulator target)
     {
         // Corner offsets: (du, dv) for each of the 4 quad vertices
-        Span<int> cornerU = stackalloc int[4];
-        Span<int> cornerV = stackalloc int[4];
+        Span<int> cornerU = stackalloc int[VerticesPerQuad];
+        Span<int> cornerV = stackalloc int[VerticesPerQuad];
 
         // Godot uses CW front-face (Vulkan convention). The Z-axis permutation
         // (Z,X,Y) is even, unlike X(X,Z,Y) and Y(Y,X,Z) which are odd.
         // This inverts the Z flip compared to X/Y: flip for -X, -Y, +Z.
-        if ((nx + ny - nz) < 0)
+        if ((normalX + normalY - normalZ) < 0)
         {
             cornerU[0] = 0;      cornerV[0] = 0;
             cornerU[1] = 0;      cornerV[1] = height;
@@ -199,14 +263,14 @@ public sealed class ChunkMeshBuilder(BlockRegistry blockRegistry) : IChunkMeshBu
 
         // UV = tiling coords so the shader can fract() per block.
         // UV2 = atlas tile origin.
-        float tileU0 = def.FaceUvs[faceDir * 4 + 0];
-        float tileV0 = def.FaceUvs[faceDir * 4 + 1];
+        float tileU0 = definition.FaceUvs[faceDirection * UvComponentsPerFace + 0];
+        float tileV0 = definition.FaceUvs[faceDirection * UvComponentsPerFace + 1];
 
         // Tiling UV corners must match vertex corners 1:1.
-        Span<float> tilingU = stackalloc float[4];
-        Span<float> tilingV = stackalloc float[4];
+        Span<float> tilingU = stackalloc float[VerticesPerQuad];
+        Span<float> tilingV = stackalloc float[VerticesPerQuad];
 
-        if ((nx + ny - nz) < 0)
+        if ((normalX + normalY - normalZ) < 0)
         {
             tilingU[0] = 0;     tilingV[0] = 0;
             tilingU[1] = 0;     tilingV[1] = height;
@@ -223,34 +287,34 @@ public sealed class ChunkMeshBuilder(BlockRegistry blockRegistry) : IChunkMeshBu
 
         // Side faces (v-axis = Y): flip tiling V so textures aren't upside-down.
         // Godot UV v=0 is top of texture, but world Y=0 is bottom of block.
-        if (v == 1)
+        if (vAxis == AxisY)
         {
-            for (var i = 0; i < 4; i++)
+            for (int i = 0; i < VerticesPerQuad; i++)
+            {
                 tilingV[i] = height - tilingV[i];
+            }
         }
 
-        // Compute per-vertex AO. The air level is one step from the solid block
-        // in the normal direction.
-        var airD = slice + ((nx + ny + nz) > 0 ? 1 : -1);
-        Span<float> ao = stackalloc float[4];
+        // Compute per-vertex AO
+        int airDepth = slice + ((normalX + normalY + normalZ) > 0 ? 1 : -1);
+        Span<float> ambientOcclusion = stackalloc float[VerticesPerQuad];
+        int baseVertex = target.Vertices.Count / ComponentsPerVertex;
 
-        var baseVertex = target.Vertices.Count / 3;
-
-        for (var i = 0; i < 4; i++)
+        for (int i = 0; i < VerticesPerQuad; i++)
         {
-            var du = cornerU[i];
-            var dv = cornerV[i];
+            int du = cornerU[i];
+            int dv = cornerV[i];
 
-            ResolveCoord(d, u, v, slice + offset, ui + du, vi + dv,
-                out var cx, out var cy, out var cz);
+            ResolveCoord(depthAxis, uAxis, vAxis, slice + offset, ui + du, vi + dv,
+                out int cornerX, out int cornerY, out int cornerZ);
 
-            target.Vertices.Add(cx);
-            target.Vertices.Add(cy);
-            target.Vertices.Add(cz);
+            target.Vertices.Add(cornerX);
+            target.Vertices.Add(cornerY);
+            target.Vertices.Add(cornerZ);
 
-            target.Normals.Add(nx);
-            target.Normals.Add(ny);
-            target.Normals.Add(nz);
+            target.Normals.Add(normalX);
+            target.Normals.Add(normalY);
+            target.Normals.Add(normalZ);
 
             target.Uvs.Add(tilingU[i]);
             target.Uvs.Add(tilingV[i]);
@@ -259,18 +323,19 @@ public sealed class ChunkMeshBuilder(BlockRegistry blockRegistry) : IChunkMeshBu
             target.Uv2s.Add(tileV0);
 
             // Compute AO for this vertex
-            ao[i] = ComputeVertexAO(chunk, neighbors, d, u, v, airD, ui + du, vi + dv, du, dv);
+            ambientOcclusion[i] = ComputeVertexAO(chunk, neighbors,
+                depthAxis, uAxis, vAxis, airDepth, ui + du, vi + dv, du, dv);
 
-            target.Colors.Add(def.TintR);
-            target.Colors.Add(def.TintG);
-            target.Colors.Add(def.TintB);
-            target.Colors.Add(ao[i]);
+            target.Colors.Add(definition.TintR);
+            target.Colors.Add(definition.TintG);
+            target.Colors.Add(definition.TintB);
+            target.Colors.Add(ambientOcclusion[i]);
         }
 
         // Quad flip: choose the diagonal that minimizes AO interpolation artifacts.
         // When ao[0]+ao[2] > ao[1]+ao[3], the standard diagonal produces smoother
         // interpolation. Otherwise flip to reduce the visible seam.
-        if (ao[0] + ao[2] > ao[1] + ao[3])
+        if (ambientOcclusion[0] + ambientOcclusion[2] > ambientOcclusion[1] + ambientOcclusion[3])
         {
             target.Indices.Add(baseVertex);
             target.Indices.Add(baseVertex + 1);
@@ -302,116 +367,156 @@ public sealed class ChunkMeshBuilder(BlockRegistry blockRegistry) : IChunkMeshBu
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private float ComputeVertexAO(
         ChunkData chunk, ChunkData?[] neighbors,
-        int d, int u, int v,
-        int airD, int uVertex, int vVertex,
+        int depthAxis, int uAxis, int vAxis,
+        int airDepth, int uVertex, int vVertex,
         int du, int dv)
     {
         // Determine which blocks around this vertex to check.
         // The vertex sits at the corner of 4 blocks. One is known air (the face block).
         // The "other" direction points away from the quad interior.
-        var uOther = (du == 0) ? -1 : 0;
-        var vOther = (dv == 0) ? -1 : 0;
-        var uAir = (du == 0) ? 0 : -1;
-        var vAir = (dv == 0) ? 0 : -1;
+        int uOther = (du == 0) ? -1 : 0;
+        int vOther = (dv == 0) ? -1 : 0;
+        int uAir = (du == 0) ? 0 : -1;
+        int vAir = (dv == 0) ? 0 : -1;
 
-        var s1 = IsSolidAt(chunk, neighbors, d, u, v, airD, uVertex + uOther, vVertex + vAir);
-        var s2 = IsSolidAt(chunk, neighbors, d, u, v, airD, uVertex + uAir, vVertex + vOther);
+        bool side1 = IsSolidAt(chunk, neighbors, depthAxis, uAxis, vAxis,
+            airDepth, uVertex + uOther, vVertex + vAir);
+        bool side2 = IsSolidAt(chunk, neighbors, depthAxis, uAxis, vAxis,
+            airDepth, uVertex + uAir, vVertex + vOther);
 
-        if (s1 && s2)
-            return 0f;
+        if (side1 && side2)
+        {
+            return AoOcclusionFull;
+        }
 
-        var corner = IsSolidAt(chunk, neighbors, d, u, v, airD, uVertex + uOther, vVertex + vOther);
-        var count = (s1 ? 1 : 0) + (s2 ? 1 : 0) + (corner ? 1 : 0);
-        return (3 - count) / 3f;
+        bool corner = IsSolidAt(chunk, neighbors, depthAxis, uAxis, vAxis,
+            airDepth, uVertex + uOther, vVertex + vOther);
+        int count = (side1 ? 1 : 0) + (side2 ? 1 : 0) + (corner ? 1 : 0);
+        return (AoDivisor - count) / AoDivisor;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private bool IsSolidAt(
         ChunkData chunk, ChunkData?[] neighbors,
-        int dAxis, int uAxis, int vAxis,
-        int dVal, int uVal, int vVal)
+        int depthAxis, int uAxis, int vAxis,
+        int depthValue, int uValue, int vValue)
     {
         int x = 0, y = 0, z = 0;
-        SetAxis(dAxis, dVal, ref x, ref y, ref z);
-        SetAxis(uAxis, uVal, ref x, ref y, ref z);
-        SetAxis(vAxis, vVal, ref x, ref y, ref z);
+        SetAxis(depthAxis, depthValue, ref x, ref y, ref z);
+        SetAxis(uAxis, uValue, ref x, ref y, ref z);
+        SetAxis(vAxis, vValue, ref x, ref y, ref z);
 
-        var blockId = SampleBlock(chunk, neighbors, x, y, z);
-        return blockId != 0 && blockRegistry.Get(blockId).IsSolid;
+        ushort blockId = SampleBlock(chunk, neighbors, x, y, z);
+        return blockId != 0 && _blockRegistry.Get(blockId).IsSolid;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void SetAxis(int axis, int val, ref int x, ref int y, ref int z)
+    private static void SetAxis(int axis, int value, ref int x, ref int y, ref int z)
     {
         switch (axis)
         {
-            case 0: x = val; break;
-            case 1: y = val; break;
-            default: z = val; break;
+            case AxisX: x = value; break;
+            case AxisY: y = value; break;
+            default: z = value; break;
         }
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void ResolveCoord(int d, int u, int v, int dVal, int uVal, int vVal,
+    private static void ResolveCoord(int depthAxis, int uAxis, int vAxis,
+        int depthValue, int uValue, int vValue,
         out int x, out int y, out int z)
     {
         x = 0;
         y = 0;
         z = 0;
-        SetAxis(d, dVal, ref x, ref y, ref z);
-        SetAxis(u, uVal, ref x, ref y, ref z);
-        SetAxis(v, vVal, ref x, ref y, ref z);
+        SetAxis(depthAxis, depthValue, ref x, ref y, ref z);
+        SetAxis(uAxis, uValue, ref x, ref y, ref z);
+        SetAxis(vAxis, vValue, ref x, ref y, ref z);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static int GetDimension(int axis) => axis switch
     {
-        0 => ChunkSizeX,
-        1 => ChunkSizeY,
+        AxisX => ChunkSizeX,
+        AxisY => ChunkSizeY,
         _ => ChunkSizeZ,
     };
 
-    private static ushort SampleBlock(ChunkData main, ChunkData?[] neighbors, int wx, int wy, int wz)
+    private static ushort SampleBlock(ChunkData main, ChunkData?[] neighbors, int worldX, int worldY, int worldZ)
     {
-        if (wy is < 0 or >= ChunkData.SizeY)
+        if (worldY is < 0 or >= ChunkData.SizeY)
+        {
             return 0;
+        }
 
-        if (ChunkData.IsInBounds(wx, wy, wz))
-            return main.GetBlock(wx, wy, wz);
+        if (ChunkData.IsInBounds(worldX, worldY, worldZ))
+        {
+            return main.GetBlock(worldX, worldY, worldZ);
+        }
 
-        int nx = 0, nz = 0;
-        int lx = wx, lz = wz;
+        int neighborDirectionX = 0, neighborDirectionZ = 0;
+        int localX = worldX, localZ = worldZ;
 
-        if (wx < 0) { nx = -1; lx = wx + ChunkData.SizeX; }
-        else if (wx >= ChunkData.SizeX) { nx = 1; lx = wx - ChunkData.SizeX; }
-        if (wz < 0) { nz = -1; lz = wz + ChunkData.SizeZ; }
-        else if (wz >= ChunkData.SizeZ) { nz = 1; lz = wz - ChunkData.SizeZ; }
+        if (worldX < 0)
+        {
+            neighborDirectionX = -1;
+            localX = worldX + ChunkData.SizeX;
+        }
+        else if (worldX >= ChunkData.SizeX)
+        {
+            neighborDirectionX = 1;
+            localX = worldX - ChunkData.SizeX;
+        }
+
+        if (worldZ < 0)
+        {
+            neighborDirectionZ = -1;
+            localZ = worldZ + ChunkData.SizeZ;
+        }
+        else if (worldZ >= ChunkData.SizeZ)
+        {
+            neighborDirectionZ = 1;
+            localZ = worldZ - ChunkData.SizeZ;
+        }
 
         // neighbors: [0]=+X, [1]=-X, [2]=+Z, [3]=-Z
         ChunkData? neighbor = null;
-        if (nx == 1) neighbor = neighbors[0];
-        else if (nx == -1) neighbor = neighbors[1];
-        else if (nz == 1) neighbor = neighbors[2];
-        else if (nz == -1) neighbor = neighbors[3];
 
-        return neighbor?.GetBlock(lx, wy, lz) ?? (ushort)0;
+        if (neighborDirectionX == 1)
+        {
+            neighbor = neighbors[0];
+        }
+        else if (neighborDirectionX == -1)
+        {
+            neighbor = neighbors[1];
+        }
+        else if (neighborDirectionZ == 1)
+        {
+            neighbor = neighbors[2];
+        }
+        else if (neighborDirectionZ == -1)
+        {
+            neighbor = neighbors[3];
+        }
+
+        return neighbor?.GetBlock(localX, worldY, localZ) ?? (ushort)0;
     }
 
-    private static void GetAxes(int faceDir, out int d, out int u, out int v)
+    private static void GetAxes(int faceDirection, out int depthAxis, out int uAxis, out int vAxis)
     {
-        (d, u, v) = faceDir switch
+        (depthAxis, uAxis, vAxis) = faceDirection switch
         {
-            0 => (0, 2, 1), // +X: d=X, u=Z, v=Y
-            1 => (0, 2, 1), // -X
-            2 => (1, 0, 2), // +Y: d=Y, u=X, v=Z
-            3 => (1, 0, 2), // -Y
-            4 => (2, 0, 1), // +Z: d=Z, u=X, v=Y
-            5 => (2, 0, 1), // -Z
-            _ => throw new ArgumentOutOfRangeException(nameof(faceDir)),
+            0 => (AxisX, AxisZ, AxisY), // +X: d=X, u=Z, v=Y
+            1 => (AxisX, AxisZ, AxisY), // -X
+            2 => (AxisY, AxisX, AxisZ), // +Y: d=Y, u=X, v=Z
+            3 => (AxisY, AxisX, AxisZ), // -Y
+            4 => (AxisZ, AxisX, AxisY), // +Z: d=Z, u=X, v=Y
+            5 => (AxisZ, AxisX, AxisY), // -Z
+            _ => throw new ArgumentOutOfRangeException(nameof(faceDirection)),
         };
     }
 
-    private static (int Nx, int Ny, int Nz) GetNormal(int faceDir) => faceDir switch
+    private static (int NormalX, int NormalY, int NormalZ) GetNormal(int faceDirection) => faceDirection switch
     {
         0 => (1, 0, 0),
         1 => (-1, 0, 0),
@@ -419,26 +524,38 @@ public sealed class ChunkMeshBuilder(BlockRegistry blockRegistry) : IChunkMeshBu
         3 => (0, -1, 0),
         4 => (0, 0, 1),
         5 => (0, 0, -1),
-        _ => throw new ArgumentOutOfRangeException(nameof(faceDir)),
+        _ => throw new ArgumentOutOfRangeException(nameof(faceDirection)),
     };
 
     /// <summary>
     /// Collects mesh vertex data into lists, then converts to MeshData.
     /// Avoids passing 6 lists through the entire call chain.
     /// </summary>
-    private sealed class MeshAccumulator(int initialCapacity)
+    private sealed class MeshAccumulator
     {
-        public readonly List<float> Vertices = new(initialCapacity);
-        public readonly List<float> Normals = new(initialCapacity);
-        public readonly List<float> Uvs = new(initialCapacity / 2);
-        public readonly List<float> Uv2s = new(initialCapacity / 2);
-        public readonly List<float> Colors = new(initialCapacity);
-        public readonly List<int> Indices = new(initialCapacity * 3 / 2);
+        public readonly List<float> Vertices;
+        public readonly List<float> Normals;
+        public readonly List<float> Uvs;
+        public readonly List<float> Uv2s;
+        public readonly List<float> Colors;
+        public readonly List<int> Indices;
+
+        public MeshAccumulator(int initialCapacity)
+        {
+            Vertices = new List<float>(initialCapacity);
+            Normals = new List<float>(initialCapacity);
+            Uvs = new List<float>(initialCapacity / 2);
+            Uv2s = new List<float>(initialCapacity / 2);
+            Colors = new List<float>(initialCapacity);
+            Indices = new List<int>(initialCapacity * 3 / 2);
+        }
 
         public MeshData ToMeshData()
         {
             if (Vertices.Count == 0)
+            {
                 return MeshData.Empty;
+            }
 
             return new MeshData(
                 Vertices.ToArray(),

@@ -6,6 +6,11 @@ namespace MineRPG.Entities.AI.BehaviorTree;
 /// </summary>
 public interface IBTNode
 {
+    /// <summary>
+    /// Executes this node for a single tick of the behavior tree.
+    /// </summary>
+    /// <param name="deltaTime">Time elapsed since the last tick, in seconds.</param>
+    /// <returns>The execution status indicating whether the node is still running, succeeded, or failed.</returns>
     BTStatus Execute(float deltaTime);
 
     /// <summary>

@@ -7,5 +7,12 @@ namespace MineRPG.RPG.Combat;
 /// </summary>
 public interface IDamageFormula
 {
+    /// <summary>
+    /// Calculates the result of an attack against a defender.
+    /// </summary>
+    /// <param name="attack">Snapshot of the attacker's offensive stats.</param>
+    /// <param name="defense">Snapshot of the defender's defensive stats.</param>
+    /// <param name="rng">Random number generator for crit rolls and variance.</param>
+    /// <returns>A hit result containing final damage, crit status, and entity identifiers.</returns>
     HitResult Calculate(AttackData attack, DefenseData defense, Random rng);
 }

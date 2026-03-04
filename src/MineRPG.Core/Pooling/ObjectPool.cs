@@ -1,11 +1,13 @@
+using System;
 using System.Collections.Concurrent;
+using System.Threading;
 
 namespace MineRPG.Core.Pooling;
 
 /// <summary>
 /// Thread-safe object pool backed by <see cref="ConcurrentBag{T}"/>.
 /// An optional reset action is invoked on Return before the object is stored.
-/// When <paramref name="maxCapacity"/> is reached, returned items are silently dropped.
+/// When the max capacity is reached, returned items are silently dropped.
 /// </summary>
 public sealed class ObjectPool<T> : IObjectPool<T>
     where T : class
@@ -16,32 +18,48 @@ public sealed class ObjectPool<T> : IObjectPool<T>
     private readonly int _maxCapacity;
     private int _idleCount;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="ObjectPool{T}"/>.
+    /// </summary>
+    /// <param name="factory">Factory function to create new instances when the pool is empty.</param>
+    /// <param name="reset">Optional action to reset an object before returning it to the pool.</param>
+    /// <param name="maxCapacity">Maximum number of idle objects to retain in the pool.</param>
     public ObjectPool(Func<T> factory, Action<T>? reset = null, int maxCapacity = int.MaxValue)
     {
         _factory = factory ?? throw new ArgumentNullException(nameof(factory));
         _reset = reset;
 
         if (maxCapacity <= 0)
+        {
             throw new ArgumentOutOfRangeException(nameof(maxCapacity), "Max capacity must be greater than zero.");
+        }
 
         _maxCapacity = maxCapacity;
     }
 
+    /// <summary>
+    /// Number of idle objects currently in the pool.
+    /// </summary>
     public int IdleCount => _idleCount;
 
+    /// <summary>
+    /// Maximum number of idle objects the pool will retain.
+    /// </summary>
     public int MaxCapacity => _maxCapacity;
 
+    /// <inheritdoc />
     public T Rent()
     {
-        if (!_bag.TryTake(out var item))
+        if (!_bag.TryTake(out T? item))
+        {
             return _factory();
+        }
 
         Interlocked.Decrement(ref _idleCount);
-
         return item;
-
     }
 
+    /// <inheritdoc />
     public void Return(T item)
     {
         _reset?.Invoke(item);
@@ -49,7 +67,9 @@ public sealed class ObjectPool<T> : IObjectPool<T>
         // Soft cap: approximate check avoids locking. In highly concurrent
         // scenarios the pool may briefly exceed maxCapacity — acceptable.
         if (_idleCount >= _maxCapacity)
+        {
             return;
+        }
 
         _bag.Add(item);
         Interlocked.Increment(ref _idleCount);

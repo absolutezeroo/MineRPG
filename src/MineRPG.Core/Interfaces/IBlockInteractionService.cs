@@ -9,15 +9,30 @@ public interface IBlockInteractionService
 {
     /// <summary>
     /// Cast a ray and break the first solid block hit.
-    /// Returns true if a block was broken.
     /// </summary>
+    /// <param name="originX">Ray origin X coordinate.</param>
+    /// <param name="originY">Ray origin Y coordinate.</param>
+    /// <param name="originZ">Ray origin Z coordinate.</param>
+    /// <param name="dirX">Ray direction X component.</param>
+    /// <param name="dirY">Ray direction Y component.</param>
+    /// <param name="dirZ">Ray direction Z component.</param>
+    /// <param name="maxDistance">Maximum ray distance.</param>
+    /// <returns>True if a block was broken.</returns>
     bool TryBreakBlock(float originX, float originY, float originZ,
         float dirX, float dirY, float dirZ, float maxDistance);
 
     /// <summary>
     /// Cast a ray and place a block adjacent to the first solid block hit.
-    /// Returns true if a block was placed.
     /// </summary>
+    /// <param name="originX">Ray origin X coordinate.</param>
+    /// <param name="originY">Ray origin Y coordinate.</param>
+    /// <param name="originZ">Ray origin Z coordinate.</param>
+    /// <param name="dirX">Ray direction X component.</param>
+    /// <param name="dirY">Ray direction Y component.</param>
+    /// <param name="dirZ">Ray direction Z component.</param>
+    /// <param name="maxDistance">Maximum ray distance.</param>
+    /// <param name="blockId">The block type ID to place.</param>
+    /// <returns>True if a block was placed.</returns>
     bool TryPlaceBlock(float originX, float originY, float originZ,
         float dirX, float dirY, float dirZ, float maxDistance, ushort blockId);
 }

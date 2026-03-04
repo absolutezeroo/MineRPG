@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 using MineRPG.Core.Logging;
 using MineRPG.World.Blocks;
 
@@ -9,12 +11,18 @@ namespace MineRPG.World.Generation;
 /// </summary>
 public static class BiomeBlockResolver
 {
+    /// <summary>
+    /// Resolves all name-based block references for every biome definition.
+    /// </summary>
+    /// <param name="biomes">The biome definitions to resolve.</param>
+    /// <param name="blockRegistry">The block registry for name lookups.</param>
+    /// <param name="logger">Logger for diagnostics.</param>
     public static void ResolveAll(
         IReadOnlyList<BiomeDefinition> biomes,
         BlockRegistry blockRegistry,
         ILogger logger)
     {
-        foreach (var biome in biomes)
+        foreach (BiomeDefinition biome in biomes)
         {
             biome.SurfaceBlock = ResolveBlock(
                 biome.SurfaceBlockName, biome.SurfaceBlock,
@@ -39,10 +47,14 @@ public static class BiomeBlockResolver
         ILogger logger)
     {
         if (blockName is null)
+        {
             return fallbackId;
+        }
 
-        if (blockRegistry.TryGetByName(blockName, out var def))
-            return def.Id;
+        if (blockRegistry.TryGetByName(blockName, out BlockDefinition definition))
+        {
+            return definition.Id;
+        }
 
         logger.Warning(
             "BiomeBlockResolver: Biome '{0}' references unknown block '{1}' for {2} — falling back to ID {3}.",

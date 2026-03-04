@@ -1,4 +1,7 @@
+using System.Collections.Generic;
+
 using FluentAssertions;
+
 using MineRPG.World.Chunks;
 using MineRPG.World.Generation;
 
@@ -8,7 +11,7 @@ public sealed class TerrainSamplerTests
 {
     private static TerrainSampler CreateSampler(int seed = 42)
     {
-        var biomes = new List<BiomeDefinition>
+        List<BiomeDefinition> biomes = new List<BiomeDefinition>
         {
             new()
             {
@@ -18,7 +21,7 @@ public sealed class TerrainSamplerTests
                 SurfaceBlock = 3, SubSurfaceBlock = 2, StoneBlock = 1,
             },
         };
-        var selector = new BiomeSelector(biomes, seed);
+        BiomeSelector selector = new BiomeSelector(biomes, seed);
         return new TerrainSampler(selector, seed);
     }
 
@@ -26,11 +29,11 @@ public sealed class TerrainSamplerTests
     public void SampleColumn_IsDeterministic()
     {
         // Arrange
-        var sampler = CreateSampler();
+        TerrainSampler sampler = CreateSampler();
 
         // Act
-        var a = sampler.SampleColumn(100, 200);
-        var b = sampler.SampleColumn(100, 200);
+        ColumnSample a = sampler.SampleColumn(100, 200);
+        ColumnSample b = sampler.SampleColumn(100, 200);
 
         // Assert
         a.SurfaceY.Should().Be(b.SurfaceY);
@@ -40,15 +43,17 @@ public sealed class TerrainSamplerTests
     public void SampleColumn_SurfaceY_IsWithinChunkBounds()
     {
         // Arrange
-        var sampler = CreateSampler();
+        TerrainSampler sampler = CreateSampler();
 
         // Act & Assert
-        for (var x = -50; x <= 50; x += 5)
-        for (var z = -50; z <= 50; z += 5)
+        for (int x = -50; x <= 50; x += 5)
         {
-            var col = sampler.SampleColumn(x, z);
-            col.SurfaceY.Should().BeInRange(1, ChunkData.SizeY - 2,
-                $"surface at ({x},{z}) should be within valid range");
+            for (int z = -50; z <= 50; z += 5)
+            {
+                ColumnSample col = sampler.SampleColumn(x, z);
+                col.SurfaceY.Should().BeInRange(1, ChunkData.SizeY - 2,
+                    $"surface at ({x},{z}) should be within valid range");
+            }
         }
     }
 
@@ -56,17 +61,26 @@ public sealed class TerrainSamplerTests
     public void SampleColumn_ProducesMeaningfulVariation()
     {
         // Arrange
-        var sampler = CreateSampler();
-        var min = int.MaxValue;
-        var max = int.MinValue;
+        TerrainSampler sampler = CreateSampler();
+        int min = int.MaxValue;
+        int max = int.MinValue;
 
         // Act — sample a wide area to capture terrain variation
-        for (var x = 0; x < 500; x += 10)
-        for (var z = 0; z < 500; z += 10)
+        for (int x = 0; x < 500; x += 10)
         {
-            var col = sampler.SampleColumn(x, z);
-            if (col.SurfaceY < min) min = col.SurfaceY;
-            if (col.SurfaceY > max) max = col.SurfaceY;
+            for (int z = 0; z < 500; z += 10)
+            {
+                ColumnSample col = sampler.SampleColumn(x, z);
+                if (col.SurfaceY < min)
+                {
+                    min = col.SurfaceY;
+                }
+
+                if (col.SurfaceY > max)
+                {
+                    max = col.SurfaceY;
+                }
+            }
         }
 
         // Assert — should have at least 10 blocks of height variation
@@ -78,10 +92,10 @@ public sealed class TerrainSamplerTests
     public void SampleColumn_PrimaryBiome_IsNotNull()
     {
         // Arrange
-        var sampler = CreateSampler();
+        TerrainSampler sampler = CreateSampler();
 
         // Act
-        var col = sampler.SampleColumn(0, 0);
+        ColumnSample col = sampler.SampleColumn(0, 0);
 
         // Assert
         col.PrimaryBiome.Should().NotBeNull();
@@ -92,18 +106,20 @@ public sealed class TerrainSamplerTests
     public void SampleCaveDensity_NearSurface_ReturnsSolid()
     {
         // Arrange
-        var sampler = CreateSampler();
+        TerrainSampler sampler = CreateSampler();
 
         // Act & Assert — depth suppression should prevent caves near surface
-        for (var x = 0; x < 16; x++)
-        for (var z = 0; z < 16; z++)
+        for (int x = 0; x < 16; x++)
         {
-            var col = sampler.SampleColumn(x, z);
-            // Right at the surface minus 2: inside subsurface, should be solid
-            var density = sampler.SampleCaveDensity(x, col.SurfaceY - 2, z,
-                col.SurfaceY, col.Continentalness);
-            density.Should().BeGreaterThanOrEqualTo(0f,
-                $"voxel near surface at ({x},{z}) should not be carved");
+            for (int z = 0; z < 16; z++)
+            {
+                ColumnSample col = sampler.SampleColumn(x, z);
+                // Right at the surface minus 2: inside subsurface, should be solid
+                float density = sampler.SampleCaveDensity(x, col.SurfaceY - 2, z,
+                    col.SurfaceY, col.Continentalness);
+                density.Should().BeGreaterThanOrEqualTo(0f,
+                    $"voxel near surface at ({x},{z}) should not be carved");
+            }
         }
     }
 }

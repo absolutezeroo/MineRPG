@@ -1,4 +1,7 @@
+using System;
+
 using FluentAssertions;
+
 using MineRPG.RPG.Combat;
 
 namespace MineRPG.Tests.RPG;
@@ -9,8 +12,8 @@ public sealed class CombatTypesTests
     public void AttackData_RecordEquality_WorksCorrectly()
     {
         // Arrange
-        var a = new AttackData(10f, DamageType.Physical, 0.2f, 2.0f, 1);
-        var b = new AttackData(10f, DamageType.Physical, 0.2f, 2.0f, 1);
+        AttackData a = new AttackData(10f, DamageType.Physical, 0.2f, 2.0f, 1);
+        AttackData b = new AttackData(10f, DamageType.Physical, 0.2f, 2.0f, 1);
 
         // Assert
         a.Should().Be(b);
@@ -19,8 +22,8 @@ public sealed class CombatTypesTests
     [Fact]
     public void DefenseData_RecordEquality_WorksCorrectly()
     {
-        var a = new DefenseData(5f, 10f, DamageType.Fire, 2);
-        var b = new DefenseData(5f, 10f, DamageType.Fire, 2);
+        DefenseData a = new DefenseData(5f, 10f, DamageType.Fire, 2);
+        DefenseData b = new DefenseData(5f, 10f, DamageType.Fire, 2);
 
         a.Should().Be(b);
     }
@@ -28,8 +31,8 @@ public sealed class CombatTypesTests
     [Fact]
     public void HitResult_WithDifferentCritFlag_AreNotEqual()
     {
-        var a = new HitResult(50, true, DamageType.Ice, 1, 2);
-        var b = new HitResult(50, false, DamageType.Ice, 1, 2);
+        HitResult a = new HitResult(50, true, DamageType.Ice, 1, 2);
+        HitResult b = new HitResult(50, false, DamageType.Ice, 1, 2);
 
         a.Should().NotBe(b);
     }

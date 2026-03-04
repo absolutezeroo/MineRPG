@@ -5,12 +5,27 @@ namespace MineRPG.RPG.Items;
 /// </summary>
 public sealed class ItemInstance
 {
-    public ItemDefinition Definition { get; }
-    public int Quantity { get; set; }
+    private readonly ItemDefinition _definition;
+    private int _quantity;
 
+    /// <summary>
+    /// Creates a new item instance from the given definition.
+    /// </summary>
+    /// <param name="definition">The item definition this instance is based on.</param>
+    /// <param name="quantity">The initial stack quantity.</param>
     public ItemInstance(ItemDefinition definition, int quantity = 1)
     {
-        Definition = definition ?? throw new ArgumentNullException(nameof(definition));
-        Quantity = quantity;
+        _definition = definition ?? throw new ArgumentNullException(nameof(definition));
+        _quantity = quantity;
+    }
+
+    /// <summary>The item definition this instance is based on.</summary>
+    public ItemDefinition Definition => _definition;
+
+    /// <summary>Current stack quantity of this item instance.</summary>
+    public int Quantity
+    {
+        get => _quantity;
+        set => _quantity = value;
     }
 }

@@ -12,29 +12,45 @@ namespace MineRPG.World.Blocks;
 /// </summary>
 public sealed class BlockFaceTextures
 {
+    /// <summary>Number of face directions on a cube.</summary>
     public const int FaceCount = 6;
 
+    private const int EastIndex = 0;
+    private const int WestIndex = 1;
+    private const int TopIndex = 2;
+    private const int BottomIndex = 3;
+    private const int SouthIndex = 4;
+    private const int NorthIndex = 5;
+
+    /// <summary>Texture applied to all faces when set.</summary>
     [JsonProperty("all")]
     public string? All { get; init; }
 
+    /// <summary>Texture applied to the top face (+Y).</summary>
     [JsonProperty("top")]
     public string? Top { get; init; }
 
+    /// <summary>Texture applied to the bottom face (-Y).</summary>
     [JsonProperty("bottom")]
     public string? Bottom { get; init; }
 
+    /// <summary>Texture applied to all four side faces.</summary>
     [JsonProperty("side")]
     public string? Side { get; init; }
 
+    /// <summary>Texture applied to the east face (+X).</summary>
     [JsonProperty("east")]
     public string? East { get; init; }
 
+    /// <summary>Texture applied to the west face (-X).</summary>
     [JsonProperty("west")]
     public string? West { get; init; }
 
+    /// <summary>Texture applied to the north face (-Z).</summary>
     [JsonProperty("north")]
     public string? North { get; init; }
 
+    /// <summary>Texture applied to the south face (+Z).</summary>
     [JsonProperty("south")]
     public string? South { get; init; }
 
@@ -43,44 +59,59 @@ public sealed class BlockFaceTextures
     /// Priority: individual face > group (top/bottom/side) > all.
     /// Returns null entries for faces with no texture assigned.
     /// </summary>
+    /// <returns>An array of 6 texture names, one per face direction.</returns>
     public string?[] Resolve()
     {
-        var result = new string?[FaceCount];
+        string?[] result = new string?[FaceCount];
 
         // Layer 1: "all" fills every face
         if (All is not null)
         {
-            for (var i = 0; i < FaceCount; i++)
+            for (int i = 0; i < FaceCount; i++)
+            {
                 result[i] = All;
+            }
         }
 
         // Layer 2: groups override
         if (Top is not null)
-            result[2] = Top;
+        {
+            result[TopIndex] = Top;
+        }
 
         if (Bottom is not null)
-            result[3] = Bottom;
+        {
+            result[BottomIndex] = Bottom;
+        }
 
         if (Side is not null)
         {
-            result[0] = Side; // +X east
-            result[1] = Side; // -X west
-            result[4] = Side; // +Z south
-            result[5] = Side; // -Z north
+            result[EastIndex] = Side;
+            result[WestIndex] = Side;
+            result[SouthIndex] = Side;
+            result[NorthIndex] = Side;
         }
 
         // Layer 3: individual faces override everything
         if (East is not null)
-            result[0] = East;
+        {
+            result[EastIndex] = East;
+        }
 
         if (West is not null)
-            result[1] = West;
+        {
+            result[WestIndex] = West;
+        }
 
         if (North is not null)
-            result[5] = North;
+        {
+            result[NorthIndex] = North;
+        }
 
         if (South is not null)
-            result[4] = South;
+        {
+            result[SouthIndex] = South;
+        }
 
         return result;
     }

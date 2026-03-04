@@ -1,4 +1,7 @@
+using System;
+
 using FluentAssertions;
+
 using MineRPG.RPG.Stats;
 
 namespace MineRPG.Tests.RPG;
@@ -8,8 +11,8 @@ public sealed class StatModifierTests
     [Fact]
     public void StatModifier_RecordEquality_WorksCorrectly()
     {
-        var a = new StatModifier(ModifierType.Flat, 10f, "buff_strength");
-        var b = new StatModifier(ModifierType.Flat, 10f, "buff_strength");
+        StatModifier a = new StatModifier(ModifierType.Flat, 10f, "buff_strength");
+        StatModifier b = new StatModifier(ModifierType.Flat, 10f, "buff_strength");
 
         a.Should().Be(b);
     }
@@ -17,8 +20,8 @@ public sealed class StatModifierTests
     [Fact]
     public void StatModifier_WithDifferentSource_AreNotEqual()
     {
-        var a = new StatModifier(ModifierType.Flat, 10f, "source_a");
-        var b = new StatModifier(ModifierType.Flat, 10f, "source_b");
+        StatModifier a = new StatModifier(ModifierType.Flat, 10f, "source_a");
+        StatModifier b = new StatModifier(ModifierType.Flat, 10f, "source_b");
 
         a.Should().NotBe(b);
     }
@@ -26,7 +29,7 @@ public sealed class StatModifierTests
     [Fact]
     public void StatModifier_NullSource_IsValid()
     {
-        var mod = new StatModifier(ModifierType.PercentAdd, 0.5f);
+        StatModifier mod = new StatModifier(ModifierType.PercentAdd, 0.5f);
 
         mod.Source.Should().BeNull();
         mod.Type.Should().Be(ModifierType.PercentAdd);

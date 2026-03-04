@@ -1,4 +1,5 @@
 using FluentAssertions;
+
 using MineRPG.Entities.AI.Spawning;
 
 namespace MineRPG.Tests.Entities;
@@ -8,7 +9,7 @@ public sealed class SpawnRuleTests
     [Fact]
     public void SpawnRule_DefaultValues_AreReasonable()
     {
-        var rule = new SpawnRule();
+        SpawnRule rule = new SpawnRule();
 
         rule.MobId.Should().BeEmpty();
         rule.Biomes.Should().BeEmpty();
@@ -22,7 +23,7 @@ public sealed class SpawnRuleTests
     [Fact]
     public void SpawnRule_WithCustomValues_SetsCorrectly()
     {
-        var rule = new SpawnRule
+        SpawnRule rule = new SpawnRule
         {
             MobId = "skeleton",
             Biomes = ["plains", "forest"],
@@ -43,8 +44,8 @@ public sealed class SpawnRuleTests
     [Fact]
     public void SpawnRequest_RecordEquality_WorksCorrectly()
     {
-        var a = new SpawnRequest("zombie", 10f, 64f, 20f);
-        var b = new SpawnRequest("zombie", 10f, 64f, 20f);
+        SpawnRequest a = new SpawnRequest("zombie", 10f, 64f, 20f);
+        SpawnRequest b = new SpawnRequest("zombie", 10f, 64f, 20f);
 
         a.Should().Be(b);
     }
@@ -52,7 +53,7 @@ public sealed class SpawnRuleTests
     [Fact]
     public void PerceptionData_DefaultValues_AreReasonable()
     {
-        var data = new AI.Perception.PerceptionData();
+        AI.Perception.PerceptionData data = new AI.Perception.PerceptionData();
 
         data.SightRange.Should().Be(16f);
         data.HearingRange.Should().Be(8f);

@@ -1,4 +1,7 @@
+using System;
+
 using FluentAssertions;
+
 using MineRPG.Network;
 
 namespace MineRPG.Tests.Network;
@@ -8,73 +11,73 @@ public sealed class PacketSerializationTests
     [Fact]
     public void WriteByte_ReadByte_RoundTrips()
     {
-        using var writer = new PacketWriter();
+        using PacketWriter writer = new PacketWriter();
         writer.WriteByte(42);
 
-        var reader = new PacketReader(writer.ToArray());
+        PacketReader reader = new PacketReader(writer.ToArray());
         reader.ReadByte().Should().Be(42);
     }
 
     [Fact]
     public void WriteUInt16_ReadUInt16_RoundTrips()
     {
-        using var writer = new PacketWriter();
+        using PacketWriter writer = new PacketWriter();
         writer.WriteUInt16(12345);
 
-        var reader = new PacketReader(writer.ToArray());
+        PacketReader reader = new PacketReader(writer.ToArray());
         reader.ReadUInt16().Should().Be(12345);
     }
 
     [Fact]
     public void WriteInt32_ReadInt32_RoundTrips()
     {
-        using var writer = new PacketWriter();
+        using PacketWriter writer = new PacketWriter();
         writer.WriteInt32(-987654);
 
-        var reader = new PacketReader(writer.ToArray());
+        PacketReader reader = new PacketReader(writer.ToArray());
         reader.ReadInt32().Should().Be(-987654);
     }
 
     [Fact]
     public void WriteFloat_ReadFloat_RoundTrips()
     {
-        using var writer = new PacketWriter();
+        using PacketWriter writer = new PacketWriter();
         writer.WriteFloat(3.14159f);
 
-        var reader = new PacketReader(writer.ToArray());
+        PacketReader reader = new PacketReader(writer.ToArray());
         reader.ReadFloat().Should().BeApproximately(3.14159f, 0.00001f);
     }
 
     [Fact]
     public void WriteString_ReadString_RoundTrips()
     {
-        using var writer = new PacketWriter();
+        using PacketWriter writer = new PacketWriter();
         writer.WriteString("Hello, MineRPG!");
 
-        var reader = new PacketReader(writer.ToArray());
+        PacketReader reader = new PacketReader(writer.ToArray());
         reader.ReadString().Should().Be("Hello, MineRPG!");
     }
 
     [Fact]
     public void WriteString_EmptyString_RoundTrips()
     {
-        using var writer = new PacketWriter();
+        using PacketWriter writer = new PacketWriter();
         writer.WriteString("");
 
-        var reader = new PacketReader(writer.ToArray());
+        PacketReader reader = new PacketReader(writer.ToArray());
         reader.ReadString().Should().BeEmpty();
     }
 
     [Fact]
     public void MultipleFields_ReadInOrder_RoundTrips()
     {
-        using var writer = new PacketWriter();
+        using PacketWriter writer = new PacketWriter();
         writer.WriteUInt16(100);
         writer.WriteFloat(1.5f);
         writer.WriteString("test");
         writer.WriteInt32(-1);
 
-        var reader = new PacketReader(writer.ToArray());
+        PacketReader reader = new PacketReader(writer.ToArray());
         reader.ReadUInt16().Should().Be(100);
         reader.ReadFloat().Should().BeApproximately(1.5f, 0.001f);
         reader.ReadString().Should().Be("test");
@@ -84,9 +87,9 @@ public sealed class PacketSerializationTests
     [Fact]
     public void ReadByte_WhenEmpty_ThrowsInvalidOperationException()
     {
-        var reader = new PacketReader(ReadOnlyMemory<byte>.Empty);
+        PacketReader reader = new PacketReader(ReadOnlyMemory<byte>.Empty);
 
-        var act = () => reader.ReadByte();
+        Action act = () => reader.ReadByte();
 
         act.Should().Throw<InvalidOperationException>()
             .WithMessage("*underflow*");
@@ -95,7 +98,7 @@ public sealed class PacketSerializationTests
     [Fact]
     public void Writer_GrowsBuffer_WhenCapacityExceeded()
     {
-        using var writer = new PacketWriter(4);
+        using PacketWriter writer = new PacketWriter(4);
 
         // Write more than 4 bytes
         writer.WriteInt32(1);
@@ -104,7 +107,7 @@ public sealed class PacketSerializationTests
 
         writer.Length.Should().Be(12);
 
-        var reader = new PacketReader(writer.ToArray());
+        PacketReader reader = new PacketReader(writer.ToArray());
         reader.ReadInt32().Should().Be(1);
         reader.ReadInt32().Should().Be(2);
         reader.ReadFloat().Should().BeApproximately(3.0f, 0.001f);
@@ -113,10 +116,10 @@ public sealed class PacketSerializationTests
     [Fact]
     public void WriteString_UnicodeCharacters_RoundTrips()
     {
-        using var writer = new PacketWriter();
+        using PacketWriter writer = new PacketWriter();
         writer.WriteString("Hej verden! \u2603");
 
-        var reader = new PacketReader(writer.ToArray());
+        PacketReader reader = new PacketReader(writer.ToArray());
         reader.ReadString().Should().Be("Hej verden! \u2603");
     }
 }

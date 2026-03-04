@@ -1,4 +1,7 @@
+using System.Collections.Generic;
+
 using FluentAssertions;
+
 using MineRPG.Core.Logging;
 using MineRPG.Core.StateMachine;
 
@@ -26,7 +29,7 @@ public sealed class StateMachineTests
     public void ChangeState_SetsCurrentState()
     {
         // Arrange
-        var state = new TestState("Idle");
+        TestState state = new TestState("Idle");
 
         // Act
         _sm.ChangeState(state);
@@ -41,8 +44,8 @@ public sealed class StateMachineTests
     public void ChangeState_ExitsPreviousState()
     {
         // Arrange
-        var stateA = new TestState("A");
-        var stateB = new TestState("B");
+        TestState stateA = new TestState("A");
+        TestState stateB = new TestState("B");
 
         _sm.ChangeState(stateA);
 
@@ -60,8 +63,8 @@ public sealed class StateMachineTests
     public void PushState_PausesPreviousAndEntersNew()
     {
         // Arrange
-        var combat = new TestState("Combat");
-        var dialogue = new TestState("Dialogue");
+        TestState combat = new TestState("Combat");
+        TestState dialogue = new TestState("Dialogue");
 
         _sm.ChangeState(combat);
 
@@ -79,8 +82,8 @@ public sealed class StateMachineTests
     public void PopState_RestoredPreviousState()
     {
         // Arrange
-        var combat = new TestState("Combat");
-        var dialogue = new TestState("Dialogue");
+        TestState combat = new TestState("Combat");
+        TestState dialogue = new TestState("Dialogue");
 
         _sm.ChangeState(combat);
         _sm.PushState(dialogue);
@@ -99,7 +102,7 @@ public sealed class StateMachineTests
     public void PopState_WhenEmpty_ThrowsInvalidOperation()
     {
         // Act
-        var act = () => _sm.PopState();
+        Action act = () => _sm.PopState();
 
         // Assert
         act.Should().Throw<InvalidOperationException>()
@@ -110,7 +113,7 @@ public sealed class StateMachineTests
     public void Tick_TicksTopState()
     {
         // Arrange
-        var state = new TestState("Idle");
+        TestState state = new TestState("Idle");
         _sm.ChangeState(state);
 
         // Act
@@ -124,7 +127,7 @@ public sealed class StateMachineTests
     public void Tick_WhenEmpty_DoesNotThrow()
     {
         // Act
-        var act = () => _sm.Tick(0.016f);
+        Action act = () => _sm.Tick(0.016f);
 
         // Assert
         act.Should().NotThrow();
@@ -141,9 +144,9 @@ public sealed class StateMachineTests
     public void TickAll_TicksAllStatesInStack()
     {
         // Arrange
-        var combat = new TestState("Combat");
-        var dialogue = new TestState("Dialogue");
-        var tooltip = new TestState("Tooltip");
+        TestState combat = new TestState("Combat");
+        TestState dialogue = new TestState("Dialogue");
+        TestState tooltip = new TestState("Tooltip");
 
         _sm.ChangeState(combat);
         _sm.PushState(dialogue);
@@ -167,7 +170,7 @@ public sealed class StateMachineTests
     public void TickAll_WhenEmpty_DoesNotThrow()
     {
         // Act
-        var act = () => _sm.TickAll(0.016f);
+        Action act = () => _sm.TickAll(0.016f);
 
         // Assert
         act.Should().NotThrow();

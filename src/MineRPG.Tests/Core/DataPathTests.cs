@@ -1,4 +1,8 @@
+using System;
+using System.IO;
+
 using FluentAssertions;
+
 using MineRPG.Core.DataLoading;
 
 namespace MineRPG.Tests.Core;
@@ -16,7 +20,9 @@ public sealed class DataPathTests : IDisposable
     public void Dispose()
     {
         if (Directory.Exists(_tempDir))
+        {
             Directory.Delete(_tempDir, recursive: true);
+        }
     }
 
     [Fact]
@@ -33,10 +39,10 @@ public sealed class DataPathTests : IDisposable
     public void SetRoot_WithNonExistentDirectory_ThrowsDirectoryNotFoundException()
     {
         // Arrange
-        var badPath = Path.Combine(_tempDir, "nonexistent");
+        string badPath = Path.Combine(_tempDir, "nonexistent");
 
         // Act
-        var act = () => DataPath.SetRoot(badPath);
+        Action act = () => DataPath.SetRoot(badPath);
 
         // Assert
         act.Should().Throw<DirectoryNotFoundException>()
@@ -50,7 +56,7 @@ public sealed class DataPathTests : IDisposable
         DataPath.SetRoot(_tempDir);
 
         // Act
-        var result = DataPath.Combine("Blocks", "stone.json");
+        string result = DataPath.Combine("Blocks", "stone.json");
 
         // Assert
         result.Should().Be(Path.Combine(_tempDir, "Blocks", "stone.json"));
@@ -63,7 +69,7 @@ public sealed class DataPathTests : IDisposable
         DataPath.SetRoot(_tempDir);
 
         // Act
-        var result = DataPath.SubDirectory("Items");
+        string result = DataPath.SubDirectory("Items");
 
         // Assert
         result.Should().Be(Path.Combine(_tempDir, "Items"));

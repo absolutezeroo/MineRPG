@@ -6,15 +6,23 @@ namespace MineRPG.World.Chunks;
 /// <summary>
 /// Runtime container combining chunk data with its current lifecycle state.
 /// </summary>
-public sealed class ChunkEntry(ChunkCoord coord)
+public sealed class ChunkEntry
 {
-    public ChunkCoord Coord { get; } = coord;
-    public ChunkData Data { get; } = new(coord);
-
     private volatile ChunkState _state = ChunkState.Queued;
+
+    /// <summary>The chunk coordinate in the world grid.</summary>
+    public ChunkCoord Coord { get; }
+
+    /// <summary>The block data for this chunk.</summary>
+    public ChunkData Data { get; }
+
+    /// <summary>Current lifecycle state of the chunk.</summary>
     public ChunkState State => _state;
 
+    /// <summary>Pending mesh result waiting to be applied on the main thread.</summary>
     public ChunkMeshResult? PendingMesh { get; set; }
+
+    /// <summary>Whether collision shapes have been built for this chunk.</summary>
     public bool HasCollision { get; set; }
 
     /// <summary>
@@ -35,6 +43,20 @@ public sealed class ChunkEntry(ChunkCoord coord)
     /// </summary>
     public int HighestBlockY { get; set; } = -1;
 
+    /// <summary>
+    /// Creates a new chunk entry for the given coordinate.
+    /// </summary>
+    /// <param name="coord">The chunk coordinate.</param>
+    public ChunkEntry(ChunkCoord coord)
+    {
+        Coord = coord;
+        Data = new ChunkData(coord);
+    }
+
+    /// <summary>
+    /// Updates the chunk lifecycle state.
+    /// </summary>
+    /// <param name="state">The new state.</param>
     public void SetState(ChunkState state) => _state = state;
 
     /// <summary>

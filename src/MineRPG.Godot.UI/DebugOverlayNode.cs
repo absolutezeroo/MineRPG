@@ -1,5 +1,7 @@
 using System.Text;
+
 using Godot;
+
 using MineRPG.Core.DI;
 using MineRPG.Core.Interfaces;
 using MineRPG.Core.Logging;
@@ -13,14 +15,28 @@ namespace MineRPG.Godot.UI;
 /// </summary>
 public sealed partial class DebugOverlayNode : Control
 {
-    private Label _label = null!;
-    private readonly StringBuilder _sb = new(1024);
+    private const int StringBuilderCapacity = 1024;
+    private const float LabelOffsetX = 8f;
+    private const float LabelOffsetY = 8f;
+    private const float ShadowColorAlpha = 0.75f;
+    private const int ShadowOffsetPixels = 1;
+    private const double MillisecondsPerSecond = 1000.0;
+    private const double BytesPerMegabyte = 1024.0 * 1024.0;
 
+    private readonly StringBuilder _stringBuilder = new(StringBuilderCapacity);
+
+    private Label _label = null!;
     private IDebugDataProvider _debugData = null!;
     private ILogger _logger = null!;
-
     private Camera3D? _camera;
 
+    /// <summary>
+    /// Called by HUDNode once the Camera3D reference is available.
+    /// </summary>
+    /// <param name="camera">The active 3D camera.</param>
+    public void SetCamera(Camera3D camera) => _camera = camera;
+
+    /// <inheritdoc />
     public override void _Ready()
     {
         _debugData = ServiceLocator.Instance.Get<IDebugDataProvider>();
@@ -31,10 +47,10 @@ public sealed partial class DebugOverlayNode : Control
 
         _label = new Label();
         _label.AddThemeColorOverride("font_color", new Color(1f, 1f, 1f));
-        _label.AddThemeColorOverride("font_shadow_color", new Color(0f, 0f, 0f, 0.75f));
-        _label.AddThemeConstantOverride("shadow_offset_x", 1);
-        _label.AddThemeConstantOverride("shadow_offset_y", 1);
-        _label.Position = new Vector2(8f, 8f);
+        _label.AddThemeColorOverride("font_shadow_color", new Color(0f, 0f, 0f, ShadowColorAlpha));
+        _label.AddThemeConstantOverride("shadow_offset_x", ShadowOffsetPixels);
+        _label.AddThemeConstantOverride("shadow_offset_y", ShadowOffsetPixels);
+        _label.Position = new Vector2(LabelOffsetX, LabelOffsetY);
         AddChild(_label);
 
         Visible = false;
@@ -42,75 +58,76 @@ public sealed partial class DebugOverlayNode : Control
         _logger.Info("DebugOverlayNode ready.");
     }
 
-    /// <summary>
-    /// Called by HUDNode once the Camera3D reference is available.
-    /// </summary>
-    public void SetCamera(Camera3D camera) => _camera = camera;
-
+    /// <inheritdoc />
     public override void _Input(InputEvent @event)
     {
         if (!@event.IsActionPressed(InputActionNames.DebugToggle))
+        {
             return;
+        }
 
         Visible = !Visible;
         _logger.Info("DebugOverlay toggled: Visible={0}", Visible);
         GetViewport().SetInputAsHandled();
     }
 
+    /// <inheritdoc />
     public override void _Process(double delta)
     {
         if (!Visible)
+        {
             return;
+        }
 
-        var px = _debugData.PlayerX;
-        var py = _debugData.PlayerY;
-        var pz = _debugData.PlayerZ;
+        float playerX = _debugData.PlayerX;
+        float playerY = _debugData.PlayerY;
+        float playerZ = _debugData.PlayerZ;
 
-        var fps = Engine.GetFramesPerSecond();
-        var frameTimeMs = fps > 0 ? 1000.0 / fps : 0;
-        var memoryBytes = OS.GetStaticMemoryUsage();
-        var memoryMb = memoryBytes / (1024.0 * 1024.0);
-        var drawCalls = RenderingServer.GetRenderingInfo(
+        int framesPerSecond = Engine.GetFramesPerSecond();
+        double frameTimeMs = framesPerSecond > 0 ? MillisecondsPerSecond / framesPerSecond : 0;
+        ulong memoryBytes = OS.GetStaticMemoryUsage();
+        double memoryMegabytes = memoryBytes / BytesPerMegabyte;
+        ulong drawCalls = RenderingServer.GetRenderingInfo(
             RenderingServer.RenderingInfo.TotalObjectsInFrame);
-        var vertices = RenderingServer.GetRenderingInfo(
+        ulong vertexCount = RenderingServer.GetRenderingInfo(
             RenderingServer.RenderingInfo.TotalPrimitivesInFrame);
 
-        var lookDir = _camera is not null && _camera.IsInsideTree()
+        Vector3 lookDirection = _camera is not null && _camera.IsInsideTree()
             ? -_camera.GlobalTransform.Basis.Z
             : Vector3.Zero;
 
-        _sb.Clear();
-        _sb.Append("FPS: ").Append(fps)
+        _stringBuilder.Clear();
+        _stringBuilder.Append("FPS: ").Append(framesPerSecond)
             .Append(" (").Append(frameTimeMs.ToString("F1")).Append(" ms)").AppendLine();
-        _sb.AppendLine();
+        _stringBuilder.AppendLine();
 
-        _sb.Append("XYZ: ")
-            .Append(px.ToString("F1")).Append(" / ")
-            .Append(py.ToString("F1")).Append(" / ")
-            .Append(pz.ToString("F1")).AppendLine();
-        _sb.Append("Chunk: ").Append(_debugData.ChunkX).Append(", ").Append(_debugData.ChunkZ).AppendLine();
-        _sb.Append("Biome: ").Append(_debugData.CurrentBiome).AppendLine();
-        _sb.Append("Look: ")
-            .Append(lookDir.X.ToString("F2")).Append(" / ")
-            .Append(lookDir.Y.ToString("F2")).Append(" / ")
-            .Append(lookDir.Z.ToString("F2")).AppendLine();
-        _sb.AppendLine();
+        _stringBuilder.Append("XYZ: ")
+            .Append(playerX.ToString("F1")).Append(" / ")
+            .Append(playerY.ToString("F1")).Append(" / ")
+            .Append(playerZ.ToString("F1")).AppendLine();
+        _stringBuilder.Append("Chunk: ").Append(_debugData.ChunkX).Append(", ").Append(_debugData.ChunkZ).AppendLine();
+        _stringBuilder.Append("Biome: ").Append(_debugData.CurrentBiome).AppendLine();
+        _stringBuilder.Append("Look: ")
+            .Append(lookDirection.X.ToString("F2")).Append(" / ")
+            .Append(lookDirection.Y.ToString("F2")).Append(" / ")
+            .Append(lookDirection.Z.ToString("F2")).AppendLine();
+        _stringBuilder.AppendLine();
 
-        _sb.Append("Chunks loaded: ").Append(_debugData.LoadedChunkCount).AppendLine();
-        _sb.Append("Chunks visible: ").Append(_debugData.VisibleChunkCount).AppendLine();
-        _sb.Append("Chunks in queue: ").Append(_debugData.ChunksInQueue).AppendLine();
-        _sb.Append("Render distance: ").Append(_debugData.RenderDistance).AppendLine();
-        _sb.AppendLine();
+        _stringBuilder.Append("Chunks loaded: ").Append(_debugData.LoadedChunkCount).AppendLine();
+        _stringBuilder.Append("Chunks visible: ").Append(_debugData.VisibleChunkCount).AppendLine();
+        _stringBuilder.Append("Chunks in queue: ").Append(_debugData.ChunksInQueue).AppendLine();
+        _stringBuilder.Append("Render distance: ").Append(_debugData.RenderDistance).AppendLine();
+        _stringBuilder.AppendLine();
 
-        _sb.Append("Draw calls: ").Append(drawCalls).AppendLine();
-        _sb.Append("Vertices: ").Append(vertices).AppendLine();
-        _sb.Append("Mesh avg: ").Append(_debugData.AverageMeshTimeMs.ToString("F2")).Append(" ms").AppendLine();
-        _sb.AppendLine();
+        _stringBuilder.Append("Draw calls: ").Append(drawCalls).AppendLine();
+        _stringBuilder.Append("Vertices: ").Append(vertexCount).AppendLine();
+        _stringBuilder.Append("Mesh avg: ").Append(_debugData.AverageMeshTimeMs.ToString("F2")).Append(" ms").AppendLine();
+        _stringBuilder.AppendLine();
 
-        _sb.Append("Memory: ").Append(memoryMb.ToString("F1")).Append(" MB").AppendLine();
-        _sb.Append("Pool: ").Append(_debugData.PoolActiveCount).Append(" active / ")
+        _stringBuilder.Append("Memory: ").Append(memoryMegabytes.ToString("F1")).Append(" MB").AppendLine();
+        _stringBuilder.Append("Pool: ").Append(_debugData.PoolActiveCount).Append(" active / ")
             .Append(_debugData.PoolIdleCount).Append(" idle").AppendLine();
 
-        _label.Text = _sb.ToString();
+        _label.Text = _stringBuilder.ToString();
     }
 }

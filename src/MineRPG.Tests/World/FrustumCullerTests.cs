@@ -1,4 +1,7 @@
+using System;
+
 using FluentAssertions;
+
 using MineRPG.World.Spatial;
 
 namespace MineRPG.Tests.World;
@@ -13,10 +16,10 @@ public sealed class FrustumCullerTests
         CreateBoxFrustum(planes, -100, -10, -100, 100, 300, 100);
 
         // Act
-        var visible = FrustumCuller.IsChunkVisible(planes, 0, 0);
+        bool isVisible = FrustumCuller.IsChunkVisible(planes, 0, 0);
 
         // Assert
-        visible.Should().BeTrue();
+        isVisible.Should().BeTrue();
     }
 
     [Fact]
@@ -27,10 +30,10 @@ public sealed class FrustumCullerTests
         CreateBoxFrustum(planes, 0, -10, 0, 100, 300, 100);
 
         // Act — chunk at x=-32, z=-32 (world coords -32 to -16)
-        var visible = FrustumCuller.IsChunkVisible(planes, -32, -32);
+        bool isVisible = FrustumCuller.IsChunkVisible(planes, -32, -32);
 
         // Assert
-        visible.Should().BeFalse();
+        isVisible.Should().BeFalse();
     }
 
     [Fact]
@@ -41,10 +44,10 @@ public sealed class FrustumCullerTests
         CreateBoxFrustum(planes, 8, -10, 8, 200, 300, 200);
 
         // Act — chunk at origin (0-16, 0-256, 0-16) overlaps with frustum starting at x=8
-        var visible = FrustumCuller.IsChunkVisible(planes, 0, 0);
+        bool isVisible = FrustumCuller.IsChunkVisible(planes, 0, 0);
 
         // Assert
-        visible.Should().BeTrue();
+        isVisible.Should().BeTrue();
     }
 
     [Fact]
@@ -55,10 +58,10 @@ public sealed class FrustumCullerTests
         CreateBoxFrustum(planes, -100, 0, -100, 100, 256, 100);
 
         // Act
-        var visible = FrustumCuller.IsSubChunkVisible(planes, 0, 64, 0, 16);
+        bool isVisible = FrustumCuller.IsSubChunkVisible(planes, 0, 64, 0, 16);
 
         // Assert
-        visible.Should().BeTrue();
+        isVisible.Should().BeTrue();
     }
 
     [Fact]
@@ -69,36 +72,36 @@ public sealed class FrustumCullerTests
         CreateBoxFrustum(planes, -100, 100, -100, 100, 256, 100);
 
         // Act — sub-chunk at y=[0, 16]
-        var visible = FrustumCuller.IsSubChunkVisible(planes, 0, 0, 0, 16);
+        bool isVisible = FrustumCuller.IsSubChunkVisible(planes, 0, 0, 0, 16);
 
         // Assert
-        visible.Should().BeFalse();
+        isVisible.Should().BeFalse();
     }
 
     [Fact]
     public void FrustumPlane_IsBoxOutside_WithBoxFullyInside_ReturnsFalse()
     {
         // Arrange — plane facing +X at x=0 (everything at x>0 is inside)
-        var plane = new FrustumPlane(1, 0, 0, 0);
+        FrustumPlane plane = new FrustumPlane(1, 0, 0, 0);
 
         // Act — box at x=[1, 5]
-        var outside = plane.IsBoxOutside(1, 0, 0, 5, 5, 5);
+        bool isOutside = plane.IsBoxOutside(1, 0, 0, 5, 5, 5);
 
         // Assert
-        outside.Should().BeFalse();
+        isOutside.Should().BeFalse();
     }
 
     [Fact]
     public void FrustumPlane_IsBoxOutside_WithBoxFullyOutside_ReturnsTrue()
     {
         // Arrange — plane facing +X at x=0
-        var plane = new FrustumPlane(1, 0, 0, 0);
+        FrustumPlane plane = new FrustumPlane(1, 0, 0, 0);
 
         // Act — box at x=[-5, -1]
-        var outside = plane.IsBoxOutside(-5, 0, 0, -1, 5, 5);
+        bool isOutside = plane.IsBoxOutside(-5, 0, 0, -1, 5, 5);
 
         // Assert
-        outside.Should().BeTrue();
+        isOutside.Should().BeTrue();
     }
 
     /// <summary>

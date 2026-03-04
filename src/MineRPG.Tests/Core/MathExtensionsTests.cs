@@ -1,4 +1,7 @@
+using System;
+
 using FluentAssertions;
+
 using MineRPG.Core.Extensions;
 
 namespace MineRPG.Tests.Core;
@@ -42,10 +45,10 @@ public sealed class MathExtensionsTests
     public void Remap_MapsValueCorrectly()
     {
         // Arrange
-        var value = 0.5f;
+        float value = 0.5f;
 
         // Act
-        var result = value.Remap(0f, 1f, 0f, 100f);
+        float result = value.Remap(0f, 1f, 0f, 100f);
 
         // Assert
         result.Should().BeApproximately(50f, 0.001f);
@@ -78,10 +81,10 @@ public sealed class MathExtensionsTests
     public void ToRadians_ToDegrees_RoundTrip()
     {
         // Arrange
-        var degrees = 45f;
+        float degrees = 45f;
 
         // Act
-        var result = degrees.ToRadians().ToDegrees();
+        float result = degrees.ToRadians().ToDegrees();
 
         // Assert
         result.Should().BeApproximately(degrees, 0.001f);

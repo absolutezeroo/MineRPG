@@ -1,4 +1,8 @@
+using System;
+using System.Collections.Generic;
+
 using FluentAssertions;
+
 using MineRPG.Core.Registry;
 
 namespace MineRPG.Tests.Core;
@@ -17,11 +21,11 @@ public sealed class RegistryTests
     public void Register_AndGet_ReturnsItem()
     {
         // Arrange
-        var item = new TestItem { Id = 1, Name = "Stone" };
+        TestItem item = new TestItem { Id = 1, Name = "Stone" };
 
         // Act
         _registry.Register(1, item);
-        var result = _registry.Get(1);
+        TestItem result = _registry.Get(1);
 
         // Assert
         result.Should().BeSameAs(item);
@@ -34,7 +38,7 @@ public sealed class RegistryTests
         _registry.Register(1, new TestItem { Id = 1, Name = "Stone" });
 
         // Act
-        var act = () => _registry.Register(1, new TestItem { Id = 1, Name = "Dirt" });
+        Action act = () => _registry.Register(1, new TestItem { Id = 1, Name = "Dirt" });
 
         // Assert
         act.Should().Throw<InvalidOperationException>()
@@ -45,7 +49,7 @@ public sealed class RegistryTests
     public void Get_UnknownKey_ThrowsKeyNotFound()
     {
         // Act
-        var act = () => _registry.Get(999);
+        Action act = () => _registry.Get(999);
 
         // Assert
         act.Should().Throw<KeyNotFoundException>()
@@ -56,14 +60,14 @@ public sealed class RegistryTests
     public void TryGet_ExistingKey_ReturnsTrueAndValue()
     {
         // Arrange
-        var item = new TestItem { Id = 1, Name = "Stone" };
+        TestItem item = new TestItem { Id = 1, Name = "Stone" };
         _registry.Register(1, item);
 
         // Act
-        var found = _registry.TryGet(1, out var result);
+        bool isFound = _registry.TryGet(1, out TestItem? result);
 
         // Assert
-        found.Should().BeTrue();
+        isFound.Should().BeTrue();
         result.Should().BeSameAs(item);
     }
 
@@ -71,28 +75,30 @@ public sealed class RegistryTests
     public void TryGet_UnknownKey_ReturnsFalse()
     {
         // Act
-        var found = _registry.TryGet(42, out _);
+        bool isFound = _registry.TryGet(42, out _);
 
         // Assert
-        found.Should().BeFalse();
+        isFound.Should().BeFalse();
     }
 
     [Fact]
     public void GetAll_ReturnsItemsInInsertionOrder()
     {
         // Arrange
-        var items = new[]
+        TestItem[] items = new[]
         {
             new TestItem { Id = 3, Name = "C" },
             new TestItem { Id = 1, Name = "A" },
             new TestItem { Id = 2, Name = "B" },
         };
 
-        foreach (var item in items)
+        foreach (TestItem item in items)
+        {
             _registry.Register(item.Id, item);
+        }
 
         // Act
-        var all = _registry.GetAll();
+        IReadOnlyList<TestItem> all = _registry.GetAll();
 
         // Assert
         all.Should().HaveCount(3);

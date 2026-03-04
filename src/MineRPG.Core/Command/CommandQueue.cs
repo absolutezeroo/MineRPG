@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+
 using MineRPG.Core.Logging;
 
 namespace MineRPG.Core.Command;
@@ -10,17 +13,47 @@ namespace MineRPG.Core.Command;
 ///   2. The game loop calls Process() once per tick.
 ///   3. UI calls Undo() when the player presses Ctrl+Z.
 /// </summary>
-public sealed class CommandQueue(ILogger logger, int maxUndoDepth = CommandQueue.DefaultMaxUndoDepth)
+public sealed class CommandQueue
 {
+    /// <summary>
+    /// Default maximum number of undoable commands retained.
+    /// </summary>
     public const int DefaultMaxUndoDepth = 100;
 
     private readonly Queue<ICommand> _pending = new();
     private readonly Stack<ICommand> _undoStack = new();
+    private readonly ILogger _logger;
+    private readonly int _maxUndoDepth;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="CommandQueue"/>.
+    /// </summary>
+    /// <param name="logger">Logger for command execution diagnostics.</param>
+    /// <param name="maxUndoDepth">Maximum number of undoable commands to retain.</param>
+    public CommandQueue(ILogger logger, int maxUndoDepth = DefaultMaxUndoDepth)
+    {
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _maxUndoDepth = maxUndoDepth;
+    }
+
+    /// <summary>
+    /// Number of commands waiting to be executed.
+    /// </summary>
     public int PendingCount => _pending.Count;
+
+    /// <summary>
+    /// Number of undoable commands on the undo stack.
+    /// </summary>
     public int UndoCount => _undoStack.Count;
 
-    public void Enqueue(ICommand command) => _pending.Enqueue(command);
+    /// <summary>
+    /// Enqueue a command for deferred execution.
+    /// </summary>
+    /// <param name="command">The command to enqueue.</param>
+    public void Enqueue(ICommand command)
+    {
+        _pending.Enqueue(command);
+    }
 
     /// <summary>
     /// Execute all pending commands in FIFO order.
@@ -28,56 +61,63 @@ public sealed class CommandQueue(ILogger logger, int maxUndoDepth = CommandQueue
     /// </summary>
     public void Process()
     {
-        while (_pending.TryDequeue(out var command))
+        while (_pending.TryDequeue(out ICommand? command))
         {
             if (!command.CanExecute())
             {
-                logger.Debug("CommandQueue: Skipped {0} (CanExecute = false)", command.GetType().Name);
+                _logger.Debug("CommandQueue: Skipped {0} (CanExecute = false)", command.GetType().Name);
                 continue;
             }
 
             try
             {
                 command.Execute();
-                logger.Debug("CommandQueue: Executed {0}", command.GetType().Name);
+                _logger.Debug("CommandQueue: Executed {0}", command.GetType().Name);
 
                 if (command.CanUndo)
                 {
-                    if (_undoStack.Count >= maxUndoDepth)
+                    if (_undoStack.Count >= _maxUndoDepth)
+                    {
                         TrimUndoStack();
+                    }
 
                     _undoStack.Push(command);
                 }
             }
             catch (Exception ex)
             {
-                logger.Error("CommandQueue: {0} threw during Execute", ex, command.GetType().Name);
+                _logger.Error("CommandQueue: {0} threw during Execute", ex, command.GetType().Name);
             }
         }
     }
 
     /// <summary>
     /// Undo the most recently executed undoable command.
-    /// Returns true if an undo was performed.
     /// </summary>
+    /// <returns>True if an undo was performed; false if the undo stack was empty.</returns>
     public bool Undo()
     {
-        if (!_undoStack.TryPop(out var command))
+        if (!_undoStack.TryPop(out ICommand? command))
+        {
             return false;
+        }
 
         try
         {
             command.Undo();
-            logger.Debug("CommandQueue: Undid {0}", command.GetType().Name);
+            _logger.Debug("CommandQueue: Undid {0}", command.GetType().Name);
             return true;
         }
         catch (Exception ex)
         {
-            logger.Error("CommandQueue: {0} threw during Undo", ex, command.GetType().Name);
+            _logger.Error("CommandQueue: {0} threw during Undo", ex, command.GetType().Name);
             return false;
         }
     }
 
+    /// <summary>
+    /// Clear all pending commands and the undo stack.
+    /// </summary>
     public void Clear()
     {
         _pending.Clear();
@@ -87,10 +127,13 @@ public sealed class CommandQueue(ILogger logger, int maxUndoDepth = CommandQueue
     // Trim the bottom half of the undo stack when it hits capacity
     private void TrimUndoStack()
     {
-        var items = _undoStack.ToArray();
+        ICommand[] items = _undoStack.ToArray();
         _undoStack.Clear();
-        var keep = maxUndoDepth / 2;
-        for (var i = keep - 1; i >= 0; i--)
+        int keep = _maxUndoDepth / 2;
+
+        for (int i = keep - 1; i >= 0; i--)
+        {
             _undoStack.Push(items[i]);
+        }
     }
 }

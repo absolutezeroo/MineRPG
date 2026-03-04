@@ -1,4 +1,6 @@
+using System;
 using System.Buffers;
+using System.Buffers.Binary;
 using System.IO.Hashing;
 
 namespace MineRPG.World.Chunks;
@@ -22,22 +24,31 @@ public sealed class ChunkSerializer : IChunkSerializer
 {
     private static readonly byte[] Magic = "MCRK"u8.ToArray();
     private const ushort FormatVersion = 1;
-    private const int HeaderSize = 4 + 2 + 4 + 4 + 4 + 4; // magic + version + coordX + coordZ + uncompLen + compLen
+    private const int MagicSize = 4;
+    private const int VersionSize = 2;
+    private const int CoordSize = 4;
+    private const int CountSize = 4;
+    private const int CrcSize = 4;
+    private const int RlePairSize = 4;
+    private const int HeaderSize = MagicSize + VersionSize + CoordSize + CoordSize + CountSize + CountSize;
+    private const int WorstCaseRleMultiplier = 4;
 
+    /// <summary>
+    /// Serialize the chunk data to a byte array.
+    /// </summary>
+    /// <param name="data">The chunk data to serialize.</param>
+    /// <returns>The serialized byte array.</returns>
     public byte[] Serialize(ChunkData data)
     {
-        // RLE encode the block data
-        var rawSpan = data.GetRawSpan();
-        var rleBuffer = ArrayPool<byte>.Shared.Rent(ChunkData.TotalBlocks * 4); // worst case
-        int rleLen;
+        ReadOnlySpan<ushort> rawSpan = data.GetRawSpan();
+        byte[] rleBuffer = ArrayPool<byte>.Shared.Rent(ChunkData.TotalBlocks * WorstCaseRleMultiplier);
 
         try
         {
-            rleLen = RleEncode(rawSpan, rleBuffer);
-            var totalSize = HeaderSize + rleLen + 4; // +4 for CRC32
-
-            var result = new byte[totalSize];
-            var writer = new SpanWriter(result);
+            int rleLength = RleEncode(rawSpan, rleBuffer);
+            int totalSize = HeaderSize + rleLength + CrcSize;
+            byte[] result = new byte[totalSize];
+            SpanWriter writer = new(result);
 
             // Header
             writer.WriteBytes(Magic);
@@ -45,13 +56,13 @@ public sealed class ChunkSerializer : IChunkSerializer
             writer.WriteInt32(data.Coord.X);
             writer.WriteInt32(data.Coord.Z);
             writer.WriteInt32(ChunkData.TotalBlocks);
-            writer.WriteInt32(rleLen);
+            writer.WriteInt32(rleLength);
 
             // RLE data
-            writer.WriteBytes(rleBuffer.AsSpan(0, rleLen));
+            writer.WriteBytes(rleBuffer.AsSpan(0, rleLength));
 
             // CRC32 over everything except the CRC itself
-            var crc = Crc32.Hash(result.AsSpan(0, totalSize - 4));
+            byte[] crc = Crc32.Hash(result.AsSpan(0, totalSize - CrcSize));
             writer.WriteBytes(crc);
 
             return result;
@@ -62,55 +73,75 @@ public sealed class ChunkSerializer : IChunkSerializer
         }
     }
 
+    /// <summary>
+    /// Deserialize binary data and load it into the target ChunkData.
+    /// </summary>
+    /// <param name="source">The binary data to deserialize.</param>
+    /// <param name="target">The target chunk data to populate.</param>
     public void Deserialize(ReadOnlySpan<byte> source, ChunkData target)
     {
-        if (source.Length < HeaderSize + 4)
+        if (source.Length < HeaderSize + CrcSize)
+        {
             throw new ChunkSerializationException(
-                $"Data too short ({source.Length} bytes). Minimum is {HeaderSize + 4}.");
+                $"Data too short ({source.Length} bytes). Minimum is {HeaderSize + CrcSize}.");
+        }
 
-        var reader = new SpanReader(source);
+        SpanReader reader = new(source);
 
         // Verify magic
-        var magic = reader.ReadBytes(4);
+        ReadOnlySpan<byte> magic = reader.ReadBytes(MagicSize);
         if (!magic.SequenceEqual(Magic))
+        {
             throw new ChunkSerializationException("Invalid magic bytes — not a chunk file.");
+        }
 
         // Verify version
-        var version = reader.ReadUInt16();
+        ushort version = reader.ReadUInt16();
         if (version != FormatVersion)
+        {
             throw new ChunkSerializationException(
                 $"Unsupported chunk format version {version} (expected {FormatVersion}).");
+        }
 
-        // Read header
-        var coordX = reader.ReadInt32();
-        var coordZ = reader.ReadInt32();
-        var uncompressedCount = reader.ReadInt32();
-        var compressedLen = reader.ReadInt32();
+        // Read header fields
+        int coordX = reader.ReadInt32();
+        int coordZ = reader.ReadInt32();
+        int uncompressedCount = reader.ReadInt32();
+        int compressedLength = reader.ReadInt32();
 
         if (uncompressedCount != ChunkData.TotalBlocks)
+        {
             throw new ChunkSerializationException(
                 $"Block count mismatch: {uncompressedCount} (expected {ChunkData.TotalBlocks}).");
+        }
 
-        if (reader.Remaining < compressedLen + 4)
+        if (reader.Remaining < compressedLength + CrcSize)
+        {
             throw new ChunkSerializationException(
-                $"Truncated data: need {compressedLen + 4} more bytes, have {reader.Remaining}.");
+                $"Truncated data: need {compressedLength + CrcSize} more bytes, have {reader.Remaining}.");
+        }
 
         // Verify CRC32
-        var crcOffset = source.Length - 4;
-        var expectedCrc = source.Slice(crcOffset, 4);
-        var actualCrc = Crc32.Hash(source[..crcOffset]);
+        int crcOffset = source.Length - CrcSize;
+        ReadOnlySpan<byte> expectedCrc = source.Slice(crcOffset, CrcSize);
+        byte[] actualCrc = Crc32.Hash(source[..crcOffset]);
         if (!actualCrc.AsSpan().SequenceEqual(expectedCrc))
+        {
             throw new ChunkSerializationException("CRC32 checksum mismatch — data is corrupted.");
+        }
 
         // RLE decode
-        var rleData = reader.ReadBytes(compressedLen);
-        var blocks = ArrayPool<ushort>.Shared.Rent(ChunkData.TotalBlocks);
+        ReadOnlySpan<byte> rleData = reader.ReadBytes(compressedLength);
+        ushort[] blocks = ArrayPool<ushort>.Shared.Rent(ChunkData.TotalBlocks);
+
         try
         {
-            var decoded = RleDecode(rleData, blocks);
+            int decoded = RleDecode(rleData, blocks);
             if (decoded != ChunkData.TotalBlocks)
+            {
                 throw new ChunkSerializationException(
                     $"RLE decode produced {decoded} blocks (expected {ChunkData.TotalBlocks}).");
+            }
 
             target.LoadFromSpan(blocks.AsSpan(0, ChunkData.TotalBlocks));
         }
@@ -126,12 +157,14 @@ public sealed class ChunkSerializer : IChunkSerializer
     /// </summary>
     private static int RleEncode(ReadOnlySpan<ushort> blocks, Span<byte> output)
     {
-        var pos = 0;
-        var i = 0;
+        int position = 0;
+        int i = 0;
+
         while (i < blocks.Length)
         {
-            var blockId = blocks[i];
-            var runLength = 1;
+            ushort blockId = blocks[i];
+            int runLength = 1;
+
             while (i + runLength < blocks.Length
                    && blocks[i + runLength] == blockId
                    && runLength < ushort.MaxValue)
@@ -140,13 +173,13 @@ public sealed class ChunkSerializer : IChunkSerializer
             }
 
             // Write count (ushort) + blockId (ushort) = 4 bytes
-            System.Buffers.Binary.BinaryPrimitives.WriteUInt16LittleEndian(output.Slice(pos, 2), (ushort)runLength);
-            System.Buffers.Binary.BinaryPrimitives.WriteUInt16LittleEndian(output.Slice(pos + 2, 2), blockId);
-            pos += 4;
+            BinaryPrimitives.WriteUInt16LittleEndian(output.Slice(position, 2), (ushort)runLength);
+            BinaryPrimitives.WriteUInt16LittleEndian(output.Slice(position + 2, 2), blockId);
+            position += RlePairSize;
             i += runLength;
         }
 
-        return pos;
+        return position;
     }
 
     /// <summary>
@@ -154,70 +187,86 @@ public sealed class ChunkSerializer : IChunkSerializer
     /// </summary>
     private static int RleDecode(ReadOnlySpan<byte> rleData, Span<ushort> output)
     {
-        var rlePos = 0;
-        var outPos = 0;
-        while (rlePos + 3 < rleData.Length)
-        {
-            var count = System.Buffers.Binary.BinaryPrimitives.ReadUInt16LittleEndian(rleData.Slice(rlePos, 2));
-            var blockId = System.Buffers.Binary.BinaryPrimitives.ReadUInt16LittleEndian(rleData.Slice(rlePos + 2, 2));
-            rlePos += 4;
+        int rlePosition = 0;
+        int outputPosition = 0;
+        int minRemainingBytes = RlePairSize - 1;
 
-            for (var j = 0; j < count && outPos < output.Length; j++)
-                output[outPos++] = blockId;
+        while (rlePosition + minRemainingBytes < rleData.Length)
+        {
+            ushort count = BinaryPrimitives.ReadUInt16LittleEndian(rleData.Slice(rlePosition, 2));
+            ushort blockId = BinaryPrimitives.ReadUInt16LittleEndian(rleData.Slice(rlePosition + 2, 2));
+            rlePosition += RlePairSize;
+
+            for (int j = 0; j < count && outputPosition < output.Length; j++)
+            {
+                output[outputPosition++] = blockId;
+            }
         }
 
-        return outPos;
+        return outputPosition;
     }
 
-    private ref struct SpanWriter(Span<byte> buffer)
+    private ref struct SpanWriter
     {
-        private readonly Span<byte> _buffer = buffer;
-        private int _pos = 0;
+        private readonly Span<byte> _buffer;
+        private int _position;
+
+        public SpanWriter(Span<byte> buffer)
+        {
+            _buffer = buffer;
+            _position = 0;
+        }
 
         public void WriteBytes(ReadOnlySpan<byte> data)
         {
-            data.CopyTo(_buffer.Slice(_pos, data.Length));
-            _pos += data.Length;
+            data.CopyTo(_buffer.Slice(_position, data.Length));
+            _position += data.Length;
         }
 
         public void WriteUInt16(ushort value)
         {
-            System.Buffers.Binary.BinaryPrimitives.WriteUInt16LittleEndian(_buffer.Slice(_pos, 2), value);
-            _pos += 2;
+            BinaryPrimitives.WriteUInt16LittleEndian(_buffer.Slice(_position, 2), value);
+            _position += 2;
         }
 
         public void WriteInt32(int value)
         {
-            System.Buffers.Binary.BinaryPrimitives.WriteInt32LittleEndian(_buffer.Slice(_pos, 4), value);
-            _pos += 4;
+            BinaryPrimitives.WriteInt32LittleEndian(_buffer.Slice(_position, 4), value);
+            _position += CoordSize;
         }
     }
 
-    private ref struct SpanReader(ReadOnlySpan<byte> buffer)
+    private ref struct SpanReader
     {
-        private readonly ReadOnlySpan<byte> _buffer = buffer;
-        private int _pos = 0;
+        private readonly ReadOnlySpan<byte> _buffer;
+        private int _position;
 
-        public int Remaining => _buffer.Length - _pos;
+        public SpanReader(ReadOnlySpan<byte> buffer)
+        {
+            _buffer = buffer;
+            _position = 0;
+        }
+
+        public int Remaining => _buffer.Length - _position;
 
         public ReadOnlySpan<byte> ReadBytes(int count)
         {
-            var slice = _buffer.Slice(_pos, count);
-            _pos += count;
+            ReadOnlySpan<byte> slice = _buffer.Slice(_position, count);
+            _position += count;
             return slice;
         }
 
         public ushort ReadUInt16()
         {
-            var value = System.Buffers.Binary.BinaryPrimitives.ReadUInt16LittleEndian(_buffer.Slice(_pos, 2));
-            _pos += 2;
+            ushort value = BinaryPrimitives.ReadUInt16LittleEndian(_buffer.Slice(_position, 2));
+            _position += 2;
             return value;
         }
 
         public int ReadInt32()
         {
-            var value = System.Buffers.Binary.BinaryPrimitives.ReadInt32LittleEndian(_buffer.Slice(_pos, 4));
-            _pos += 4;
+            int value = BinaryPrimitives.ReadInt32LittleEndian(_buffer.Slice(_position, CoordSize));
+            _position += CoordSize;
             return value;
         }
     }

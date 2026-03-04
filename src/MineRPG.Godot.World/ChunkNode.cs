@@ -1,4 +1,5 @@
 using Godot;
+
 using MineRPG.Core.DI;
 using MineRPG.Core.Logging;
 using MineRPG.Core.Math;
@@ -23,12 +24,16 @@ public sealed partial class ChunkNode : Node3D
     private CollisionShape3D _collisionShape = null!;
     private ILogger _logger = null!;
 
+    /// <summary>
+    /// Gets the chunk coordinate this node represents.
+    /// </summary>
     public ChunkCoord Coord { get; private set; }
 
     /// <summary>
     /// Sets the shared material used by all chunk mesh instances for opaque terrain.
     /// Must be called once at startup before any ChunkNode enters the tree.
     /// </summary>
+    /// <param name="material">The shared opaque terrain material.</param>
     public static void SetSharedMaterial(Material material)
     {
         _sharedMaterial = material;
@@ -38,11 +43,13 @@ public sealed partial class ChunkNode : Node3D
     /// Sets the shared material used for translucent liquid surfaces.
     /// Must be called once at startup before any ChunkNode enters the tree.
     /// </summary>
+    /// <param name="material">The shared liquid material.</param>
     public static void SetSharedWaterMaterial(Material material)
     {
         _sharedWaterMaterial = material;
     }
 
+    /// <inheritdoc />
     public override void _Ready()
     {
         _logger = ServiceLocator.Instance.Get<ILogger>();
@@ -56,15 +63,10 @@ public sealed partial class ChunkNode : Node3D
         AddChild(_staticBody);
     }
 
-    private static StandardMaterial3D CreateFallbackMaterial()
-    {
-        return new StandardMaterial3D
-        {
-            VertexColorUseAsAlbedo = true,
-            CullMode = BaseMaterial3D.CullModeEnum.Back,
-        };
-    }
-
+    /// <summary>
+    /// Initializes this chunk node with the given coordinate and positions it in world space.
+    /// </summary>
+    /// <param name="coord">The chunk coordinate.</param>
     public void Initialize(ChunkCoord coord)
     {
         Coord = coord;
@@ -75,37 +77,53 @@ public sealed partial class ChunkNode : Node3D
             coord.Z * ChunkData.SizeZ);
     }
 
+    /// <summary>
+    /// Applies the given mesh result to this chunk node, updating the visual mesh and collision shape.
+    /// </summary>
+    /// <param name="meshResult">The mesh result containing opaque and liquid surfaces.</param>
     public void ApplyMesh(ChunkMeshResult meshResult)
     {
-        var mesh = ChunkMeshApplier.Build(meshResult);
+        ArrayMesh? mesh = ChunkMeshApplier.Build(meshResult);
         _meshInstance.Mesh = mesh;
 
         if (mesh is not null)
         {
-            var surfaceIdx = 0;
+            int surfaceIndex = 0;
 
             if (!meshResult.Opaque.IsEmpty)
             {
                 _meshInstance.SetSurfaceOverrideMaterial(
-                    surfaceIdx, _sharedMaterial ?? CreateFallbackMaterial());
-                surfaceIdx++;
+                    surfaceIndex, _sharedMaterial ?? CreateFallbackMaterial());
+                surfaceIndex++;
             }
 
             if (!meshResult.Liquid.IsEmpty)
             {
                 _meshInstance.SetSurfaceOverrideMaterial(
-                    surfaceIdx, _sharedWaterMaterial ?? CreateFallbackMaterial());
+                    surfaceIndex, _sharedWaterMaterial ?? CreateFallbackMaterial());
             }
         }
 
         // Only opaque terrain generates collision
-        var collision = ChunkMeshApplier.BuildCollision(meshResult.Opaque);
+        ConcavePolygonShape3D? collision = ChunkMeshApplier.BuildCollision(meshResult.Opaque);
         _collisionShape.Shape = collision;
     }
 
+    /// <summary>
+    /// Clears the mesh and collision shape, resetting this node for pooling.
+    /// </summary>
     public void ClearMesh()
     {
         _meshInstance.Mesh = null;
         _collisionShape.Shape = null;
+    }
+
+    private static StandardMaterial3D CreateFallbackMaterial()
+    {
+        return new StandardMaterial3D
+        {
+            VertexColorUseAsAlbedo = true,
+            CullMode = BaseMaterial3D.CullModeEnum.Back,
+        };
     }
 }

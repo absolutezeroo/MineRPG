@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Threading;
 
 namespace MineRPG.Core.Diagnostics;
 
@@ -9,6 +10,8 @@ namespace MineRPG.Core.Diagnostics;
 /// </summary>
 public sealed class PerformanceMonitor
 {
+    private const double MillisecondsPerSecond = 1000.0;
+
     private long _chunksGenerated;
     private long _chunksMeshed;
     private long _chunksInQueue;
@@ -22,16 +25,54 @@ public sealed class PerformanceMonitor
     private long _poolRecycleCount;
     private int _renderDistance;
 
+    /// <summary>
+    /// Total number of chunks generated since startup.
+    /// </summary>
     public long ChunksGenerated => Interlocked.Read(ref _chunksGenerated);
+
+    /// <summary>
+    /// Total number of chunks meshed since startup.
+    /// </summary>
     public long ChunksMeshed => Interlocked.Read(ref _chunksMeshed);
+
+    /// <summary>
+    /// Number of chunks currently waiting in the generation/meshing queue.
+    /// </summary>
     public long ChunksInQueue => Interlocked.Read(ref _chunksInQueue);
+
+    /// <summary>
+    /// Number of chunks currently loaded in memory.
+    /// </summary>
     public long ActiveChunks => Interlocked.Read(ref _activeChunks);
+
+    /// <summary>
+    /// Number of chunks currently visible after frustum culling.
+    /// </summary>
     public long VisibleChunks => Interlocked.Read(ref _visibleChunks);
+
+    /// <summary>
+    /// Total vertex count across all loaded chunk meshes.
+    /// </summary>
     public long TotalVertices => Interlocked.Read(ref _totalVertices);
+
+    /// <summary>
+    /// Current render distance in chunks.
+    /// </summary>
     public int RenderDistance => _renderDistance;
 
+    /// <summary>
+    /// Number of idle (recycled) objects in the pool.
+    /// </summary>
     public long PoolIdleCount => Interlocked.Read(ref _poolIdleCount);
+
+    /// <summary>
+    /// Number of active (in-use) objects from the pool.
+    /// </summary>
     public long PoolActiveCount => Interlocked.Read(ref _poolActiveCount);
+
+    /// <summary>
+    /// Total number of objects recycled through the pool.
+    /// </summary>
     public long PoolRecycleCount => Interlocked.Read(ref _poolRecycleCount);
 
     /// <summary>
@@ -41,24 +82,85 @@ public sealed class PerformanceMonitor
     {
         get
         {
-            var count = Interlocked.Read(ref _meshTimeCount);
-            if (count == 0)
-                return 0;
+            long count = Interlocked.Read(ref _meshTimeCount);
 
-            var ticks = Interlocked.Read(ref _meshTimeAccumulatorTicks);
-            return (double)ticks / count / Stopwatch.Frequency * 1000.0;
+            if (count == 0)
+            {
+                return 0;
+            }
+
+            long ticks = Interlocked.Read(ref _meshTimeAccumulatorTicks);
+            return (double)ticks / count / Stopwatch.Frequency * MillisecondsPerSecond;
         }
     }
 
-    public void IncrementChunksGenerated() => Interlocked.Increment(ref _chunksGenerated);
-    public void IncrementChunksMeshed() => Interlocked.Increment(ref _chunksMeshed);
+    /// <summary>
+    /// Increment the chunks generated counter by one.
+    /// </summary>
+    public void IncrementChunksGenerated()
+    {
+        Interlocked.Increment(ref _chunksGenerated);
+    }
 
-    public void SetChunksInQueue(long count) => Interlocked.Exchange(ref _chunksInQueue, count);
-    public void SetActiveChunks(long count) => Interlocked.Exchange(ref _activeChunks, count);
-    public void SetVisibleChunks(long count) => Interlocked.Exchange(ref _visibleChunks, count);
-    public void SetTotalVertices(long count) => Interlocked.Exchange(ref _totalVertices, count);
-    public void SetRenderDistance(int distance) => _renderDistance = distance;
+    /// <summary>
+    /// Increment the chunks meshed counter by one.
+    /// </summary>
+    public void IncrementChunksMeshed()
+    {
+        Interlocked.Increment(ref _chunksMeshed);
+    }
 
+    /// <summary>
+    /// Set the current number of chunks in the generation/meshing queue.
+    /// </summary>
+    /// <param name="count">The current queue depth.</param>
+    public void SetChunksInQueue(long count)
+    {
+        Interlocked.Exchange(ref _chunksInQueue, count);
+    }
+
+    /// <summary>
+    /// Set the current number of active (loaded) chunks.
+    /// </summary>
+    /// <param name="count">The number of active chunks.</param>
+    public void SetActiveChunks(long count)
+    {
+        Interlocked.Exchange(ref _activeChunks, count);
+    }
+
+    /// <summary>
+    /// Set the current number of visible chunks.
+    /// </summary>
+    /// <param name="count">The number of visible chunks.</param>
+    public void SetVisibleChunks(long count)
+    {
+        Interlocked.Exchange(ref _visibleChunks, count);
+    }
+
+    /// <summary>
+    /// Set the total vertex count across all loaded chunk meshes.
+    /// </summary>
+    /// <param name="count">The total vertex count.</param>
+    public void SetTotalVertices(long count)
+    {
+        Interlocked.Exchange(ref _totalVertices, count);
+    }
+
+    /// <summary>
+    /// Set the current render distance in chunks.
+    /// </summary>
+    /// <param name="distance">The render distance.</param>
+    public void SetRenderDistance(int distance)
+    {
+        _renderDistance = distance;
+    }
+
+    /// <summary>
+    /// Set all pool statistics at once.
+    /// </summary>
+    /// <param name="idle">Number of idle objects.</param>
+    /// <param name="active">Number of active objects.</param>
+    /// <param name="recycled">Total number of recycled objects.</param>
     public void SetPoolStats(long idle, long active, long recycled)
     {
         Interlocked.Exchange(ref _poolIdleCount, idle);
@@ -69,6 +171,7 @@ public sealed class PerformanceMonitor
     /// <summary>
     /// Record a mesh build duration for averaging.
     /// </summary>
+    /// <param name="elapsedTicks">The elapsed time in stopwatch ticks.</param>
     public void RecordMeshTime(long elapsedTicks)
     {
         Interlocked.Add(ref _meshTimeAccumulatorTicks, elapsedTicks);

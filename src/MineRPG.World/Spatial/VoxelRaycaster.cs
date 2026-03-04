@@ -1,3 +1,5 @@
+using System;
+
 using MineRPG.Core.Math;
 using MineRPG.World.Blocks;
 using MineRPG.World.Chunks;
@@ -6,73 +8,106 @@ namespace MineRPG.World.Spatial;
 
 /// <summary>
 /// DDA (Digital Differential Analysis) voxel raycast.
-/// Operates directly on ChunkData — does not use Godot's physics engine.
+/// Operates directly on ChunkData -- does not use Godot's physics engine.
 /// </summary>
-public sealed class VoxelRaycaster(BlockRegistry blockRegistry, IChunkManager chunkManager) : IVoxelRaycaster
+public sealed class VoxelRaycaster : IVoxelRaycaster
 {
+    private readonly BlockRegistry _blockRegistry;
+    private readonly IChunkManager _chunkManager;
+
+    /// <summary>
+    /// Creates a voxel raycaster with the given dependencies.
+    /// </summary>
+    /// <param name="blockRegistry">Block registry for transparency checks.</param>
+    /// <param name="chunkManager">Chunk manager for block lookups across chunks.</param>
+    public VoxelRaycaster(BlockRegistry blockRegistry, IChunkManager chunkManager)
+    {
+        _blockRegistry = blockRegistry;
+        _chunkManager = chunkManager;
+    }
+
+    /// <summary>
+    /// Casts a ray through the voxel world and returns the first non-transparent block hit.
+    /// </summary>
+    /// <param name="originX">Ray origin X.</param>
+    /// <param name="originY">Ray origin Y.</param>
+    /// <param name="originZ">Ray origin Z.</param>
+    /// <param name="directionX">Ray direction X.</param>
+    /// <param name="directionY">Ray direction Y.</param>
+    /// <param name="directionZ">Ray direction Z.</param>
+    /// <param name="maxDistance">Maximum ray travel distance.</param>
+    /// <returns>The raycast result.</returns>
     public VoxelRaycastResult Cast(
-        float ox, float oy, float oz,
-        float dx, float dy, float dz,
+        float originX, float originY, float originZ,
+        float directionX, float directionY, float directionZ,
         float maxDistance)
     {
-        var x = (int)MathF.Floor(ox);
-        var y = (int)MathF.Floor(oy);
-        var z = (int)MathF.Floor(oz);
+        int x = (int)MathF.Floor(originX);
+        int y = (int)MathF.Floor(originY);
+        int z = (int)MathF.Floor(originZ);
 
-        var stepX = dx > 0 ? 1 : -1;
-        var stepY = dy > 0 ? 1 : -1;
-        var stepZ = dz > 0 ? 1 : -1;
+        int stepX = directionX > 0 ? 1 : -1;
+        int stepY = directionY > 0 ? 1 : -1;
+        int stepZ = directionZ > 0 ? 1 : -1;
 
-        var tMaxX = dx != 0 ? (dx > 0 ? x + 1 - ox : ox - x) / MathF.Abs(dx) : float.MaxValue;
-        var tMaxY = dy != 0 ? (dy > 0 ? y + 1 - oy : oy - y) / MathF.Abs(dy) : float.MaxValue;
-        var tMaxZ = dz != 0 ? (dz > 0 ? z + 1 - oz : oz - z) / MathF.Abs(dz) : float.MaxValue;
+        float tMaxX = directionX != 0
+            ? (directionX > 0 ? x + 1 - originX : originX - x) / MathF.Abs(directionX)
+            : float.MaxValue;
+        float tMaxY = directionY != 0
+            ? (directionY > 0 ? y + 1 - originY : originY - y) / MathF.Abs(directionY)
+            : float.MaxValue;
+        float tMaxZ = directionZ != 0
+            ? (directionZ > 0 ? z + 1 - originZ : originZ - z) / MathF.Abs(directionZ)
+            : float.MaxValue;
 
-        var tDeltaX = dx != 0 ? 1f / MathF.Abs(dx) : float.MaxValue;
-        var tDeltaY = dy != 0 ? 1f / MathF.Abs(dy) : float.MaxValue;
-        var tDeltaZ = dz != 0 ? 1f / MathF.Abs(dz) : float.MaxValue;
+        float tDeltaX = directionX != 0 ? 1f / MathF.Abs(directionX) : float.MaxValue;
+        float tDeltaY = directionY != 0 ? 1f / MathF.Abs(directionY) : float.MaxValue;
+        float tDeltaZ = directionZ != 0 ? 1f / MathF.Abs(directionZ) : float.MaxValue;
 
-        var prevX = x;
-        var prevY = y;
-        var prevZ = z;
-        var dist = 0f;
+        int previousX = x;
+        int previousY = y;
+        int previousZ = z;
+        float distance = 0f;
 
-        while (dist < maxDistance)
+        while (distance < maxDistance)
         {
-            var blockId = SampleBlock(x, y, z);
+            ushort blockId = SampleBlock(x, y, z);
+
             if (blockId != 0)
             {
-                var def = blockRegistry.Get(blockId);
-                if (!def.IsTransparent)
+                BlockDefinition definition = _blockRegistry.Get(blockId);
+
+                if (!definition.IsTransparent)
                 {
                     return new VoxelRaycastResult(
                         Hit: true,
                         HitPosition: new WorldPosition(x, y, z),
-                        AdjacentPosition: new WorldPosition(prevX, prevY, prevZ),
+                        AdjacentPosition: new WorldPosition(previousX, previousY, previousZ),
                         BlockId: blockId,
-                        Distance: dist);
+                        Distance: distance);
                 }
             }
 
-            prevX = x;
-            prevY = y;
-            prevZ = z;
+            previousX = x;
+            previousY = y;
+            previousZ = z;
 
             if (tMaxX < tMaxY && tMaxX < tMaxZ)
             {
                 x += stepX;
-                dist = tMaxX;
+                distance = tMaxX;
                 tMaxX += tDeltaX;
             }
             else if (tMaxY < tMaxZ)
             {
                 y += stepY;
-                dist = tMaxY;
+                distance = tMaxY;
                 tMaxY += tDeltaY;
             }
             else
             {
                 z += stepZ;
-                dist = tMaxZ;
+                distance = tMaxZ;
                 tMaxZ += tDeltaZ;
             }
         }
@@ -85,21 +120,27 @@ public sealed class VoxelRaycaster(BlockRegistry blockRegistry, IChunkManager ch
             Distance: maxDistance);
     }
 
-    private ushort SampleBlock(int wx, int wy, int wz)
+    private ushort SampleBlock(int worldX, int worldY, int worldZ)
     {
-        if (wy is < 0 or >= ChunkData.SizeY)
+        if (worldY is < 0 or >= ChunkData.SizeY)
+        {
             return 0;
+        }
 
-        var (cx, cz) = VoxelMath.WorldToChunk(wx, wz, ChunkData.SizeX, ChunkData.SizeZ);
-        var coord = new ChunkCoord(cx, cz);
+        (int chunkX, int chunkZ) = VoxelMath.WorldToChunk(worldX, worldZ, ChunkData.SizeX, ChunkData.SizeZ);
+        ChunkCoord coord = new(chunkX, chunkZ);
 
-        if (!chunkManager.TryGet(coord, out var entry) || entry is null)
+        if (!_chunkManager.TryGet(coord, out ChunkEntry? entry) || entry is null)
+        {
             return 0;
+        }
 
         if (entry.State < ChunkState.Generated)
+        {
             return 0;
+        }
 
-        var (lx, lz) = VoxelMath.WorldToLocal(wx, wz, ChunkData.SizeX, ChunkData.SizeZ);
-        return entry.Data.GetBlock(lx, wy, lz);
+        (int localX, int localZ) = VoxelMath.WorldToLocal(worldX, worldZ, ChunkData.SizeX, ChunkData.SizeZ);
+        return entry.Data.GetBlock(localX, worldY, localZ);
     }
 }

@@ -1,4 +1,7 @@
+using System;
+
 using FluentAssertions;
+
 using MineRPG.Core.DI;
 
 namespace MineRPG.Tests.Core;
@@ -13,7 +16,7 @@ public sealed class ServiceLocatorTests : IDisposable
     public void Register_AndGet_ReturnsInstance()
     {
         // Arrange
-        var service = new TestService();
+        TestService service = new TestService();
 
         // Act
         _locator.Register<ITestService>(service);
@@ -29,7 +32,7 @@ public sealed class ServiceLocatorTests : IDisposable
         _locator.Register<ITestService>(new TestService());
 
         // Act
-        var act = () => _locator.Register<ITestService>(new TestService());
+        Action act = () => _locator.Register<ITestService>(new TestService());
 
         // Assert
         act.Should().Throw<InvalidOperationException>()
@@ -40,8 +43,8 @@ public sealed class ServiceLocatorTests : IDisposable
     public void Replace_OverwritesExisting()
     {
         // Arrange
-        var first = new TestService();
-        var second = new TestService();
+        TestService first = new TestService();
+        TestService second = new TestService();
         _locator.Register<ITestService>(first);
 
         // Act
@@ -55,7 +58,7 @@ public sealed class ServiceLocatorTests : IDisposable
     public void Replace_WhenNotRegistered_RegistersNew()
     {
         // Arrange
-        var service = new TestService();
+        TestService service = new TestService();
 
         // Act
         _locator.Replace<ITestService>(service);
@@ -68,7 +71,7 @@ public sealed class ServiceLocatorTests : IDisposable
     public void Get_WhenNotRegistered_ThrowsInvalidOperation()
     {
         // Act
-        var act = () => _locator.Get<ITestService>();
+        Action act = () => _locator.Get<ITestService>();
 
         // Assert
         act.Should().Throw<InvalidOperationException>()
@@ -79,14 +82,14 @@ public sealed class ServiceLocatorTests : IDisposable
     public void TryGet_WhenRegistered_ReturnsTrueAndService()
     {
         // Arrange
-        var service = new TestService();
+        TestService service = new TestService();
         _locator.Register<ITestService>(service);
 
         // Act
-        var found = _locator.TryGet<ITestService>(out var result);
+        bool isFound = _locator.TryGet<ITestService>(out ITestService? result);
 
         // Assert
-        found.Should().BeTrue();
+        isFound.Should().BeTrue();
         result.Should().BeSameAs(service);
     }
 
@@ -94,10 +97,10 @@ public sealed class ServiceLocatorTests : IDisposable
     public void TryGet_WhenNotRegistered_ReturnsFalse()
     {
         // Act
-        var found = _locator.TryGet<ITestService>(out var result);
+        bool isFound = _locator.TryGet<ITestService>(out ITestService? result);
 
         // Assert
-        found.Should().BeFalse();
+        isFound.Should().BeFalse();
         result.Should().BeNull();
     }
 
@@ -105,7 +108,7 @@ public sealed class ServiceLocatorTests : IDisposable
     public void Register_Null_ThrowsArgumentNull()
     {
         // Act
-        var act = () => _locator.Register<ITestService>(null!);
+        Action act = () => _locator.Register<ITestService>(null!);
 
         // Assert
         act.Should().Throw<ArgumentNullException>();
@@ -115,7 +118,7 @@ public sealed class ServiceLocatorTests : IDisposable
     public void Replace_Null_ThrowsArgumentNull()
     {
         // Act
-        var act = () => _locator.Replace<ITestService>(null!);
+        Action act = () => _locator.Replace<ITestService>(null!);
 
         // Assert
         act.Should().Throw<ArgumentNullException>();
@@ -128,7 +131,7 @@ public sealed class ServiceLocatorTests : IDisposable
         ServiceLocator.ResetInstance();
 
         // Act
-        var act = () => _ = ServiceLocator.Instance;
+        Action act = () => _ = ServiceLocator.Instance;
 
         // Assert
         act.Should().Throw<InvalidOperationException>()

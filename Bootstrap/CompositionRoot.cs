@@ -1,4 +1,8 @@
+using System;
+using System.IO;
+
 using Godot;
+
 using MineRPG.Core.DataLoading;
 using MineRPG.Core.DI;
 using MineRPG.Core.Diagnostics;
@@ -21,39 +25,45 @@ namespace MineRPG.Game.Bootstrap;
 /// </summary>
 public static class CompositionRoot
 {
+    /// <summary>
+    /// Wires all services into the service locator.
+    /// </summary>
+    /// <param name="locator">The service locator to register services into.</param>
+    /// <param name="worldSeed">The world generation seed.</param>
+    /// <param name="dataRoot">The root path for data files.</param>
     public static void Wire(ServiceLocator locator, int worldSeed, string dataRoot)
     {
-        var logger = new ConsoleLogger { MinLevel = LogLevel.Debug };
+        ConsoleLogger logger = new ConsoleLogger { MinLevel = LogLevel.Debug };
         locator.Register<ILogger>(logger);
 
-        var eventBus = new EventBus(logger);
+        EventBus eventBus = new EventBus(logger);
         locator.Register<IEventBus>(eventBus);
 
-        var dataLoader = new JsonDataLoader(logger, dataRoot);
+        JsonDataLoader dataLoader = new JsonDataLoader(logger, dataRoot);
         locator.Register<IDataLoader>(dataLoader);
 
-        var blockRegistry = new BlockRegistry(dataLoader, logger);
+        BlockRegistry blockRegistry = new BlockRegistry(dataLoader, logger);
         locator.Register<BlockRegistry>(blockRegistry);
 
-        var atlasTexture = TextureAtlasBuilder.Build(blockRegistry.AtlasLayout, logger);
-        var layout = blockRegistry.AtlasLayout;
-        var shader = GD.Load<Shader>("res://Resources/Shaders/voxel_terrain.gdshader");
-        var terrainMaterial = new ShaderMaterial { Shader = shader };
+        ImageTexture atlasTexture = TextureAtlasBuilder.Build(blockRegistry.AtlasLayout, logger);
+        TextureAtlasLayout layout = blockRegistry.AtlasLayout;
+        Shader shader = GD.Load<Shader>("res://Resources/Shaders/voxel_terrain.gdshader");
+        ShaderMaterial terrainMaterial = new ShaderMaterial { Shader = shader };
         terrainMaterial.SetShaderParameter("atlas_texture", atlasTexture);
         terrainMaterial.SetShaderParameter("tile_size",
             new Vector2(
                 layout.Columns > 0 ? 1f / layout.Columns : 1f,
                 layout.Rows > 0 ? 1f / layout.Rows : 1f));
-        var atlasWidth = atlasTexture.GetWidth();
-        var atlasHeight = atlasTexture.GetHeight();
+        int atlasWidth = atlasTexture.GetWidth();
+        int atlasHeight = atlasTexture.GetHeight();
         terrainMaterial.SetShaderParameter("atlas_texel_size",
             new Vector2(
                 atlasWidth > 0 ? 1f / atlasWidth : 1f,
                 atlasHeight > 0 ? 1f / atlasHeight : 1f));
         ChunkNode.SetSharedMaterial(terrainMaterial);
 
-        var waterShader = GD.Load<Shader>("res://Resources/Shaders/liquid.gdshader");
-        var waterMaterial = new ShaderMaterial { Shader = waterShader };
+        Shader waterShader = GD.Load<Shader>("res://Resources/Shaders/liquid.gdshader");
+        ShaderMaterial waterMaterial = new ShaderMaterial { Shader = waterShader };
         waterMaterial.SetShaderParameter("atlas_texture", atlasTexture);
         waterMaterial.SetShaderParameter("tile_size",
             new Vector2(
@@ -65,47 +75,47 @@ public static class CompositionRoot
                 atlasHeight > 0 ? 1f / atlasHeight : 1f));
         ChunkNode.SetSharedWaterMaterial(waterMaterial);
 
-        var chunkManager = new ChunkManager(eventBus, logger);
+        ChunkManager chunkManager = new ChunkManager(eventBus, logger);
         locator.Register<IChunkManager>(chunkManager);
 
-        var biomes = dataLoader.LoadAll<BiomeDefinition>("Biomes");
+        List<BiomeDefinition> biomes = dataLoader.LoadAll<BiomeDefinition>("Biomes");
         BiomeBlockResolver.ResolveAll(biomes, blockRegistry, logger);
-        var biomeSelector = new BiomeSelector(biomes, worldSeed);
+        BiomeSelector biomeSelector = new BiomeSelector(biomes, worldSeed);
         locator.Register<BiomeSelector>(biomeSelector);
 
-        var terrainSampler = new TerrainSampler(biomeSelector, worldSeed);
-        var caveCarver = new CaveCarver(terrainSampler);
+        TerrainSampler terrainSampler = new TerrainSampler(biomeSelector, worldSeed);
+        CaveCarver caveCarver = new CaveCarver(terrainSampler);
 
-        var worldGenerator = new WorldGenerator(blockRegistry, terrainSampler, caveCarver);
+        WorldGenerator worldGenerator = new WorldGenerator(blockRegistry, terrainSampler, caveCarver);
         locator.Register<IWorldGenerator>(worldGenerator);
 
-        var meshBuilder = new ChunkMeshBuilder(blockRegistry);
+        ChunkMeshBuilder meshBuilder = new ChunkMeshBuilder(blockRegistry);
         locator.Register<IChunkMeshBuilder>(meshBuilder);
 
-        var raycaster = new VoxelRaycaster(blockRegistry, chunkManager);
+        VoxelRaycaster raycaster = new VoxelRaycaster(blockRegistry, chunkManager);
         locator.Register<IVoxelRaycaster>(raycaster);
 
-        var chunkSerializer = new ChunkSerializer();
+        ChunkSerializer chunkSerializer = new ChunkSerializer();
         locator.Register<IChunkSerializer>(chunkSerializer);
 
-        var saveRoot = Path.Combine(Path.GetDirectoryName(dataRoot) ?? dataRoot, "Saves", $"world_{worldSeed}");
-        var chunkStorage = new FileChunkStorage(saveRoot);
+        string saveRoot = Path.Combine(Path.GetDirectoryName(dataRoot) ?? dataRoot, "Saves", $"world_{worldSeed}");
+        FileChunkStorage chunkStorage = new FileChunkStorage(saveRoot);
         locator.Register<IChunkStorage>(chunkStorage);
 
-        var persistence = new ChunkPersistenceService(chunkSerializer, chunkStorage, logger);
+        ChunkPersistenceService persistence = new ChunkPersistenceService(chunkSerializer, chunkStorage, logger);
         locator.Register<ChunkPersistenceService>(persistence);
 
-        var movementSettings = TryLoadMovementSettings(dataLoader, logger);
-        var playerData = new PlayerData(movementSettings);
+        PlayerMovementSettings movementSettings = TryLoadMovementSettings(dataLoader, logger);
+        PlayerData playerData = new PlayerData(movementSettings);
         locator.Register<PlayerData>(playerData);
 
-        var performanceMonitor = new PerformanceMonitor();
+        PerformanceMonitor performanceMonitor = new PerformanceMonitor();
         locator.Register<PerformanceMonitor>(performanceMonitor);
 
-        var debugDataProvider = new DebugDataProvider(playerData, chunkManager, biomeSelector, performanceMonitor);
+        DebugDataProvider debugDataProvider = new DebugDataProvider(playerData, chunkManager, biomeSelector, performanceMonitor);
         locator.Register<IDebugDataProvider>(debugDataProvider);
 
-        var hotbarController = new HotbarController(playerData);
+        HotbarController hotbarController = new HotbarController(playerData);
         locator.Register<IHotbarController>(hotbarController);
 
         logger.Info("CompositionRoot: All services wired. Seed={0}, SaveRoot={1}", worldSeed, saveRoot);

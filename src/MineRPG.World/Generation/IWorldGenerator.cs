@@ -1,3 +1,5 @@
+using System.Threading;
+
 using MineRPG.World.Chunks;
 
 namespace MineRPG.World.Generation;
@@ -7,5 +9,10 @@ namespace MineRPG.World.Generation;
 /// </summary>
 public interface IWorldGenerator
 {
+    /// <summary>
+    /// Generates terrain blocks for the given chunk entry.
+    /// </summary>
+    /// <param name="entry">The chunk entry to populate with terrain data.</param>
+    /// <param name="cancellationToken">Token to cancel the generation if no longer needed.</param>
     void Generate(ChunkEntry entry, CancellationToken cancellationToken);
 }

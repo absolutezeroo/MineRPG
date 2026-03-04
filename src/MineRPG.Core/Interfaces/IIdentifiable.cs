@@ -6,5 +6,8 @@ namespace MineRPG.Core.Interfaces;
 /// </summary>
 public interface IIdentifiable
 {
+    /// <summary>
+    /// The stable integer identifier for this object.
+    /// </summary>
     int Id { get; }
 }
