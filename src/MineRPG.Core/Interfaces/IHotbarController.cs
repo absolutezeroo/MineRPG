@@ -10,11 +10,11 @@ public interface IHotbarController
     /// <summary>
     /// The zero-based index of the currently selected hotbar slot.
     /// </summary>
-    int SelectedIndex { get; }
+    public int SelectedIndex { get; }
 
     /// <summary>
     /// Select a hotbar slot by its zero-based index.
     /// </summary>
     /// <param name="index">The slot index to select.</param>
-    void SelectSlot(int index);
+    public void SelectSlot(int index);
 }

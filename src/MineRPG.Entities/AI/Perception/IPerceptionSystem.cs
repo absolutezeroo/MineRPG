@@ -19,7 +19,7 @@ public interface IPerceptionSystem
     /// <param name="forwardZ">Z component of the forward direction vector.</param>
     /// <param name="config">Perception configuration (sight range, hearing range, FOV).</param>
     /// <returns>A list of perceived entities within range.</returns>
-    IReadOnlyList<PerceptionResult> Perceive(
+    public IReadOnlyList<PerceptionResult> Perceive(
         float originX, float originY, float originZ,
         float forwardX, float forwardY, float forwardZ,
         PerceptionData config);

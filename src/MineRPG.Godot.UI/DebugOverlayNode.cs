@@ -83,7 +83,7 @@ public sealed partial class DebugOverlayNode : Control
         float playerY = _debugData.PlayerY;
         float playerZ = _debugData.PlayerZ;
 
-        int framesPerSecond = Engine.GetFramesPerSecond();
+        double framesPerSecond = Engine.GetFramesPerSecond();
         double frameTimeMs = framesPerSecond > 0 ? MillisecondsPerSecond / framesPerSecond : 0;
         ulong memoryBytes = OS.GetStaticMemoryUsage();
         double memoryMegabytes = memoryBytes / BytesPerMegabyte;

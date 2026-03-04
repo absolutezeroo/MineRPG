@@ -14,5 +14,5 @@ public interface ITerrainHeightProvider
     /// </summary>
     /// <param name="parameters">The sampled climate parameters.</param>
     /// <returns>The terrain height in world Y coordinates.</returns>
-    float GetHeight(in ClimateParameters parameters);
+    public float GetHeight(in ClimateParameters parameters);
 }

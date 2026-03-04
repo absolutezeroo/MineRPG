@@ -11,7 +11,7 @@ namespace MineRPG.World.Chunks;
 public interface IChunkManager
 {
     /// <summary>Number of currently loaded chunks.</summary>
-    int Count { get; }
+    public int Count { get; }
 
     /// <summary>
     /// Attempts to get a chunk entry by coordinate.
@@ -19,26 +19,26 @@ public interface IChunkManager
     /// <param name="coord">The chunk coordinate.</param>
     /// <param name="entry">The found entry, or null.</param>
     /// <returns>True if the chunk exists.</returns>
-    bool TryGet(ChunkCoord coord, out ChunkEntry? entry);
+    public bool TryGet(ChunkCoord coord, out ChunkEntry? entry);
 
     /// <summary>
     /// Gets or creates a chunk entry for the given coordinate.
     /// </summary>
     /// <param name="coord">The chunk coordinate.</param>
     /// <returns>The existing or newly created chunk entry.</returns>
-    ChunkEntry GetOrCreate(ChunkCoord coord);
+    public ChunkEntry GetOrCreate(ChunkCoord coord);
 
     /// <summary>
     /// Removes and unloads a chunk at the given coordinate.
     /// </summary>
     /// <param name="coord">The chunk coordinate to remove.</param>
-    void Remove(ChunkCoord coord);
+    public void Remove(ChunkCoord coord);
 
     /// <summary>
     /// Returns all currently loaded chunk entries.
     /// </summary>
     /// <returns>An enumerable of all chunk entries.</returns>
-    IEnumerable<ChunkEntry> GetAll();
+    public IEnumerable<ChunkEntry> GetAll();
 
     /// <summary>
     /// Return all chunk coords within Chebyshev distance of center,
@@ -47,12 +47,12 @@ public interface IChunkManager
     /// <param name="center">The center chunk coordinate.</param>
     /// <param name="renderDistance">The render distance in chunks.</param>
     /// <returns>A sorted list of chunk coordinates.</returns>
-    IReadOnlyList<ChunkCoord> GetCoordsInRange(ChunkCoord center, int renderDistance);
+    public IReadOnlyList<ChunkCoord> GetCoordsInRange(ChunkCoord center, int renderDistance);
 
     /// <summary>
     /// Returns neighbor chunk data for the 4 cardinal directions.
     /// </summary>
     /// <param name="coord">The center chunk coordinate.</param>
     /// <returns>An array of 4 neighbor chunk data references (nullable).</returns>
-    ChunkData?[] GetNeighborData(ChunkCoord coord);
+    public ChunkData?[] GetNeighborData(ChunkCoord coord);
 }

@@ -14,7 +14,7 @@ public interface IRegistry<TKey, TValue>
     /// <summary>
     /// The number of entries currently registered.
     /// </summary>
-    int Count { get; }
+    public int Count { get; }
 
     /// <summary>
     /// Register <paramref name="value"/> under <paramref name="key"/>.
@@ -22,7 +22,7 @@ public interface IRegistry<TKey, TValue>
     /// </summary>
     /// <param name="key">The key to register under.</param>
     /// <param name="value">The value to register.</param>
-    void Register(TKey key, TValue value);
+    public void Register(TKey key, TValue value);
 
     /// <summary>
     /// Retrieve the value for <paramref name="key"/>.
@@ -30,7 +30,7 @@ public interface IRegistry<TKey, TValue>
     /// </summary>
     /// <param name="key">The key to look up.</param>
     /// <returns>The registered value.</returns>
-    TValue Get(TKey key);
+    public TValue Get(TKey key);
 
     /// <summary>
     /// Try to retrieve the value for <paramref name="key"/> without throwing.
@@ -38,28 +38,28 @@ public interface IRegistry<TKey, TValue>
     /// <param name="key">The key to look up.</param>
     /// <param name="value">The value if found.</param>
     /// <returns>True if the key was found.</returns>
-    bool TryGet(TKey key, out TValue value);
+    public bool TryGet(TKey key, out TValue value);
 
     /// <summary>
     /// All registered values in insertion order.
     /// </summary>
     /// <returns>A read-only list of all registered values.</returns>
-    IReadOnlyList<TValue> GetAll();
+    public IReadOnlyList<TValue> GetAll();
 
     /// <summary>
     /// Check whether a key has been registered.
     /// </summary>
     /// <param name="key">The key to check.</param>
     /// <returns>True if the key exists in the registry.</returns>
-    bool Contains(TKey key);
+    public bool Contains(TKey key);
 
     /// <summary>
     /// Whether the registry has been frozen (no further registrations allowed).
     /// </summary>
-    bool IsFrozen { get; }
+    public bool IsFrozen { get; }
 
     /// <summary>
     /// Freezes the registry, preventing any further calls to <see cref="Register"/>.
     /// </summary>
-    void Freeze();
+    public void Freeze();
 }

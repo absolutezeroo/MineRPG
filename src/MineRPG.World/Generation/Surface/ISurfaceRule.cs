@@ -11,5 +11,5 @@ public interface ISurfaceRule
     /// </summary>
     /// <param name="context">The surface context with position, biome, and terrain data.</param>
     /// <returns>A block ID if this rule applies, or null to pass to the next rule.</returns>
-    ushort? TryApply(in SurfaceContext context);
+    public ushort? TryApply(in SurfaceContext context);
 }

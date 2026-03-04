@@ -12,11 +12,11 @@ public interface ISaveable
     /// Serialize this object's state to a byte array.
     /// </summary>
     /// <returns>The serialized binary data.</returns>
-    byte[] Serialize();
+    public byte[] Serialize();
 
     /// <summary>
     /// Restore this object's state from previously serialized binary data.
     /// </summary>
     /// <param name="data">The binary data to deserialize from.</param>
-    void Deserialize(ReadOnlySpan<byte> data);
+    public void Deserialize(ReadOnlySpan<byte> data);
 }

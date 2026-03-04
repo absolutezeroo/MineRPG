@@ -16,7 +16,7 @@ public interface IVoxelRaycaster
     /// <param name="directionZ">Ray direction Z (normalized).</param>
     /// <param name="maxDistance">Maximum ray distance.</param>
     /// <returns>The raycast result with hit information.</returns>
-    VoxelRaycastResult Cast(
+    public VoxelRaycastResult Cast(
         float originX, float originY, float originZ,
         float directionX, float directionY, float directionZ,
         float maxDistance);

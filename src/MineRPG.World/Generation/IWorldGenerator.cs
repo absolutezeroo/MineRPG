@@ -14,5 +14,5 @@ public interface IWorldGenerator
     /// </summary>
     /// <param name="entry">The chunk entry to populate with terrain data.</param>
     /// <param name="cancellationToken">Token to cancel the generation if no longer needed.</param>
-    void Generate(ChunkEntry entry, CancellationToken cancellationToken);
+    public void Generate(ChunkEntry entry, CancellationToken cancellationToken);
 }

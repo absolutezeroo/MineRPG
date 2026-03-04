@@ -1,6 +1,7 @@
 using System.IO;
 
 using MineRPG.Core.Math;
+using MineRPG.World.Chunks;
 
 namespace MineRPG.Godot.World;
 

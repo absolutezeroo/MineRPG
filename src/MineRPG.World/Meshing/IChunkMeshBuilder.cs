@@ -14,5 +14,5 @@ public interface IChunkMeshBuilder
     /// <param name="chunk">The chunk data to mesh.</param>
     /// <param name="neighbors">Data from the 4 cardinal neighbor chunks.</param>
     /// <returns>Separate mesh data for opaque and liquid surfaces.</returns>
-    ChunkMeshResult Build(ChunkData chunk, ChunkData?[] neighbors);
+    public ChunkMeshResult Build(ChunkData chunk, ChunkData?[] neighbors);
 }

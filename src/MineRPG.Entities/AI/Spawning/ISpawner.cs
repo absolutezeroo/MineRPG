@@ -19,7 +19,7 @@ public interface ISpawner
     /// <param name="lightLevel">The light level at the spawn location.</param>
     /// <param name="rng">Random number generator for spawn chance evaluation.</param>
     /// <returns>A list of spawn requests with mob IDs and spawn positions.</returns>
-    IReadOnlyList<SpawnRequest> Evaluate(
+    public IReadOnlyList<SpawnRequest> Evaluate(
         float worldX, float worldY, float worldZ,
         string currentBiome,
         int lightLevel,
