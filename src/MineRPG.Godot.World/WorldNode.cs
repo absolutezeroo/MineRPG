@@ -64,10 +64,10 @@ public sealed partial class WorldNode : Node3D
     /// <param name="worldZ">The player's Z world coordinate.</param>
     public void UpdatePlayerPosition(float worldX, float worldZ)
     {
-        (int chunkX, int chunkZ) = VoxelMath.WorldToChunk(
+        ChunkCoord2D chunkCoord = VoxelMath.WorldToChunk(
             (int)MathF.Floor(worldX), (int)MathF.Floor(worldZ),
             ChunkData.SizeX, ChunkData.SizeZ);
-        ChunkCoord newChunk = new(chunkX, chunkZ);
+        ChunkCoord newChunk = new(chunkCoord.ChunkX, chunkCoord.ChunkZ);
 
         if (newChunk == _lastKnownPlayerChunk)
         {
@@ -136,15 +136,17 @@ public sealed partial class WorldNode : Node3D
     /// <param name="position">The world position of the block to break.</param>
     public void BreakBlock(WorldPosition position)
     {
-        (int chunkX, int chunkZ) = VoxelMath.WorldToChunk(position.X, position.Z, ChunkData.SizeX, ChunkData.SizeZ);
-        ChunkCoord coord = new(chunkX, chunkZ);
+        ChunkCoord2D chunkCoord2D = VoxelMath.WorldToChunk(position.X, position.Z, ChunkData.SizeX, ChunkData.SizeZ);
+        ChunkCoord coord = new(chunkCoord2D.ChunkX, chunkCoord2D.ChunkZ);
 
         if (!_chunkManager.TryGet(coord, out ChunkEntry? entry) || entry is null)
         {
             return;
         }
 
-        (int localX, int localZ) = VoxelMath.WorldToLocal(position.X, position.Z, ChunkData.SizeX, ChunkData.SizeZ);
+        LocalCoord2D localCoord = VoxelMath.WorldToLocal(position.X, position.Z, ChunkData.SizeX, ChunkData.SizeZ);
+        int localX = localCoord.LocalX;
+        int localZ = localCoord.LocalZ;
         ushort oldBlockId = entry.Data.GetBlock(localX, position.Y, localZ);
 
         if (oldBlockId == 0)
@@ -179,15 +181,17 @@ public sealed partial class WorldNode : Node3D
             return;
         }
 
-        (int chunkX, int chunkZ) = VoxelMath.WorldToChunk(position.X, position.Z, ChunkData.SizeX, ChunkData.SizeZ);
-        ChunkCoord coord = new(chunkX, chunkZ);
+        ChunkCoord2D chunkCoord2D = VoxelMath.WorldToChunk(position.X, position.Z, ChunkData.SizeX, ChunkData.SizeZ);
+        ChunkCoord coord = new(chunkCoord2D.ChunkX, chunkCoord2D.ChunkZ);
 
         if (!_chunkManager.TryGet(coord, out ChunkEntry? entry) || entry is null)
         {
             return;
         }
 
-        (int localX, int localZ) = VoxelMath.WorldToLocal(position.X, position.Z, ChunkData.SizeX, ChunkData.SizeZ);
+        LocalCoord2D localCoord = VoxelMath.WorldToLocal(position.X, position.Z, ChunkData.SizeX, ChunkData.SizeZ);
+        int localX = localCoord.LocalX;
+        int localZ = localCoord.LocalZ;
         ushort oldBlockId = entry.Data.GetBlock(localX, position.Y, localZ);
 
         if (oldBlockId != 0)

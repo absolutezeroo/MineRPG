@@ -1,0 +1,9 @@
+{
+  "id": 15,
+  "name": "Emerald Ore",
+  "flags": 1,
+  "hardness": 3.0,
+  "textures": {
+    "all": "emerald_ore"
+  }
+}

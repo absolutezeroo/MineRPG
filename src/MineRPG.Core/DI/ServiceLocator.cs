@@ -19,8 +19,7 @@ public sealed class ServiceLocator : IServiceLocator
     /// </summary>
     public static IServiceLocator Instance
         => _instance ?? throw new InvalidOperationException(
-            "ServiceLocator has not been initialized. " +
-            "Call ServiceLocator.SetInstance() from GameBootstrapper before use.");
+            "ServiceLocator has not been initialized. Call ServiceLocator.SetInstance() from GameBootstrapper before use.");
 
     /// <summary>
     /// Set the global instance. Called once from GameBootstrapper.
@@ -51,8 +50,7 @@ public sealed class ServiceLocator : IServiceLocator
         if (!_services.TryAdd(typeof(T), instance))
         {
             throw new InvalidOperationException(
-                $"Service '{typeof(T).FullName}' is already registered. " +
-                "Use Replace<T>() for intentional overwrites.");
+                $"Service '{typeof(T).FullName}' is already registered. Use Replace<T>() for intentional overwrites.");
         }
     }
 

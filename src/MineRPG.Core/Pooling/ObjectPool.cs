@@ -74,4 +74,22 @@ public sealed class ObjectPool<T> : IObjectPool<T>
         _bag.Add(item);
         Interlocked.Increment(ref _idleCount);
     }
+
+    /// <inheritdoc />
+    public void PreAllocate(int count)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(count);
+
+        for (int i = 0; i < count; i++)
+        {
+            if (_idleCount >= _maxCapacity)
+            {
+                break;
+            }
+
+            T item = _factory();
+            _bag.Add(item);
+            Interlocked.Increment(ref _idleCount);
+        }
+    }
 }

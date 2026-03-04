@@ -145,4 +145,60 @@ public sealed class ObjectPoolTests
         // Assert
         pool.MaxCapacity.Should().Be(10);
     }
+
+    [Fact]
+    public void PreAllocate_FillsPoolWithInstances()
+    {
+        // Arrange
+        ObjectPool<TestObject> pool = new ObjectPool<TestObject>(() => new TestObject { Value = 7 });
+
+        // Act
+        pool.PreAllocate(5);
+
+        // Assert
+        pool.IdleCount.Should().Be(5);
+
+        TestObject item = pool.Rent();
+        item.Value.Should().Be(7);
+        pool.IdleCount.Should().Be(4);
+    }
+
+    [Fact]
+    public void PreAllocate_RespectsMaxCapacity()
+    {
+        // Arrange
+        ObjectPool<TestObject> pool = new ObjectPool<TestObject>(() => new TestObject(), maxCapacity: 3);
+
+        // Act
+        pool.PreAllocate(10);
+
+        // Assert
+        pool.IdleCount.Should().Be(3);
+    }
+
+    [Fact]
+    public void PreAllocate_NegativeCount_ThrowsArgumentOutOfRange()
+    {
+        // Arrange
+        ObjectPool<TestObject> pool = new ObjectPool<TestObject>(() => new TestObject());
+
+        // Act
+        Action act = () => pool.PreAllocate(-1);
+
+        // Assert
+        act.Should().Throw<ArgumentOutOfRangeException>();
+    }
+
+    [Fact]
+    public void PreAllocate_ZeroCount_DoesNothing()
+    {
+        // Arrange
+        ObjectPool<TestObject> pool = new ObjectPool<TestObject>(() => new TestObject());
+
+        // Act
+        pool.PreAllocate(0);
+
+        // Assert
+        pool.IdleCount.Should().Be(0);
+    }
 }

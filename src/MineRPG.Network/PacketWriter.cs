@@ -14,6 +14,9 @@ public sealed class PacketWriter : IDisposable
     private const int BitsPerByte = 8;
     private const int GrowthFactor = 2;
     private const byte ByteMask = 0xFF;
+    private const int ByteSize = 1;
+    private const int UInt16Size = 2;
+    private const int Int32Size = 4;
 
     private byte[] _buffer;
     private int _position;
@@ -36,7 +39,7 @@ public sealed class PacketWriter : IDisposable
     /// <param name="value">The byte value to write.</param>
     public void WriteByte(byte value)
     {
-        EnsureCapacity(1);
+        EnsureCapacity(ByteSize);
         _buffer[_position++] = value;
     }
 
@@ -46,7 +49,7 @@ public sealed class PacketWriter : IDisposable
     /// <param name="value">The unsigned 16-bit integer to write.</param>
     public void WriteUInt16(ushort value)
     {
-        EnsureCapacity(2);
+        EnsureCapacity(UInt16Size);
         _buffer[_position++] = (byte)(value & ByteMask);
         _buffer[_position++] = (byte)((value >> BitsPerByte) & ByteMask);
     }
@@ -57,7 +60,7 @@ public sealed class PacketWriter : IDisposable
     /// <param name="value">The signed 32-bit integer to write.</param>
     public void WriteInt32(int value)
     {
-        EnsureCapacity(4);
+        EnsureCapacity(Int32Size);
         _buffer[_position++] = (byte)(value & ByteMask);
         _buffer[_position++] = (byte)((value >> BitsPerByte) & ByteMask);
         _buffer[_position++] = (byte)((value >> (BitsPerByte * 2)) & ByteMask);

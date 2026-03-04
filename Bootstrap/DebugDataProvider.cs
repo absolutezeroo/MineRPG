@@ -42,12 +42,12 @@ public sealed class DebugDataProvider(
     {
         get
         {
-            (int chunkX, int _) = VoxelMath.WorldToChunk(
+            ChunkCoord2D coord = VoxelMath.WorldToChunk(
                 (int)MathF.Floor(playerData.PositionX),
                 (int)MathF.Floor(playerData.PositionZ),
                 ChunkData.SizeX,
                 ChunkData.SizeZ);
-            return chunkX;
+            return coord.ChunkX;
         }
     }
 
@@ -58,12 +58,12 @@ public sealed class DebugDataProvider(
     {
         get
         {
-            (int _, int chunkZ) = VoxelMath.WorldToChunk(
+            ChunkCoord2D coord = VoxelMath.WorldToChunk(
                 (int)MathF.Floor(playerData.PositionX),
                 (int)MathF.Floor(playerData.PositionZ),
                 ChunkData.SizeX,
                 ChunkData.SizeZ);
-            return chunkZ;
+            return coord.ChunkZ;
         }
     }
 

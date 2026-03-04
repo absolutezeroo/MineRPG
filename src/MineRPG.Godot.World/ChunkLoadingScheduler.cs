@@ -21,14 +21,12 @@ namespace MineRPG.Godot.World;
 /// Drives the async chunk generation and meshing pipeline.
 /// Runs generate+mesh on Task threads. Applies results on the main thread.
 /// Budget: processes at most <see cref="MaxChunksPerFrame"/> applications per _Process call.
-/// Also handles chunk persistence: load from storage before generating,
-/// save dirty chunks on unload, and autosave periodically.
+/// Persistence (load from storage, autosave) is handled by <see cref="ChunkAutosaveScheduler"/>.
 /// </summary>
 public sealed partial class ChunkLoadingScheduler : Node
 {
     private const int MaxChunksPerFrame = 2;
     private const int RenderDistance = 8;
-    private const float AutosaveIntervalSeconds = 60f;
 
     private readonly ConcurrentQueue<ChunkEntry> _readyQueue = new();
     private readonly ConcurrentDictionary<ChunkCoord, CancellationTokenSource> _pendingCts = new();
@@ -41,7 +39,7 @@ public sealed partial class ChunkLoadingScheduler : Node
     private ILogger _logger = null!;
     private WorldNode _worldNode = null!;
     private ChunkPersistenceService? _persistence;
-    private float _autosaveTimer;
+    private ChunkAutosaveScheduler? _autosaveScheduler;
 
     /// <inheritdoc />
     public override void _Ready()
@@ -58,6 +56,11 @@ public sealed partial class ChunkLoadingScheduler : Node
             _persistence = persistence;
         }
 
+        if (ServiceLocator.Instance.TryGet<ChunkAutosaveScheduler>(out ChunkAutosaveScheduler? autosave))
+        {
+            _autosaveScheduler = autosave;
+        }
+
         ServiceLocator.Instance.Register(this);
         _eventBus.Subscribe<PlayerChunkChangedEvent>(OnPlayerChunkChanged);
     }
@@ -71,8 +74,6 @@ public sealed partial class ChunkLoadingScheduler : Node
         {
             cts.Cancel();
         }
-
-        SaveAllDirtyChunks();
     }
 
     /// <inheritdoc />
@@ -84,14 +85,6 @@ public sealed partial class ChunkLoadingScheduler : Node
         {
             ApplyChunkMesh(entry);
             applied++;
-        }
-
-        _autosaveTimer += (float)delta;
-
-        if (_autosaveTimer >= AutosaveIntervalSeconds)
-        {
-            _autosaveTimer = 0f;
-            SaveAllDirtyChunks();
         }
     }
 
@@ -112,7 +105,6 @@ public sealed partial class ChunkLoadingScheduler : Node
             return;
         }
 
-        // Dedup: skip if a remesh is already pending
         if (!_pendingRemeshes.TryAdd(coord, 0))
         {
             return;
@@ -152,7 +144,10 @@ public sealed partial class ChunkLoadingScheduler : Node
         List<ChunkCoord> needed = _chunkManager.GetCoordsInRange(center, RenderDistance);
         HashSet<ChunkCoord> neededSet = new(needed);
 
-        foreach (ChunkEntry entry in _chunkManager.GetAll().ToList())
+        // Snapshot to safely modify the collection during iteration
+        List<ChunkEntry> snapshot = new(_chunkManager.GetAll());
+
+        foreach (ChunkEntry entry in snapshot)
         {
             if (!neededSet.Contains(entry.Coord))
             {
@@ -181,7 +176,6 @@ public sealed partial class ChunkLoadingScheduler : Node
         {
             try
             {
-                // Try loading from storage first
                 bool isLoaded = _persistence?.TryLoad(entry.Coord, entry.Data) ?? false;
 
                 if (!isLoaded)
@@ -240,7 +234,6 @@ public sealed partial class ChunkLoadingScheduler : Node
 
         _eventBus.Publish(new ChunkMeshedEvent { Coord = entry.Coord });
 
-        // Only schedule neighbor remeshes for initial meshes, not for remeshes
         if (!isRemesh)
         {
             ScheduleNeighborRemeshes(entry.Coord);
@@ -268,7 +261,6 @@ public sealed partial class ChunkLoadingScheduler : Node
                 continue;
             }
 
-            // Skip if a remesh is already pending for this neighbor
             if (!_pendingRemeshes.TryAdd(neighborCoord, 0))
             {
                 continue;
@@ -302,36 +294,13 @@ public sealed partial class ChunkLoadingScheduler : Node
             cts.Cancel();
         }
 
-        // Save dirty chunk before unloading
-        if (_persistence is not null && _chunkManager.TryGet(coord, out ChunkEntry? entry) && entry is not null)
+        // Delegate persistence to autosave scheduler
+        if (_chunkManager.TryGet(coord, out ChunkEntry? entry) && entry is not null)
         {
-            _persistence.SaveIfModified(entry);
+            _autosaveScheduler?.SaveIfModified(entry);
         }
 
         _chunkManager.Remove(coord);
         _worldNode.RemoveChunkNode(coord);
-    }
-
-    private void SaveAllDirtyChunks()
-    {
-        if (_persistence is null)
-        {
-            return;
-        }
-
-        int saved = 0;
-
-        foreach (ChunkEntry entry in _chunkManager.GetAll())
-        {
-            if (_persistence.SaveIfModified(entry))
-            {
-                saved++;
-            }
-        }
-
-        if (saved > 0)
-        {
-            _logger.Info("Autosave: Saved {0} modified chunks.", saved);
-        }
     }
 }
