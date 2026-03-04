@@ -28,17 +28,18 @@ public sealed class ObjectPool<T> : IObjectPool<T>
     }
 
     public int IdleCount => _idleCount;
+
     public int MaxCapacity => _maxCapacity;
 
     public T Rent()
     {
-        if (_bag.TryTake(out var item))
-        {
-            Interlocked.Decrement(ref _idleCount);
-            return item;
-        }
+        if (!_bag.TryTake(out var item))
+            return _factory();
 
-        return _factory();
+        Interlocked.Decrement(ref _idleCount);
+
+        return item;
+
     }
 
     public void Return(T item)
