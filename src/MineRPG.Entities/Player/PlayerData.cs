@@ -4,27 +4,52 @@ namespace MineRPG.Entities.Player;
 /// Pure data container for the player. All gameplay state lives here.
 /// The Godot bridge reads from this — it does not store its own state.
 /// </summary>
-public sealed class PlayerData(PlayerMovementSettings settings)
+public sealed class PlayerData
 {
-    public PlayerMovementSettings MovementSettings { get; } = settings;
+    /// <summary>Default block ID selected in the hotbar.</summary>
+    private const ushort DefaultSelectedBlockId = 1;
 
+    private readonly PlayerMovementSettings _movementSettings;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="PlayerData"/> class.
+    /// </summary>
+    /// <param name="settings">Movement tuning parameters loaded from data files.</param>
+    public PlayerData(PlayerMovementSettings settings)
+    {
+        _movementSettings = settings;
+    }
+
+    /// <summary>Movement tuning parameters for this player.</summary>
+    public PlayerMovementSettings MovementSettings => _movementSettings;
+
+    /// <summary>World X position of the player.</summary>
     public float PositionX { get; set; }
 
+    /// <summary>World Y position of the player.</summary>
     public float PositionY { get; set; }
 
+    /// <summary>World Z position of the player.</summary>
     public float PositionZ { get; set; }
 
+    /// <summary>X component of the player velocity.</summary>
     public float VelocityX { get; set; }
 
+    /// <summary>Y component of the player velocity.</summary>
     public float VelocityY { get; set; }
 
+    /// <summary>Z component of the player velocity.</summary>
     public float VelocityZ { get; set; }
 
+    /// <summary>Camera pitch angle in radians.</summary>
     public float CameraPitch { get; set; }
 
+    /// <summary>Camera yaw angle in radians.</summary>
     public float CameraYaw { get; set; }
 
+    /// <summary>Whether the player is currently sprinting.</summary>
     public bool IsSprinting { get; set; }
 
-    public ushort SelectedBlockId { get; set; } = 1;
+    /// <summary>Block ID currently selected in the hotbar.</summary>
+    public ushort SelectedBlockId { get; set; } = DefaultSelectedBlockId;
 }

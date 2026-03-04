@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Concurrent;
+
 using MineRPG.Core.Logging;
 
 namespace MineRPG.Core.Events;
@@ -12,27 +14,53 @@ namespace MineRPG.Core.Events;
 /// - Subscribe/Unsubscribe lock only the per-type slot.
 /// - PublishQueued buffers events in a ConcurrentQueue for later flush.
 /// </summary>
-public sealed class EventBus(ILogger logger) : IEventBus
+public sealed class EventBus : IEventBus
 {
     private readonly ConcurrentDictionary<Type, IEventBusSlot> _slots = new();
     private readonly ConcurrentQueue<Action> _deferredQueue = new();
+    private readonly ILogger _logger;
 
-    public void Subscribe<T>(Action<T> handler) where T : struct => GetOrCreateSlot<T>().Add(handler);
-
-    public void Unsubscribe<T>(Action<T> handler) where T : struct
+    /// <summary>
+    /// Initializes a new instance of <see cref="EventBus"/>.
+    /// </summary>
+    /// <param name="logger">Logger for recording handler errors.</param>
+    public EventBus(ILogger logger)
     {
-        if (_slots.TryGetValue(typeof(T), out var slot))
-            ((EventBusSlot<T>)slot).Remove(handler);
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
+    /// <summary>
+    /// Subscribe a handler for events of type <typeparamref name="T"/>.
+    /// </summary>
+    /// <param name="handler">The handler to invoke when the event is published.</param>
+    public void Subscribe<T>(Action<T> handler) where T : struct
+    {
+        GetOrCreateSlot<T>().Add(handler);
+    }
+
+    /// <summary>
+    /// Unsubscribe a previously registered handler for events of type <typeparamref name="T"/>.
+    /// </summary>
+    /// <param name="handler">The handler to remove.</param>
+    public void Unsubscribe<T>(Action<T> handler) where T : struct
+    {
+        if (_slots.TryGetValue(typeof(T), out IEventBusSlot? slot))
+        {
+            ((EventBusSlot<T>)slot).Remove(handler);
+        }
+    }
+
+    /// <inheritdoc />
     public void Publish<T>(T eventData) where T : struct
     {
-        if (!_slots.TryGetValue(typeof(T), out var slot))
+        if (!_slots.TryGetValue(typeof(T), out IEventBusSlot? slot))
+        {
             return;
+        }
 
-        var handlers = ((EventBusSlot<T>)slot).GetSnapshot();
+        Action<T>[] handlers = ((EventBusSlot<T>)slot).GetSnapshot();
 
-        foreach (var handler in handlers)
+        foreach (Action<T> handler in handlers)
         {
             try
             {
@@ -40,18 +68,23 @@ public sealed class EventBus(ILogger logger) : IEventBus
             }
             catch (Exception ex)
             {
-                logger.Error("EventBus handler threw for event {0}: {1}", ex, typeof(T).Name, ex.Message);
+                _logger.Error("EventBus handler threw for event {0}: {1}", ex, typeof(T).Name, ex.Message);
             }
         }
     }
 
+    /// <inheritdoc />
     public void PublishQueued<T>(T eventData) where T : struct
-        => _deferredQueue.Enqueue(() => Publish(eventData));
+    {
+        _deferredQueue.Enqueue(() => Publish(eventData));
+    }
 
+    /// <inheritdoc />
     public int FlushQueued()
     {
-        var count = 0;
-        while (_deferredQueue.TryDequeue(out var action))
+        int count = 0;
+
+        while (_deferredQueue.TryDequeue(out Action? action))
         {
             action();
             count++;
@@ -60,14 +93,19 @@ public sealed class EventBus(ILogger logger) : IEventBus
         return count;
     }
 
+    /// <inheritdoc />
     public void Clear()
     {
         _slots.Clear();
 
         // Drain deferred queue to prevent stale events from firing later
-        while (_deferredQueue.TryDequeue(out _)) { }
+        while (_deferredQueue.TryDequeue(out _))
+        {
+        }
     }
 
     private EventBusSlot<T> GetOrCreateSlot<T>() where T : struct
-        => (EventBusSlot<T>)_slots.GetOrAdd(typeof(T), _ => new EventBusSlot<T>());
+    {
+        return (EventBusSlot<T>)_slots.GetOrAdd(typeof(T), _ => new EventBusSlot<T>());
+    }
 }

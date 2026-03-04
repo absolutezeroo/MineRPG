@@ -1,4 +1,9 @@
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+
 using FluentAssertions;
+
 using MineRPG.Core.Logging;
 using MineRPG.World.Blocks;
 using MineRPG.World.Chunks;
@@ -13,8 +18,8 @@ public sealed class ChunkMeshBuilderTests
 
     public ChunkMeshBuilderTests()
     {
-        var logger = NullLogger.Instance;
-        var loader = new Core.DataLoading.JsonDataLoader(logger, FindDataRoot());
+        ILogger logger = NullLogger.Instance;
+        Core.DataLoading.JsonDataLoader loader = new Core.DataLoading.JsonDataLoader(logger, FindDataRoot());
         _blockRegistry = new BlockRegistry(loader, logger);
         _meshBuilder = new ChunkMeshBuilder(_blockRegistry);
     }
@@ -23,11 +28,11 @@ public sealed class ChunkMeshBuilderTests
     public void Build_EmptyChunk_ReturnsEmptyMesh()
     {
         // Arrange
-        var chunk = new ChunkData(Core.Math.ChunkCoord.Zero);
-        var neighbors = new ChunkData?[4];
+        ChunkData chunk = new ChunkData(Core.Math.ChunkCoord.Zero);
+        ChunkData?[] neighbors = new ChunkData?[4];
 
         // Act
-        var result = _meshBuilder.Build(chunk, neighbors);
+        ChunkMeshResult result = _meshBuilder.Build(chunk, neighbors);
 
         // Assert
         result.IsEmpty.Should().BeTrue();
@@ -39,12 +44,12 @@ public sealed class ChunkMeshBuilderTests
     public void Build_SingleBlock_ProducesFaces()
     {
         // Arrange
-        var chunk = new ChunkData(Core.Math.ChunkCoord.Zero);
+        ChunkData chunk = new ChunkData(Core.Math.ChunkCoord.Zero);
         chunk.SetBlock(8, 64, 8, 1); // Stone in the middle
-        var neighbors = new ChunkData?[4];
+        ChunkData?[] neighbors = new ChunkData?[4];
 
         // Act
-        var result = _meshBuilder.Build(chunk, neighbors);
+        ChunkMeshResult result = _meshBuilder.Build(chunk, neighbors);
 
         // Assert
         result.IsEmpty.Should().BeFalse();
@@ -59,13 +64,13 @@ public sealed class ChunkMeshBuilderTests
     public void Build_TwoAdjacentBlocks_CullsSharedFace()
     {
         // Arrange
-        var chunk = new ChunkData(Core.Math.ChunkCoord.Zero);
+        ChunkData chunk = new ChunkData(Core.Math.ChunkCoord.Zero);
         chunk.SetBlock(8, 64, 8, 1); // Stone
         chunk.SetBlock(9, 64, 8, 1); // Stone adjacent on X axis
-        var neighbors = new ChunkData?[4];
+        ChunkData?[] neighbors = new ChunkData?[4];
 
         // Act
-        var result = _meshBuilder.Build(chunk, neighbors);
+        ChunkMeshResult result = _meshBuilder.Build(chunk, neighbors);
 
         // Assert
         // Two blocks sharing a face: 2*6 faces - 2 shared = 10 faces = 40 vertices, 60 indices
@@ -78,12 +83,12 @@ public sealed class ChunkMeshBuilderTests
     public void Build_LiquidBlock_ProducesLiquidMesh()
     {
         // Arrange
-        var chunk = new ChunkData(Core.Math.ChunkCoord.Zero);
+        ChunkData chunk = new ChunkData(Core.Math.ChunkCoord.Zero);
         chunk.SetBlock(8, 64, 8, 6); // Water (ID 6, Transparent + Liquid)
-        var neighbors = new ChunkData?[4];
+        ChunkData?[] neighbors = new ChunkData?[4];
 
         // Act
-        var result = _meshBuilder.Build(chunk, neighbors);
+        ChunkMeshResult result = _meshBuilder.Build(chunk, neighbors);
 
         // Assert
         result.Liquid.IsEmpty.Should().BeFalse("water should produce liquid mesh");
@@ -94,37 +99,42 @@ public sealed class ChunkMeshBuilderTests
     public void Build_IsThreadSafe()
     {
         // Arrange — fill chunk with a layer of stone
-        var chunk = new ChunkData(Core.Math.ChunkCoord.Zero);
-        for (var x = 0; x < ChunkData.SizeX; x++)
-        for (var z = 0; z < ChunkData.SizeZ; z++)
+        ChunkData chunk = new ChunkData(Core.Math.ChunkCoord.Zero);
+        for (int x = 0; x < ChunkData.SizeX; x++)
         {
-            chunk.SetBlock(x, 0, z, 1);
+            for (int z = 0; z < ChunkData.SizeZ; z++)
+            {
+                chunk.SetBlock(x, 0, z, 1);
+            }
         }
 
-        var neighbors = new ChunkData?[4];
+        ChunkData?[] neighbors = new ChunkData?[4];
 
         // Act — build meshes concurrently from multiple threads
-        var tasks = Enumerable.Range(0, 4).Select(_ => Task.Run(() =>
+        Task<int>[] tasks = Enumerable.Range(0, 4).Select(_ => Task.Run(() =>
         {
-            var result = _meshBuilder.Build(chunk, neighbors);
+            ChunkMeshResult result = _meshBuilder.Build(chunk, neighbors);
             return result.Opaque.VertexCount;
         })).ToArray();
 
         Task.WaitAll(tasks);
 
         // Assert — all should produce the same result
-        var vertexCounts = tasks.Select(t => t.Result).Distinct().ToList();
+        System.Collections.Generic.List<int> vertexCounts = tasks.Select(t => t.Result).Distinct().ToList();
         vertexCounts.Should().ContainSingle("all threads should produce identical vertex counts");
     }
 
     private static string FindDataRoot()
     {
-        var dir = AppContext.BaseDirectory;
-        for (var i = 0; i < 8; i++)
+        string dir = AppContext.BaseDirectory;
+        for (int i = 0; i < 8; i++)
         {
-            var candidate = Path.Combine(dir, "Data");
+            string candidate = Path.Combine(dir, "Data");
             if (Directory.Exists(candidate))
+            {
                 return candidate;
+            }
+
             dir = Path.GetDirectoryName(dir) ?? dir;
         }
 

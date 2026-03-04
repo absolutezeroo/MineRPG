@@ -1,4 +1,7 @@
+using System;
+
 using FluentAssertions;
+
 using MineRPG.Core.Pooling;
 
 namespace MineRPG.Tests.Core;
@@ -14,10 +17,10 @@ public sealed class ObjectPoolTests
     public void Rent_WhenEmpty_CreatesNewInstance()
     {
         // Arrange
-        var pool = new ObjectPool<TestObject>(() => new TestObject { Value = 42 });
+        ObjectPool<TestObject> pool = new ObjectPool<TestObject>(() => new TestObject { Value = 42 });
 
         // Act
-        var item = pool.Rent();
+        TestObject item = pool.Rent();
 
         // Assert
         item.Should().NotBeNull();
@@ -28,13 +31,13 @@ public sealed class ObjectPoolTests
     public void Return_AndRent_ReusesInstance()
     {
         // Arrange
-        var pool = new ObjectPool<TestObject>(() => new TestObject());
-        var original = pool.Rent();
+        ObjectPool<TestObject> pool = new ObjectPool<TestObject>(() => new TestObject());
+        TestObject original = pool.Rent();
         original.Value = 99;
 
         // Act
         pool.Return(original);
-        var reused = pool.Rent();
+        TestObject reused = pool.Rent();
 
         // Assert
         reused.Should().BeSameAs(original);
@@ -45,16 +48,16 @@ public sealed class ObjectPoolTests
     public void Return_WithReset_ResetsBeforeStoring()
     {
         // Arrange
-        var pool = new ObjectPool<TestObject>(
+        ObjectPool<TestObject> pool = new ObjectPool<TestObject>(
             () => new TestObject(),
             obj => obj.Value = 0);
 
-        var item = pool.Rent();
+        TestObject item = pool.Rent();
         item.Value = 42;
 
         // Act
         pool.Return(item);
-        var reused = pool.Rent();
+        TestObject reused = pool.Rent();
 
         // Assert
         reused.Value.Should().Be(0);
@@ -64,13 +67,13 @@ public sealed class ObjectPoolTests
     public void IdleCount_TracksPooledItems()
     {
         // Arrange
-        var pool = new ObjectPool<TestObject>(() => new TestObject());
+        ObjectPool<TestObject> pool = new ObjectPool<TestObject>(() => new TestObject());
 
         // Act & Assert
         pool.IdleCount.Should().Be(0);
 
-        var item1 = pool.Rent();
-        var item2 = pool.Rent();
+        TestObject item1 = pool.Rent();
+        TestObject item2 = pool.Rent();
         pool.IdleCount.Should().Be(0);
 
         pool.Return(item1);
@@ -87,7 +90,7 @@ public sealed class ObjectPoolTests
     public void Constructor_NullFactory_ThrowsArgumentNull()
     {
         // Act
-        var act = () => new ObjectPool<TestObject>(null!);
+        Action act = () => new ObjectPool<TestObject>(null!);
 
         // Assert
         act.Should().Throw<ArgumentNullException>();
@@ -97,7 +100,7 @@ public sealed class ObjectPoolTests
     public void Constructor_ZeroMaxCapacity_ThrowsArgumentOutOfRange()
     {
         // Act
-        var act = () => new ObjectPool<TestObject>(() => new TestObject(), maxCapacity: 0);
+        Action act = () => new ObjectPool<TestObject>(() => new TestObject(), maxCapacity: 0);
 
         // Assert
         act.Should().Throw<ArgumentOutOfRangeException>();
@@ -107,7 +110,7 @@ public sealed class ObjectPoolTests
     public void Constructor_NegativeMaxCapacity_ThrowsArgumentOutOfRange()
     {
         // Act
-        var act = () => new ObjectPool<TestObject>(() => new TestObject(), maxCapacity: -1);
+        Action act = () => new ObjectPool<TestObject>(() => new TestObject(), maxCapacity: -1);
 
         // Assert
         act.Should().Throw<ArgumentOutOfRangeException>();
@@ -117,10 +120,10 @@ public sealed class ObjectPoolTests
     public void Return_WhenAtMaxCapacity_DropsItem()
     {
         // Arrange
-        var pool = new ObjectPool<TestObject>(() => new TestObject(), maxCapacity: 2);
-        var a = pool.Rent();
-        var b = pool.Rent();
-        var c = pool.Rent();
+        ObjectPool<TestObject> pool = new ObjectPool<TestObject>(() => new TestObject(), maxCapacity: 2);
+        TestObject a = pool.Rent();
+        TestObject b = pool.Rent();
+        TestObject c = pool.Rent();
 
         pool.Return(a);
         pool.Return(b);
@@ -137,7 +140,7 @@ public sealed class ObjectPoolTests
     public void MaxCapacity_ReturnsConfiguredValue()
     {
         // Arrange
-        var pool = new ObjectPool<TestObject>(() => new TestObject(), maxCapacity: 10);
+        ObjectPool<TestObject> pool = new ObjectPool<TestObject>(() => new TestObject(), maxCapacity: 10);
 
         // Assert
         pool.MaxCapacity.Should().Be(10);

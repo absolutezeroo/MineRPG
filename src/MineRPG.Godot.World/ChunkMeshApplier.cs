@@ -1,4 +1,5 @@
 using Godot;
+
 using MineRPG.World.Meshing;
 
 namespace MineRPG.Godot.World;
@@ -11,102 +12,130 @@ namespace MineRPG.Godot.World;
 /// </summary>
 public static class ChunkMeshApplier
 {
+    private const int VertexStride = 3;
+    private const int UvStride = 2;
+    private const int ColorStride = 4;
+    private const int TriangleVertexCount = 3;
+
+    /// <summary>
+    /// Builds a Godot ArrayMesh from a chunk mesh result containing opaque and liquid surfaces.
+    /// </summary>
+    /// <param name="result">The chunk mesh result with opaque and liquid mesh data.</param>
+    /// <returns>The assembled ArrayMesh, or null if the result is empty.</returns>
     public static ArrayMesh? Build(ChunkMeshResult result)
     {
         if (result.IsEmpty)
+        {
             return null;
+        }
 
-        var mesh = new ArrayMesh();
+        ArrayMesh mesh = new();
 
         if (!result.Opaque.IsEmpty)
+        {
             AddSurface(mesh, result.Opaque);
+        }
 
         if (!result.Liquid.IsEmpty)
+        {
             AddSurface(mesh, result.Liquid);
+        }
 
         return mesh;
     }
 
+    /// <summary>
+    /// Builds a concave polygon collision shape from opaque mesh data.
+    /// </summary>
+    /// <param name="meshData">The opaque mesh data to build collision from.</param>
+    /// <returns>The collision shape, or null if the mesh data is empty.</returns>
     public static ConcavePolygonShape3D? BuildCollision(MeshData meshData)
     {
         if (meshData.IsEmpty)
-            return null;
-
-        var faceCount = meshData.IndexCount / 3;
-        var faceVerts = new Vector3[faceCount * 3];
-
-        for (var i = 0; i < faceCount; i++)
         {
-            for (var v = 0; v < 3; v++)
+            return null;
+        }
+
+        int faceCount = meshData.IndexCount / TriangleVertexCount;
+        Vector3[] faceVertices = new Vector3[faceCount * TriangleVertexCount];
+
+        for (int i = 0; i < faceCount; i++)
+        {
+            for (int v = 0; v < TriangleVertexCount; v++)
             {
-                var idx = meshData.Indices[i * 3 + v];
-                faceVerts[i * 3 + v] = new Vector3(
-                    meshData.Vertices[idx * 3],
-                    meshData.Vertices[idx * 3 + 1],
-                    meshData.Vertices[idx * 3 + 2]);
+                int index = meshData.Indices[i * TriangleVertexCount + v];
+                faceVertices[i * TriangleVertexCount + v] = new Vector3(
+                    meshData.Vertices[index * VertexStride],
+                    meshData.Vertices[index * VertexStride + 1],
+                    meshData.Vertices[index * VertexStride + 2]);
             }
         }
 
-        var shape = new ConcavePolygonShape3D();
-        shape.SetFaces(faceVerts);
+        ConcavePolygonShape3D shape = new();
+        shape.SetFaces(faceVertices);
         return shape;
     }
 
     private static void AddSurface(ArrayMesh mesh, MeshData meshData)
     {
-        var arrays = new global::Godot.Collections.Array();
+        global::Godot.Collections.Array arrays = new();
         arrays.Resize((int)Mesh.ArrayType.Max);
 
-        var vertices = new Vector3[meshData.VertexCount];
-        for (var i = 0; i < meshData.VertexCount; i++)
+        Vector3[] vertices = new Vector3[meshData.VertexCount];
+
+        for (int i = 0; i < meshData.VertexCount; i++)
         {
             vertices[i] = new Vector3(
-                meshData.Vertices[i * 3],
-                meshData.Vertices[i * 3 + 1],
-                meshData.Vertices[i * 3 + 2]);
+                meshData.Vertices[i * VertexStride],
+                meshData.Vertices[i * VertexStride + 1],
+                meshData.Vertices[i * VertexStride + 2]);
         }
 
         arrays[(int)Mesh.ArrayType.Vertex] = vertices;
 
-        var normals = new Vector3[meshData.VertexCount];
-        for (var i = 0; i < meshData.VertexCount; i++)
+        Vector3[] normals = new Vector3[meshData.VertexCount];
+
+        for (int i = 0; i < meshData.VertexCount; i++)
         {
             normals[i] = new Vector3(
-                meshData.Normals[i * 3],
-                meshData.Normals[i * 3 + 1],
-                meshData.Normals[i * 3 + 2]);
+                meshData.Normals[i * VertexStride],
+                meshData.Normals[i * VertexStride + 1],
+                meshData.Normals[i * VertexStride + 2]);
         }
 
         arrays[(int)Mesh.ArrayType.Normal] = normals;
 
-        var uvs = new Vector2[meshData.VertexCount];
-        for (var i = 0; i < meshData.VertexCount; i++)
+        Vector2[] uvs = new Vector2[meshData.VertexCount];
+
+        for (int i = 0; i < meshData.VertexCount; i++)
         {
             uvs[i] = new Vector2(
-                meshData.Uvs[i * 2],
-                meshData.Uvs[i * 2 + 1]);
+                meshData.Uvs[i * UvStride],
+                meshData.Uvs[i * UvStride + 1]);
         }
 
         arrays[(int)Mesh.ArrayType.TexUV] = uvs;
 
-        var uv2s = new Vector2[meshData.VertexCount];
-        for (var i = 0; i < meshData.VertexCount; i++)
+        Vector2[] secondaryUvs = new Vector2[meshData.VertexCount];
+
+        for (int i = 0; i < meshData.VertexCount; i++)
         {
-            uv2s[i] = new Vector2(
-                meshData.Uv2s[i * 2],
-                meshData.Uv2s[i * 2 + 1]);
+            secondaryUvs[i] = new Vector2(
+                meshData.Uv2s[i * UvStride],
+                meshData.Uv2s[i * UvStride + 1]);
         }
 
-        arrays[(int)Mesh.ArrayType.TexUV2] = uv2s;
+        arrays[(int)Mesh.ArrayType.TexUV2] = secondaryUvs;
 
-        var colors = new Color[meshData.VertexCount];
-        for (var i = 0; i < meshData.VertexCount; i++)
+        Color[] colors = new Color[meshData.VertexCount];
+
+        for (int i = 0; i < meshData.VertexCount; i++)
         {
             colors[i] = new Color(
-                meshData.Colors[i * 4],
-                meshData.Colors[i * 4 + 1],
-                meshData.Colors[i * 4 + 2],
-                meshData.Colors[i * 4 + 3]);
+                meshData.Colors[i * ColorStride],
+                meshData.Colors[i * ColorStride + 1],
+                meshData.Colors[i * ColorStride + 2],
+                meshData.Colors[i * ColorStride + 3]);
         }
 
         arrays[(int)Mesh.ArrayType.Color] = colors;

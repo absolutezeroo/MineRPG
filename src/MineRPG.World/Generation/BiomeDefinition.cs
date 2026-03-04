@@ -9,24 +9,36 @@ namespace MineRPG.World.Generation;
 /// </summary>
 public sealed class BiomeDefinition
 {
+    private const int MinSplinePoints = 2;
+    private const float DefaultSplineOffset = 0f;
+
+    private HeightSpline? _heightSpline;
+
+    /// <summary>Unique biome identifier.</summary>
     [JsonProperty("id")]
     public string Id { get; init; } = "";
 
+    /// <summary>The category of biome.</summary>
     [JsonProperty("biomeType")]
     public BiomeType BiomeType { get; init; }
 
+    /// <summary>Base terrain height for this biome.</summary>
     [JsonProperty("baseHeight")]
     public int BaseHeight { get; init; } = 64;
 
+    /// <summary>Maximum height variance from the base.</summary>
     [JsonProperty("heightVariance")]
     public int HeightVariance { get; init; } = 20;
 
+    /// <summary>Block ID for the surface layer.</summary>
     [JsonProperty("surfaceBlock")]
     public ushort SurfaceBlock { get; set; }
 
+    /// <summary>Block ID for the sub-surface layer.</summary>
     [JsonProperty("subSurfaceBlock")]
     public ushort SubSurfaceBlock { get; set; }
 
+    /// <summary>Block ID for the stone layer.</summary>
     [JsonProperty("stoneBlock")]
     public ushort StoneBlock { get; set; }
 
@@ -42,15 +54,19 @@ public sealed class BiomeDefinition
     [JsonProperty("stoneBlockName")]
     public string? StoneBlockName { get; init; }
 
+    /// <summary>Minimum temperature for this biome to be selected.</summary>
     [JsonProperty("minTemperature")]
     public float MinTemperature { get; init; }
 
+    /// <summary>Maximum temperature for this biome to be selected.</summary>
     [JsonProperty("maxTemperature")]
     public float MaxTemperature { get; init; }
 
+    /// <summary>Minimum humidity for this biome to be selected.</summary>
     [JsonProperty("minHumidity")]
     public float MinHumidity { get; init; }
 
+    /// <summary>Maximum humidity for this biome to be selected.</summary>
     [JsonProperty("maxHumidity")]
     public float MaxHumidity { get; init; }
 
@@ -66,14 +82,12 @@ public sealed class BiomeDefinition
     [JsonProperty("heightSplinePoints")]
     public SplinePoint[]? HeightSplinePoints { get; init; }
 
-    private HeightSpline? _heightSpline;
-
     /// <summary>
     /// Lazily computed from <see cref="HeightSplinePoints"/>.
     /// Falls back to a flat zero-offset spline when no points are defined.
     /// </summary>
     [JsonIgnore]
-    public HeightSpline HeightSpline => _heightSpline ??= HeightSplinePoints is { Length: >= 2 }
+    public HeightSpline HeightSpline => _heightSpline ??= HeightSplinePoints is { Length: >= MinSplinePoints }
         ? new HeightSpline(HeightSplinePoints)
-        : HeightSpline.CreateDefault(0f, 0f);
+        : HeightSpline.CreateDefault(DefaultSplineOffset, DefaultSplineOffset);
 }

@@ -1,4 +1,8 @@
+using System;
+using System.Collections.Generic;
+
 using FluentAssertions;
+
 using MineRPG.Core.Events;
 using MineRPG.Core.Logging;
 
@@ -22,7 +26,7 @@ public sealed class EventBusTests
     public void Publish_WithSubscriber_CallsHandler()
     {
         // Arrange
-        var received = 0;
+        int received = 0;
         _eventBus.Subscribe<TestEvent>(e => received = e.Value);
 
         // Act
@@ -36,7 +40,7 @@ public sealed class EventBusTests
     public void Publish_WithMultipleSubscribers_CallsAllHandlers()
     {
         // Arrange
-        var values = new List<int>();
+        List<int> values = new List<int>();
         _eventBus.Subscribe<TestEvent>(e => values.Add(e.Value));
         _eventBus.Subscribe<TestEvent>(e => values.Add(e.Value * 10));
 
@@ -51,7 +55,7 @@ public sealed class EventBusTests
     public void Publish_WithNoSubscribers_DoesNotThrow()
     {
         // Act
-        var act = () => _eventBus.Publish(new TestEvent { Value = 1 });
+        Action act = () => _eventBus.Publish(new TestEvent { Value = 1 });
 
         // Assert
         act.Should().NotThrow();
@@ -61,7 +65,7 @@ public sealed class EventBusTests
     public void Unsubscribe_RemovesHandler()
     {
         // Arrange
-        var callCount = 0;
+        int callCount = 0;
         void Handler(TestEvent _) => callCount++;
 
         _eventBus.Subscribe<TestEvent>(Handler);
@@ -80,7 +84,7 @@ public sealed class EventBusTests
     public void Subscribe_DuplicateHandler_IsIgnored()
     {
         // Arrange
-        var callCount = 0;
+        int callCount = 0;
         void Handler(TestEvent _) => callCount++;
 
         _eventBus.Subscribe<TestEvent>(Handler);
@@ -97,8 +101,8 @@ public sealed class EventBusTests
     public void Publish_DifferentEventTypes_AreIsolated()
     {
         // Arrange
-        var testReceived = 0;
-        var otherReceived = "";
+        int testReceived = 0;
+        string otherReceived = "";
 
         _eventBus.Subscribe<TestEvent>(e => testReceived = e.Value);
         _eventBus.Subscribe<OtherEvent>(e => otherReceived = e.Message);
@@ -115,7 +119,7 @@ public sealed class EventBusTests
     public void Publish_WhenHandlerThrows_ContinuesWithOtherHandlers()
     {
         // Arrange
-        var secondValue = 0;
+        int secondValue = 0;
         _eventBus.Subscribe<TestEvent>(_ => throw new InvalidOperationException("boom"));
         _eventBus.Subscribe<TestEvent>(e => secondValue = e.Value);
 
@@ -130,7 +134,7 @@ public sealed class EventBusTests
     public void Clear_RemovesAllSubscriptions()
     {
         // Arrange
-        var callCount = 0;
+        int callCount = 0;
         _eventBus.Subscribe<TestEvent>(_ => callCount++);
 
         // Act
@@ -145,7 +149,7 @@ public sealed class EventBusTests
     public void PublishQueued_DoesNotCallImmediately()
     {
         // Arrange
-        var received = 0;
+        int received = 0;
         _eventBus.Subscribe<TestEvent>(e => received = e.Value);
 
         // Act
@@ -159,7 +163,7 @@ public sealed class EventBusTests
     public void FlushQueued_DispatchesAllQueuedEvents()
     {
         // Arrange
-        var values = new List<int>();
+        List<int> values = new List<int>();
         _eventBus.Subscribe<TestEvent>(e => values.Add(e.Value));
 
         _eventBus.PublishQueued(new TestEvent { Value = 1 });
@@ -167,7 +171,7 @@ public sealed class EventBusTests
         _eventBus.PublishQueued(new TestEvent { Value = 3 });
 
         // Act
-        var flushed = _eventBus.FlushQueued();
+        int flushed = _eventBus.FlushQueued();
 
         // Assert
         flushed.Should().Be(3);
@@ -178,7 +182,7 @@ public sealed class EventBusTests
     public void FlushQueued_WhenEmpty_ReturnsZero()
     {
         // Act
-        var flushed = _eventBus.FlushQueued();
+        int flushed = _eventBus.FlushQueued();
 
         // Assert
         flushed.Should().Be(0);
@@ -188,14 +192,14 @@ public sealed class EventBusTests
     public void Clear_DrainsQueuedEvents()
     {
         // Arrange
-        var received = 0;
+        int received = 0;
         _eventBus.Subscribe<TestEvent>(e => received = e.Value);
         _eventBus.PublishQueued(new TestEvent { Value = 99 });
 
         // Act
         _eventBus.Clear();
         _eventBus.Subscribe<TestEvent>(e => received = e.Value);
-        var flushed = _eventBus.FlushQueued();
+        int flushed = _eventBus.FlushQueued();
 
         // Assert — queued event was drained by Clear
         flushed.Should().Be(0);

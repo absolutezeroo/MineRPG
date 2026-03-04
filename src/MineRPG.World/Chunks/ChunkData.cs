@@ -1,4 +1,6 @@
+using System;
 using System.Runtime.CompilerServices;
+
 using MineRPG.Core.Math;
 
 namespace MineRPG.World.Chunks;
@@ -7,43 +9,95 @@ namespace MineRPG.World.Chunks;
 /// Stores block IDs for one 16x256x16 chunk as a cache-friendly flat ushort array.
 /// Index formula: x + z*SizeX + y*SizeX*SizeZ (matches VoxelMath.GetIndex).
 /// </summary>
-public sealed class ChunkData(ChunkCoord coord)
+public sealed class ChunkData
 {
+    /// <summary>Chunk width in blocks (X axis).</summary>
     public const int SizeX = 16;
+
+    /// <summary>Chunk height in blocks (Y axis).</summary>
     public const int SizeY = 256;
+
+    /// <summary>Chunk depth in blocks (Z axis).</summary>
     public const int SizeZ = 16;
+
+    /// <summary>Total number of blocks in one chunk.</summary>
     public const int TotalBlocks = SizeX * SizeY * SizeZ;
 
     private readonly ushort[] _blocks = new ushort[TotalBlocks];
 
-    public ChunkCoord Coord { get; } = coord;
+    /// <summary>The chunk coordinate in the world grid.</summary>
+    public ChunkCoord Coord { get; }
 
+    /// <summary>
+    /// Creates a new chunk data instance for the given coordinate.
+    /// </summary>
+    /// <param name="coord">The chunk coordinate.</param>
+    public ChunkData(ChunkCoord coord)
+    {
+        Coord = coord;
+    }
+
+    /// <summary>
+    /// Computes the flat array index for a local block position.
+    /// </summary>
+    /// <param name="x">Local X coordinate.</param>
+    /// <param name="y">Local Y coordinate.</param>
+    /// <param name="z">Local Z coordinate.</param>
+    /// <returns>The flat array index.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int GetIndex(int x, int y, int z)
         => VoxelMath.GetIndex(x, y, z, SizeX, SizeZ);
 
+    /// <summary>
+    /// Gets the block ID at the specified local position.
+    /// </summary>
+    /// <param name="x">Local X coordinate.</param>
+    /// <param name="y">Local Y coordinate.</param>
+    /// <param name="z">Local Z coordinate.</param>
+    /// <returns>The block ID at the given position.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ushort GetBlock(int x, int y, int z) => _blocks[GetIndex(x, y, z)];
 
+    /// <summary>
+    /// Sets the block ID at the specified local position.
+    /// </summary>
+    /// <param name="x">Local X coordinate.</param>
+    /// <param name="y">Local Y coordinate.</param>
+    /// <param name="z">Local Z coordinate.</param>
+    /// <param name="blockId">The block ID to set.</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void SetBlock(int x, int y, int z, ushort blockId)
         => _blocks[GetIndex(x, y, z)] = blockId;
 
+    /// <summary>
+    /// Returns a read-only span over the raw block array.
+    /// </summary>
+    /// <returns>A span of all block IDs.</returns>
     public ReadOnlySpan<ushort> GetRawSpan() => _blocks.AsSpan();
 
     /// <summary>
     /// Overwrites the entire block array from a span. Used for deserialization.
     /// The span must contain exactly <see cref="TotalBlocks"/> elements.
     /// </summary>
+    /// <param name="source">The source span to copy from.</param>
     public void LoadFromSpan(ReadOnlySpan<ushort> source)
     {
         if (source.Length != TotalBlocks)
+        {
             throw new ArgumentException(
                 $"Source span length ({source.Length}) does not match TotalBlocks ({TotalBlocks}).");
+        }
 
         source.CopyTo(_blocks);
     }
 
+    /// <summary>
+    /// Checks whether the given local coordinates are within chunk bounds.
+    /// </summary>
+    /// <param name="x">Local X coordinate.</param>
+    /// <param name="y">Local Y coordinate.</param>
+    /// <param name="z">Local Z coordinate.</param>
+    /// <returns>True if the coordinates are in bounds.</returns>
     public static bool IsInBounds(int x, int y, int z)
         => (uint)x < SizeX && (uint)y < SizeY && (uint)z < SizeZ;
 
@@ -51,26 +105,33 @@ public sealed class ChunkData(ChunkCoord coord)
     /// Computes metadata for each 16x16x16 sub-chunk. Call after generation completes.
     /// Returns an array of <see cref="SubChunkConstants.SubChunkCount"/> entries.
     /// </summary>
+    /// <returns>An array of sub-chunk metadata.</returns>
     public SubChunkInfo[] ComputeSubChunkInfo()
     {
-        var result = new SubChunkInfo[SubChunkConstants.SubChunkCount];
+        SubChunkInfo[] result = new SubChunkInfo[SubChunkConstants.SubChunkCount];
 
-        for (var sy = 0; sy < SubChunkConstants.SubChunkCount; sy++)
+        for (int subChunkY = 0; subChunkY < SubChunkConstants.SubChunkCount; subChunkY++)
         {
-            var minY = sy * SubChunkConstants.SubChunkSize;
-            var nonAirCount = 0;
+            int minY = subChunkY * SubChunkConstants.SubChunkSize;
+            int nonAirCount = 0;
 
-            for (var y = minY; y < minY + SubChunkConstants.SubChunkSize; y++)
-            for (var z = 0; z < SizeZ; z++)
-            for (var x = 0; x < SizeX; x++)
+            for (int y = minY; y < minY + SubChunkConstants.SubChunkSize; y++)
             {
-                if (_blocks[GetIndex(x, y, z)] != 0)
-                    nonAirCount++;
+                for (int z = 0; z < SizeZ; z++)
+                {
+                    for (int x = 0; x < SizeX; x++)
+                    {
+                        if (_blocks[GetIndex(x, y, z)] != 0)
+                        {
+                            nonAirCount++;
+                        }
+                    }
+                }
             }
 
-            var isEmpty = nonAirCount == 0;
-            var isFullySolid = nonAirCount == SubChunkConstants.BlocksPerSubChunk;
-            result[sy] = new SubChunkInfo(sy, isEmpty, isFullySolid, nonAirCount);
+            bool isEmpty = nonAirCount == 0;
+            bool isFullySolid = nonAirCount == SubChunkConstants.BlocksPerSubChunk;
+            result[subChunkY] = new SubChunkInfo(subChunkY, isEmpty, isFullySolid, nonAirCount);
         }
 
         return result;
@@ -80,14 +141,21 @@ public sealed class ChunkData(ChunkCoord coord)
     /// Returns the highest Y coordinate that contains a non-air block, or -1 if the chunk is empty.
     /// Useful for occlusion culling and LOD decisions.
     /// </summary>
+    /// <returns>The highest non-air Y coordinate, or -1.</returns>
     public int GetHighestNonAirY()
     {
-        for (var y = SizeY - 1; y >= 0; y--)
-        for (var z = 0; z < SizeZ; z++)
-        for (var x = 0; x < SizeX; x++)
+        for (int y = SizeY - 1; y >= 0; y--)
         {
-            if (_blocks[GetIndex(x, y, z)] != 0)
-                return y;
+            for (int z = 0; z < SizeZ; z++)
+            {
+                for (int x = 0; x < SizeX; x++)
+                {
+                    if (_blocks[GetIndex(x, y, z)] != 0)
+                    {
+                        return y;
+                    }
+                }
+            }
         }
 
         return -1;

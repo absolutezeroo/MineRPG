@@ -1,5 +1,7 @@
 namespace MineRPG.Core.Events;
 
-// Internal marker interface — allows ConcurrentDictionary<Type, IEventBusSlot>
-// without boxing. Not part of the public API.
+/// <summary>
+/// Internal marker interface — allows ConcurrentDictionary&lt;Type, IEventBusSlot&gt;
+/// without boxing. Not part of the public API.
+/// </summary>
 internal interface IEventBusSlot;

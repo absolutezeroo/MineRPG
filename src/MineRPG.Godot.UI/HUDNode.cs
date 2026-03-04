@@ -1,4 +1,5 @@
 using Godot;
+
 using MineRPG.Core.DI;
 using MineRPG.Core.Logging;
 
@@ -17,11 +18,12 @@ public sealed partial class HUDNode : CanvasLayer
     private DebugOverlayNode _debugOverlay = null!;
     private ILogger _logger = null!;
 
+    /// <inheritdoc />
     public override void _Ready()
     {
         _logger = ServiceLocator.Instance.Get<ILogger>();
 
-        var crosshair = new CrosshairNode();
+        CrosshairNode crosshair = new();
         crosshair.Name = "Crosshair";
         AddChild(crosshair);
 
@@ -29,7 +31,7 @@ public sealed partial class HUDNode : CanvasLayer
         _debugOverlay.Name = "DebugOverlay";
         AddChild(_debugOverlay);
 
-        var hotbar = new HotbarNode();
+        HotbarNode hotbar = new();
         hotbar.Name = "Hotbar";
         AddChild(hotbar);
 
@@ -46,7 +48,7 @@ public sealed partial class HUDNode : CanvasLayer
 
         if (_camera is null)
         {
-            _logger.Warning("HUDNode: Camera3D not found — debug look direction unavailable.");
+            _logger.Warning("HUDNode: Camera3D not found -- debug look direction unavailable.");
             return;
         }
 

@@ -8,5 +8,11 @@ namespace MineRPG.World.Meshing;
 /// </summary>
 public interface IChunkMeshBuilder
 {
+    /// <summary>
+    /// Builds mesh data for a chunk.
+    /// </summary>
+    /// <param name="chunk">The chunk data to mesh.</param>
+    /// <param name="neighbors">Data from the 4 cardinal neighbor chunks.</param>
+    /// <returns>Separate mesh data for opaque and liquid surfaces.</returns>
     ChunkMeshResult Build(ChunkData chunk, ChunkData?[] neighbors);
 }

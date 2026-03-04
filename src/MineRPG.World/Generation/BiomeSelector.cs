@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+
 using MineRPG.Core.Math;
 
 namespace MineRPG.World.Generation;
@@ -7,31 +10,71 @@ namespace MineRPG.World.Generation;
 /// temperature and humidity. Chooses the biome definition whose range
 /// best matches the sampled values.
 /// </summary>
-public sealed class BiomeSelector(IReadOnlyList<BiomeDefinition> biomes, int seed)
+public sealed class BiomeSelector
 {
-    private readonly FastNoise _temperatureNoise = biomes.Count > 0
-        ? new(seed ^ 0x12345678)
-        : throw new InvalidOperationException("BiomeSelector requires at least one BiomeDefinition. Check Data/Biomes/.");
-    private readonly FastNoise _humidityNoise = new(seed ^ unchecked((int)0x87654321));
+    private const float NoiseScale = 0.001f;
+    private const float NoiseNormalizationOffset = 1f;
+    private const float NoiseNormalizationScale = 0.5f;
+    private const int TemperatureSeedMask = 0x12345678;
+    private const float InRangeRankMultiplier = 0.5f;
+    private const float BlendDistanceMultiplier = 4f;
 
+    private static readonly int HumiditySeedMask = unchecked((int)0x87654321);
+
+    private readonly IReadOnlyList<BiomeDefinition> _biomes;
+    private readonly FastNoise _temperatureNoise;
+    private readonly FastNoise _humidityNoise;
+
+    /// <summary>
+    /// Creates a biome selector with the given definitions and world seed.
+    /// </summary>
+    /// <param name="biomes">Available biome definitions (must contain at least one).</param>
+    /// <param name="seed">World seed for noise generation.</param>
+    public BiomeSelector(IReadOnlyList<BiomeDefinition> biomes, int seed)
+    {
+        if (biomes.Count == 0)
+        {
+            throw new InvalidOperationException(
+                "BiomeSelector requires at least one BiomeDefinition. Check Data/Biomes/.");
+        }
+
+        _biomes = biomes;
+        _temperatureNoise = new FastNoise(seed ^ TemperatureSeedMask);
+        _humidityNoise = new FastNoise(seed ^ HumiditySeedMask);
+    }
+
+    /// <summary>
+    /// Selects the best-matching biome for the given world position.
+    /// </summary>
+    /// <param name="worldX">World X coordinate.</param>
+    /// <param name="worldZ">World Z coordinate.</param>
+    /// <returns>The best-matching biome definition.</returns>
     public BiomeDefinition Select(int worldX, int worldZ)
     {
-        var temperature = (_temperatureNoise.Sample2D(worldX * 0.001f, worldZ * 0.001f) + 1f) * 0.5f;
-        var humidity = (_humidityNoise.Sample2D(worldX * 0.001f, worldZ * 0.001f) + 1f) * 0.5f;
+        float temperature = (_temperatureNoise.Sample2D(worldX * NoiseScale, worldZ * NoiseScale)
+                             + NoiseNormalizationOffset) * NoiseNormalizationScale;
+        float humidity = (_humidityNoise.Sample2D(worldX * NoiseScale, worldZ * NoiseScale)
+                          + NoiseNormalizationOffset) * NoiseNormalizationScale;
 
         BiomeDefinition? best = null;
-        var bestScore = float.MaxValue;
+        float bestScore = float.MaxValue;
 
-        foreach (var biome in biomes)
+        foreach (BiomeDefinition biome in _biomes)
         {
             if (temperature < biome.MinTemperature || temperature > biome.MaxTemperature)
+            {
                 continue;
-            if (humidity < biome.MinHumidity || humidity > biome.MaxHumidity)
-                continue;
+            }
 
-            var tCenter = (biome.MinTemperature + biome.MaxTemperature) * 0.5f;
-            var hCenter = (biome.MinHumidity + biome.MaxHumidity) * 0.5f;
-            var score = MathF.Abs(temperature - tCenter) + MathF.Abs(humidity - hCenter);
+            if (humidity < biome.MinHumidity || humidity > biome.MaxHumidity)
+            {
+                continue;
+            }
+
+            float temperatureCenter = (biome.MinTemperature + biome.MaxTemperature) * NoiseNormalizationScale;
+            float humidityCenter = (biome.MinHumidity + biome.MaxHumidity) * NoiseNormalizationScale;
+            float score = MathF.Abs(temperature - temperatureCenter) + MathF.Abs(humidity - humidityCenter);
+
             if (score < bestScore)
             {
                 bestScore = score;
@@ -39,59 +82,66 @@ public sealed class BiomeSelector(IReadOnlyList<BiomeDefinition> biomes, int see
             }
         }
 
-        return best ?? biomes[0];
+        return best ?? _biomes[0];
     }
 
     /// <summary>
     /// Returns the primary and secondary biomes with a blend weight in [0, 1].
     /// Weight 0 = 100% primary. Used for smooth transitions at biome boundaries.
     /// </summary>
-    public (BiomeDefinition Primary, BiomeDefinition Secondary, float BlendWeight) SelectWeighted(int worldX, int worldZ)
+    /// <param name="worldX">World X coordinate.</param>
+    /// <param name="worldZ">World Z coordinate.</param>
+    /// <returns>A tuple of (Primary, Secondary, BlendWeight).</returns>
+    public (BiomeDefinition Primary, BiomeDefinition Secondary, float BlendWeight) SelectWeighted(
+        int worldX, int worldZ)
     {
-        var temperature = (_temperatureNoise.Sample2D(worldX * 0.001f, worldZ * 0.001f) + 1f) * 0.5f;
-        var humidity = (_humidityNoise.Sample2D(worldX * 0.001f, worldZ * 0.001f) + 1f) * 0.5f;
+        float temperature = (_temperatureNoise.Sample2D(worldX * NoiseScale, worldZ * NoiseScale)
+                             + NoiseNormalizationOffset) * NoiseNormalizationScale;
+        float humidity = (_humidityNoise.Sample2D(worldX * NoiseScale, worldZ * NoiseScale)
+                          + NoiseNormalizationOffset) * NoiseNormalizationScale;
 
         BiomeDefinition? first = null;
         BiomeDefinition? second = null;
-        var firstRank = float.MaxValue;
-        var secondRank = float.MaxValue;
-        var firstRawDist = float.MaxValue;
-        var secondRawDist = float.MaxValue;
+        float firstRank = float.MaxValue;
+        float secondRank = float.MaxValue;
+        float firstRawDistance = float.MaxValue;
+        float secondRawDistance = float.MaxValue;
 
-        foreach (var biome in biomes)
+        foreach (BiomeDefinition biome in _biomes)
         {
-            var tCenter = (biome.MinTemperature + biome.MaxTemperature) * 0.5f;
-            var hCenter = (biome.MinHumidity + biome.MaxHumidity) * 0.5f;
-            var rawDist = MathF.Abs(temperature - tCenter) + MathF.Abs(humidity - hCenter);
+            float temperatureCenter = (biome.MinTemperature + biome.MaxTemperature) * NoiseNormalizationScale;
+            float humidityCenter = (biome.MinHumidity + biome.MaxHumidity) * NoiseNormalizationScale;
+            float rawDistance = MathF.Abs(temperature - temperatureCenter)
+                                + MathF.Abs(humidity - humidityCenter);
 
             // In-range biomes get priority for ranking only
-            var inside = temperature >= biome.MinTemperature && temperature <= biome.MaxTemperature
-                         && humidity >= biome.MinHumidity && humidity <= biome.MaxHumidity;
-            var rank = inside ? rawDist * 0.5f : rawDist;
+            bool isInside = temperature >= biome.MinTemperature && temperature <= biome.MaxTemperature
+                            && humidity >= biome.MinHumidity && humidity <= biome.MaxHumidity;
+            float rank = isInside ? rawDistance * InRangeRankMultiplier : rawDistance;
 
             if (rank < firstRank)
             {
                 second = first;
                 secondRank = firstRank;
-                secondRawDist = firstRawDist;
+                secondRawDistance = firstRawDistance;
                 first = biome;
                 firstRank = rank;
-                firstRawDist = rawDist;
+                firstRawDistance = rawDistance;
             }
             else if (rank < secondRank)
             {
                 second = biome;
                 secondRank = rank;
-                secondRawDist = rawDist;
+                secondRawDistance = rawDistance;
             }
         }
 
-        first ??= biomes[0];
+        first ??= _biomes[0];
         second ??= first;
 
         // Blend weight uses raw (un-halved) distances for consistent behavior
-        var distDiff = secondRawDist - firstRawDist;
-        var blendWeight = 1f - Math.Clamp(distDiff * 4f, 0f, 1f);
+        float distanceDifference = secondRawDistance - firstRawDistance;
+        float blendWeight = 1f - Math.Clamp(distanceDifference * BlendDistanceMultiplier, 0f, 1f);
         blendWeight *= blendWeight; // smooth quadratic falloff
 
         return (first, second, blendWeight);

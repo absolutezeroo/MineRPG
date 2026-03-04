@@ -1,3 +1,5 @@
+using System;
+
 using MineRPG.Core.Diagnostics;
 using MineRPG.Core.Interfaces;
 using MineRPG.Core.Math;
@@ -18,53 +20,104 @@ public sealed class DebugDataProvider(
     BiomeSelector biomeSelector,
     PerformanceMonitor performanceMonitor) : IDebugDataProvider
 {
+    /// <summary>
+    /// Gets the player X position.
+    /// </summary>
     public float PlayerX => playerData.PositionX;
+
+    /// <summary>
+    /// Gets the player Y position.
+    /// </summary>
     public float PlayerY => playerData.PositionY;
+
+    /// <summary>
+    /// Gets the player Z position.
+    /// </summary>
     public float PlayerZ => playerData.PositionZ;
 
+    /// <summary>
+    /// Gets the chunk X coordinate the player is currently in.
+    /// </summary>
     public int ChunkX
     {
         get
         {
-            var (cx, _) = VoxelMath.WorldToChunk(
+            (int chunkX, int _) = VoxelMath.WorldToChunk(
                 (int)MathF.Floor(playerData.PositionX),
                 (int)MathF.Floor(playerData.PositionZ),
                 ChunkData.SizeX,
                 ChunkData.SizeZ);
-            return cx;
+            return chunkX;
         }
     }
 
+    /// <summary>
+    /// Gets the chunk Z coordinate the player is currently in.
+    /// </summary>
     public int ChunkZ
     {
         get
         {
-            var (_, cz) = VoxelMath.WorldToChunk(
+            (int _, int chunkZ) = VoxelMath.WorldToChunk(
                 (int)MathF.Floor(playerData.PositionX),
                 (int)MathF.Floor(playerData.PositionZ),
                 ChunkData.SizeX,
                 ChunkData.SizeZ);
-            return cz;
+            return chunkZ;
         }
     }
 
+    /// <summary>
+    /// Gets the name of the biome the player is currently in.
+    /// </summary>
     public string CurrentBiome
     {
         get
         {
-            var biome = biomeSelector.Select(
+            BiomeDefinition biome = biomeSelector.Select(
                 (int)MathF.Floor(playerData.PositionX),
                 (int)MathF.Floor(playerData.PositionZ));
             return biome.BiomeType.ToString();
         }
     }
 
+    /// <summary>
+    /// Gets the total number of loaded chunks.
+    /// </summary>
     public int LoadedChunkCount => chunkManager.Count;
+
+    /// <summary>
+    /// Gets the number of currently visible chunks.
+    /// </summary>
     public int VisibleChunkCount => (int)performanceMonitor.VisibleChunks;
+
+    /// <summary>
+    /// Gets the number of chunks currently in the loading queue.
+    /// </summary>
     public int ChunksInQueue => (int)performanceMonitor.ChunksInQueue;
+
+    /// <summary>
+    /// Gets the average mesh build time in milliseconds.
+    /// </summary>
     public double AverageMeshTimeMs => performanceMonitor.AverageMeshTimeMs;
+
+    /// <summary>
+    /// Gets the total number of rendered vertices.
+    /// </summary>
     public long TotalVertices => performanceMonitor.TotalVertices;
+
+    /// <summary>
+    /// Gets the current render distance in chunks.
+    /// </summary>
     public int RenderDistance => performanceMonitor.RenderDistance;
+
+    /// <summary>
+    /// Gets the number of idle objects in the chunk node pool.
+    /// </summary>
     public int PoolIdleCount => (int)performanceMonitor.PoolIdleCount;
+
+    /// <summary>
+    /// Gets the number of active objects in the chunk node pool.
+    /// </summary>
     public int PoolActiveCount => (int)performanceMonitor.PoolActiveCount;
 }

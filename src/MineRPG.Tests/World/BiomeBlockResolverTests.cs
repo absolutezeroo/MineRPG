@@ -1,8 +1,13 @@
+using System.Collections.Generic;
+using System.Linq;
+
 using FluentAssertions;
+
 using MineRPG.Core.DataLoading;
 using MineRPG.Core.Logging;
 using MineRPG.World.Blocks;
 using MineRPG.World.Generation;
+
 using NSubstitute;
 
 namespace MineRPG.Tests.World;
@@ -13,7 +18,7 @@ public sealed class BiomeBlockResolverTests
 
     private static BlockRegistry CreateRegistryWithBlocks(params (ushort id, string name)[] blocks)
     {
-        var dataLoader = Substitute.For<IDataLoader>();
+        IDataLoader dataLoader = Substitute.For<IDataLoader>();
         dataLoader.LoadAll<BlockDefinition>(Arg.Any<string>(), Arg.Any<bool>())
             .Returns(blocks.Select(b => new BlockDefinition { Id = b.id, Name = b.name }).ToList());
         return new BlockRegistry(dataLoader, NullLogger.Instance);
@@ -23,8 +28,8 @@ public sealed class BiomeBlockResolverTests
     public void ResolveAll_WithValidNames_OverridesNumericIds()
     {
         // Arrange
-        var registry = CreateRegistryWithBlocks((1, "Stone"), (2, "Dirt"), (3, "Grass"));
-        var biome = new BiomeDefinition
+        BlockRegistry registry = CreateRegistryWithBlocks((1, "Stone"), (2, "Dirt"), (3, "Grass"));
+        BiomeDefinition biome = new BiomeDefinition
         {
             Id = "test",
             SurfaceBlock = 99,
@@ -48,8 +53,8 @@ public sealed class BiomeBlockResolverTests
     public void ResolveAll_WithNullNames_KeepsNumericIds()
     {
         // Arrange
-        var registry = CreateRegistryWithBlocks((1, "Stone"));
-        var biome = new BiomeDefinition
+        BlockRegistry registry = CreateRegistryWithBlocks((1, "Stone"));
+        BiomeDefinition biome = new BiomeDefinition
         {
             Id = "test",
             SurfaceBlock = 5,
@@ -70,9 +75,9 @@ public sealed class BiomeBlockResolverTests
     public void ResolveAll_WithUnknownName_FallsBackToNumericId()
     {
         // Arrange
-        var logger = Substitute.For<ILogger>();
-        var registry = CreateRegistryWithBlocks((1, "Stone"));
-        var biome = new BiomeDefinition
+        ILogger logger = Substitute.For<ILogger>();
+        BlockRegistry registry = CreateRegistryWithBlocks((1, "Stone"));
+        BiomeDefinition biome = new BiomeDefinition
         {
             Id = "test",
             SurfaceBlock = 42,

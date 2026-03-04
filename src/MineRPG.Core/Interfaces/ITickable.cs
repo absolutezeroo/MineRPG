@@ -6,5 +6,9 @@ namespace MineRPG.Core.Interfaces;
 /// </summary>
 public interface ITickable
 {
+    /// <summary>
+    /// Advance the system by one tick.
+    /// </summary>
+    /// <param name="deltaTime">Time elapsed since the last tick, in seconds.</param>
     void Tick(float deltaTime);
 }

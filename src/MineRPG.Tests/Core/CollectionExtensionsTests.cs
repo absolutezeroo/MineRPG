@@ -1,4 +1,9 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
 using FluentAssertions;
+
 using MineRPG.Core.Extensions;
 
 namespace MineRPG.Tests.Core;
@@ -9,10 +14,10 @@ public sealed class CollectionExtensionsTests
     public void PopLast_WithNonEmptyList_RemovesAndReturnsLastElement()
     {
         // Arrange
-        var list = new List<int> { 10, 20, 30 };
+        List<int> list = new List<int> { 10, 20, 30 };
 
         // Act
-        var result = list.PopLast();
+        int result = list.PopLast();
 
         // Assert
         result.Should().Be(30);
@@ -24,10 +29,10 @@ public sealed class CollectionExtensionsTests
     public void PopLast_WithEmptyList_ThrowsInvalidOperationException()
     {
         // Arrange
-        var list = new List<int>();
+        List<int> list = new List<int>();
 
         // Act
-        var act = () => list.PopLast();
+        Action act = () => list.PopLast();
 
         // Assert
         act.Should().Throw<InvalidOperationException>();
@@ -37,8 +42,8 @@ public sealed class CollectionExtensionsTests
     public void Shuffle_WithSeededRandom_ProducesDeterministicResult()
     {
         // Arrange
-        var list1 = new List<int> { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
-        var list2 = new List<int> { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+        List<int> list1 = new List<int> { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+        List<int> list2 = new List<int> { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
 
         // Act
         list1.Shuffle(new Random(42));
@@ -52,10 +57,10 @@ public sealed class CollectionExtensionsTests
     public void Shuffle_WithSingleElement_DoesNotThrow()
     {
         // Arrange
-        var list = new List<int> { 42 };
+        List<int> list = new List<int> { 42 };
 
         // Act
-        var act = () => list.Shuffle(new Random(0));
+        Action act = () => list.Shuffle(new Random(0));
 
         // Assert
         act.Should().NotThrow();
@@ -66,7 +71,7 @@ public sealed class CollectionExtensionsTests
     public void AddRange_FromSpan_AddsAllElements()
     {
         // Arrange
-        var list = new List<int> { 1, 2 };
+        List<int> list = new List<int> { 1, 2 };
         ReadOnlySpan<int> span = stackalloc int[] { 3, 4, 5 };
 
         // Act
@@ -80,11 +85,11 @@ public sealed class CollectionExtensionsTests
     public void WeightedRandom_WithEqualWeights_ReturnsAnyItem()
     {
         // Arrange
-        var items = new List<string> { "a", "b", "c" };
-        var rng = new Random(42);
+        List<string> items = new List<string> { "a", "b", "c" };
+        Random rng = new Random(42);
 
         // Act
-        var result = items.WeightedRandom(_ => 1f, rng);
+        string? result = items.WeightedRandom(_ => 1f, rng);
 
         // Assert
         result.Should().NotBeNull();
@@ -95,10 +100,10 @@ public sealed class CollectionExtensionsTests
     public void WeightedRandom_WithSingleDominantWeight_ReturnsDominantItem()
     {
         // Arrange
-        var items = new List<string> { "rare", "common" };
+        List<string> items = new List<string> { "rare", "common" };
 
         // Act — run many times, dominant item (weight 1000) should always win
-        var results = Enumerable.Range(0, 100)
+        List<string?> results = Enumerable.Range(0, 100)
             .Select(seed => items.WeightedRandom(
                 i => i == "common" ? 1000f : 0.001f,
                 new Random(seed)))
@@ -112,10 +117,10 @@ public sealed class CollectionExtensionsTests
     public void WeightedRandom_WithEmptyList_ReturnsDefault()
     {
         // Arrange
-        var items = new List<string>();
+        List<string> items = new List<string>();
 
         // Act
-        var result = items.WeightedRandom(_ => 1f, new Random(0));
+        string? result = items.WeightedRandom(_ => 1f, new Random(0));
 
         // Assert
         result.Should().BeNull();
@@ -125,10 +130,10 @@ public sealed class CollectionExtensionsTests
     public void WeightedRandom_WithZeroTotalWeight_ThrowsInvalidOperationException()
     {
         // Arrange
-        var items = new List<string> { "a" };
+        List<string> items = new List<string> { "a" };
 
         // Act
-        var act = () => items.WeightedRandom(_ => 0f, new Random(0));
+        Action act = () => items.WeightedRandom(_ => 0f, new Random(0));
 
         // Assert
         act.Should().Throw<InvalidOperationException>()
@@ -142,10 +147,10 @@ public sealed class CollectionExtensionsTests
         ReadOnlySpan<int> span = stackalloc int[] { 42, 99 };
 
         // Act
-        var found = span.TryGetFirst(out var result);
+        bool isFound = span.TryGetFirst(out int result);
 
         // Assert
-        found.Should().BeTrue();
+        isFound.Should().BeTrue();
         result.Should().Be(42);
     }
 
@@ -156,9 +161,9 @@ public sealed class CollectionExtensionsTests
         ReadOnlySpan<int> span = ReadOnlySpan<int>.Empty;
 
         // Act
-        var found = span.TryGetFirst(out _);
+        bool isFound = span.TryGetFirst(out _);
 
         // Assert
-        found.Should().BeFalse();
+        isFound.Should().BeFalse();
     }
 }

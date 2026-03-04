@@ -1,4 +1,8 @@
+using System;
+using System.Collections.Generic;
+
 using Godot;
+
 using MineRPG.Core.DI;
 using MineRPG.Core.Events;
 using MineRPG.Core.Logging;
@@ -18,157 +22,217 @@ namespace MineRPG.Godot.World;
 /// </summary>
 public sealed partial class WorldNode : Node3D
 {
-	private readonly Dictionary<ChunkCoord, ChunkNode> _chunkNodes = new();
-	private readonly ChunkNodePool _chunkNodePool = new();
-	private IChunkManager _chunkManager = null!;
-	private IChunkMeshBuilder _meshBuilder = null!;
-	private IEventBus _eventBus = null!;
-	private ILogger _logger = null!;
-	private ChunkLoadingScheduler? _scheduler;
+    private readonly Dictionary<ChunkCoord, ChunkNode> _chunkNodes = new();
+    private readonly ChunkNodePool _chunkNodePool = new();
 
-	private ChunkCoord _lastKnownPlayerChunk = new(int.MinValue, int.MinValue);
+    private IChunkManager _chunkManager = null!;
+    private IChunkMeshBuilder _meshBuilder = null!;
+    private IEventBus _eventBus = null!;
+    private ILogger _logger = null!;
+    private ChunkLoadingScheduler? _scheduler;
+    private ChunkCoord _lastKnownPlayerChunk = new(int.MinValue, int.MinValue);
 
-	public ChunkNodePool NodePool => _chunkNodePool;
+    /// <summary>
+    /// Gets the chunk node pool used for recycling chunk nodes.
+    /// </summary>
+    public ChunkNodePool NodePool => _chunkNodePool;
 
-	public override void _Ready()
-	{
-		_chunkManager = ServiceLocator.Instance.Get<IChunkManager>();
-		_meshBuilder = ServiceLocator.Instance.Get<IChunkMeshBuilder>();
-		_eventBus = ServiceLocator.Instance.Get<IEventBus>();
-		_logger = ServiceLocator.Instance.Get<ILogger>();
+    /// <inheritdoc />
+    public override void _Ready()
+    {
+        _chunkManager = ServiceLocator.Instance.Get<IChunkManager>();
+        _meshBuilder = ServiceLocator.Instance.Get<IChunkMeshBuilder>();
+        _eventBus = ServiceLocator.Instance.Get<IEventBus>();
+        _logger = ServiceLocator.Instance.Get<ILogger>();
 
-		if (ServiceLocator.Instance.TryGet<ChunkLoadingScheduler>(out var scheduler))
-			_scheduler = scheduler;
+        if (ServiceLocator.Instance.TryGet<ChunkLoadingScheduler>(out ChunkLoadingScheduler? scheduler))
+        {
+            _scheduler = scheduler;
+        }
 
-		_eventBus.Subscribe<PlayerPositionUpdatedEvent>(OnPlayerPositionUpdated);
-	}
+        _eventBus.Subscribe<PlayerPositionUpdatedEvent>(OnPlayerPositionUpdated);
+    }
 
-	public override void _ExitTree() => _eventBus.Unsubscribe<PlayerPositionUpdatedEvent>(OnPlayerPositionUpdated);
+    /// <inheritdoc />
+    public override void _ExitTree() => _eventBus.Unsubscribe<PlayerPositionUpdatedEvent>(OnPlayerPositionUpdated);
+
+    /// <summary>
+    /// Updates the player's chunk position based on their world coordinates.
+    /// Publishes a <see cref="PlayerChunkChangedEvent"/> if the chunk changed.
+    /// </summary>
+    /// <param name="worldX">The player's X world coordinate.</param>
+    /// <param name="worldZ">The player's Z world coordinate.</param>
+    public void UpdatePlayerPosition(float worldX, float worldZ)
+    {
+        (int chunkX, int chunkZ) = VoxelMath.WorldToChunk(
+            (int)MathF.Floor(worldX), (int)MathF.Floor(worldZ),
+            ChunkData.SizeX, ChunkData.SizeZ);
+        ChunkCoord newChunk = new(chunkX, chunkZ);
+
+        if (newChunk == _lastKnownPlayerChunk)
+        {
+            return;
+        }
+
+        _eventBus.Publish(new PlayerChunkChangedEvent
+        {
+            OldChunk = _lastKnownPlayerChunk,
+            NewChunk = newChunk,
+        });
+        _lastKnownPlayerChunk = newChunk;
+    }
+
+    /// <summary>
+    /// Gets or creates a chunk node for the given coordinate, adding it to the scene tree.
+    /// </summary>
+    /// <param name="coord">The chunk coordinate.</param>
+    /// <returns>The existing or newly created chunk node.</returns>
+    public ChunkNode GetOrCreateChunkNode(ChunkCoord coord)
+    {
+        if (_chunkNodes.TryGetValue(coord, out ChunkNode? existing))
+        {
+            return existing;
+        }
+
+        ChunkNode node = _chunkNodePool.Rent();
+        node.Initialize(coord);
+        node.Visible = true;
+        AddChild(node);
+        _chunkNodes[coord] = node;
+        return node;
+    }
+
+    /// <summary>
+    /// Checks whether a chunk node exists for the given coordinate.
+    /// </summary>
+    /// <param name="coord">The chunk coordinate to check.</param>
+    /// <returns>True if a chunk node exists for the coordinate.</returns>
+    public bool HasChunkNode(ChunkCoord coord) => _chunkNodes.ContainsKey(coord);
+
+    /// <summary>
+    /// Returns all chunk nodes currently in the scene tree.
+    /// </summary>
+    /// <returns>An enumerable of all active chunk nodes.</returns>
+    public IEnumerable<ChunkNode> GetChunkNodes() => _chunkNodes.Values;
+
+    /// <summary>
+    /// Removes and pools the chunk node for the given coordinate.
+    /// </summary>
+    /// <param name="coord">The chunk coordinate to remove.</param>
+    public void RemoveChunkNode(ChunkCoord coord)
+    {
+        if (!_chunkNodes.TryGetValue(coord, out ChunkNode? node))
+        {
+            return;
+        }
+
+        _chunkNodePool.Return(node);
+        _chunkNodes.Remove(coord);
+    }
+
+    /// <summary>
+    /// Breaks (removes) the block at the given world position.
+    /// </summary>
+    /// <param name="position">The world position of the block to break.</param>
+    public void BreakBlock(WorldPosition position)
+    {
+        (int chunkX, int chunkZ) = VoxelMath.WorldToChunk(position.X, position.Z, ChunkData.SizeX, ChunkData.SizeZ);
+        ChunkCoord coord = new(chunkX, chunkZ);
+
+        if (!_chunkManager.TryGet(coord, out ChunkEntry? entry) || entry is null)
+        {
+            return;
+        }
+
+        (int localX, int localZ) = VoxelMath.WorldToLocal(position.X, position.Z, ChunkData.SizeX, ChunkData.SizeZ);
+        ushort oldBlockId = entry.Data.GetBlock(localX, position.Y, localZ);
+
+        if (oldBlockId == 0)
+        {
+            return;
+        }
+
+        entry.Data.SetBlock(localX, position.Y, localZ, 0);
+        entry.SetState(ChunkState.Dirty);
+        entry.IsModified = true;
+
+        _eventBus.Publish(new BlockChangedEvent
+        {
+            Position = position,
+            OldBlockId = oldBlockId,
+            NewBlockId = 0,
+        });
+
+        ScheduleOrSyncRemesh(coord);
+        _logger.Debug("Block broken at {0}", position);
+    }
+
+    /// <summary>
+    /// Places a block at the given world position.
+    /// </summary>
+    /// <param name="position">The world position to place the block at.</param>
+    /// <param name="blockId">The block type identifier to place.</param>
+    public void PlaceBlock(WorldPosition position, ushort blockId)
+    {
+        if (blockId == 0)
+        {
+            return;
+        }
+
+        (int chunkX, int chunkZ) = VoxelMath.WorldToChunk(position.X, position.Z, ChunkData.SizeX, ChunkData.SizeZ);
+        ChunkCoord coord = new(chunkX, chunkZ);
+
+        if (!_chunkManager.TryGet(coord, out ChunkEntry? entry) || entry is null)
+        {
+            return;
+        }
+
+        (int localX, int localZ) = VoxelMath.WorldToLocal(position.X, position.Z, ChunkData.SizeX, ChunkData.SizeZ);
+        ushort oldBlockId = entry.Data.GetBlock(localX, position.Y, localZ);
+
+        if (oldBlockId != 0)
+        {
+            return;
+        }
+
+        entry.Data.SetBlock(localX, position.Y, localZ, blockId);
+        entry.SetState(ChunkState.Dirty);
+        entry.IsModified = true;
+
+        _eventBus.Publish(new BlockChangedEvent
+        {
+            Position = position,
+            OldBlockId = 0,
+            NewBlockId = blockId,
+        });
+
+        ScheduleOrSyncRemesh(coord);
+    }
 
     private void OnPlayerPositionUpdated(PlayerPositionUpdatedEvent evt) => UpdatePlayerPosition(evt.X, evt.Z);
 
-    public void UpdatePlayerPosition(float worldX, float worldZ)
-	{
-		var (cx, cz) = VoxelMath.WorldToChunk(
-			(int)MathF.Floor(worldX), (int)MathF.Floor(worldZ),
-			ChunkData.SizeX, ChunkData.SizeZ);
-		var newChunk = new ChunkCoord(cx, cz);
+    private void ScheduleOrSyncRemesh(ChunkCoord coord)
+    {
+        if (_scheduler is not null)
+        {
+            _scheduler.ScheduleBlockEditRemesh(coord);
+            return;
+        }
 
-		if (newChunk == _lastKnownPlayerChunk)
-			return;
+        // Fallback: sync remesh when scheduler is unavailable
+        if (!_chunkManager.TryGet(coord, out ChunkEntry? entry) || entry is null)
+        {
+            return;
+        }
 
-		_eventBus.Publish(new PlayerChunkChangedEvent
-		{
-			OldChunk = _lastKnownPlayerChunk,
-			NewChunk = newChunk,
-		});
-		_lastKnownPlayerChunk = newChunk;
-	}
+        ChunkNeighborData neighbors = _chunkManager.GetNeighborData(coord);
+        ChunkMeshResult mesh = _meshBuilder.Build(entry.Data, neighbors);
 
-	public ChunkNode GetOrCreateChunkNode(ChunkCoord coord)
-	{
-		if (_chunkNodes.TryGetValue(coord, out var existing))
-			return existing;
+        if (_chunkNodes.TryGetValue(coord, out ChunkNode? chunkNode))
+        {
+            chunkNode.ApplyMesh(mesh);
+        }
 
-		var node = _chunkNodePool.Rent();
-		node.Initialize(coord);
-		node.Visible = true;
-		AddChild(node);
-		_chunkNodes[coord] = node;
-		return node;
-	}
-
-	public bool HasChunkNode(ChunkCoord coord) => _chunkNodes.ContainsKey(coord);
-
-	public IEnumerable<ChunkNode> GetChunkNodes() => _chunkNodes.Values;
-
-	public void RemoveChunkNode(ChunkCoord coord)
-	{
-		if (!_chunkNodes.TryGetValue(coord, out var node))
-			return;
-
-		_chunkNodePool.Return(node);
-		_chunkNodes.Remove(coord);
-	}
-
-	public void BreakBlock(WorldPosition pos)
-	{
-		var (cx, cz) = VoxelMath.WorldToChunk(pos.X, pos.Z, ChunkData.SizeX, ChunkData.SizeZ);
-		var coord = new ChunkCoord(cx, cz);
-
-		if (!_chunkManager.TryGet(coord, out var entry) || entry is null)
-			return;
-
-		var (lx, lz) = VoxelMath.WorldToLocal(pos.X, pos.Z, ChunkData.SizeX, ChunkData.SizeZ);
-		var oldId = entry.Data.GetBlock(lx, pos.Y, lz);
-
-		if (oldId == 0)
-			return;
-
-		entry.Data.SetBlock(lx, pos.Y, lz, 0);
-		entry.SetState(ChunkState.Dirty);
-		entry.IsModified = true;
-
-		_eventBus.Publish(new BlockChangedEvent
-		{
-			Position = pos,
-			OldBlockId = oldId,
-			NewBlockId = 0,
-		});
-
-		ScheduleOrSyncRemesh(coord);
-		_logger.Debug("Block broken at {0}", pos);
-	}
-
-	public void PlaceBlock(WorldPosition pos, ushort blockId)
-	{
-		if (blockId == 0)
-			return;
-
-		var (cx, cz) = VoxelMath.WorldToChunk(pos.X, pos.Z, ChunkData.SizeX, ChunkData.SizeZ);
-		var coord = new ChunkCoord(cx, cz);
-
-		if (!_chunkManager.TryGet(coord, out var entry) || entry is null)
-			return;
-
-		var (lx, lz) = VoxelMath.WorldToLocal(pos.X, pos.Z, ChunkData.SizeX, ChunkData.SizeZ);
-		var oldId = entry.Data.GetBlock(lx, pos.Y, lz);
-
-		if (oldId != 0)
-			return;
-
-		entry.Data.SetBlock(lx, pos.Y, lz, blockId);
-		entry.SetState(ChunkState.Dirty);
-		entry.IsModified = true;
-
-		_eventBus.Publish(new BlockChangedEvent
-		{
-			Position = pos,
-			OldBlockId = 0,
-			NewBlockId = blockId,
-		});
-
-		ScheduleOrSyncRemesh(coord);
-	}
-
-	private void ScheduleOrSyncRemesh(ChunkCoord coord)
-	{
-		if (_scheduler is not null)
-		{
-			_scheduler.ScheduleBlockEditRemesh(coord);
-			return;
-		}
-
-		// Fallback: sync remesh when scheduler is unavailable
-		if (!_chunkManager.TryGet(coord, out var entry) || entry is null)
-			return;
-
-		var neighbors = _chunkManager.GetNeighborData(coord);
-		var mesh = _meshBuilder.Build(entry.Data, neighbors);
-
-		if (_chunkNodes.TryGetValue(coord, out var chunkNode))
-			chunkNode.ApplyMesh(mesh);
-
-		entry.SetState(ChunkState.Ready);
-	}
+        entry.SetState(ChunkState.Ready);
+    }
 }

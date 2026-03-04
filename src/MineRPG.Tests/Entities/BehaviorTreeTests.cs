@@ -1,4 +1,5 @@
 using FluentAssertions;
+
 using MineRPG.Entities.AI.BehaviorTree;
 
 namespace MineRPG.Tests.Entities;
@@ -26,7 +27,7 @@ public sealed class BehaviorTreeTests
     [Fact]
     public void IBTNode_Reset_ClearsState()
     {
-        var node = new CountingBTNode();
+        CountingBTNode node = new CountingBTNode();
 
         node.Execute(0.1f);
         node.Execute(0.1f);

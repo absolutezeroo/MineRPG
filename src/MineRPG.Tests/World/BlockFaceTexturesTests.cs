@@ -1,4 +1,5 @@
 using FluentAssertions;
+
 using MineRPG.World.Blocks;
 
 namespace MineRPG.Tests.World;
@@ -9,10 +10,10 @@ public sealed class BlockFaceTexturesTests
     public void Resolve_WithAllOnly_FillsAllSixFaces()
     {
         // Arrange
-        var textures = new BlockFaceTextures { All = "stone" };
+        BlockFaceTextures textures = new BlockFaceTextures { All = "stone" };
 
         // Act
-        var result = textures.Resolve();
+        string?[] result = textures.Resolve();
 
         // Assert
         result.Should().HaveCount(6);
@@ -23,7 +24,7 @@ public sealed class BlockFaceTexturesTests
     public void Resolve_WithTopBottomSide_AssignsCorrectly()
     {
         // Arrange
-        var textures = new BlockFaceTextures
+        BlockFaceTextures textures = new BlockFaceTextures
         {
             Top = "grass_top",
             Bottom = "dirt",
@@ -31,7 +32,7 @@ public sealed class BlockFaceTexturesTests
         };
 
         // Act
-        var result = textures.Resolve();
+        string?[] result = textures.Resolve();
 
         // Assert
         result[0].Should().Be("grass_side"); // +X east
@@ -46,14 +47,14 @@ public sealed class BlockFaceTexturesTests
     public void Resolve_IndividualFace_OverridesGroup()
     {
         // Arrange
-        var textures = new BlockFaceTextures
+        BlockFaceTextures textures = new BlockFaceTextures
         {
             Side = "wood_side",
             East = "wood_special",
         };
 
         // Act
-        var result = textures.Resolve();
+        string?[] result = textures.Resolve();
 
         // Assert
         result[0].Should().Be("wood_special"); // east overridden
@@ -66,7 +67,7 @@ public sealed class BlockFaceTexturesTests
     public void Resolve_AllOverriddenByGroupAndIndividual()
     {
         // Arrange
-        var textures = new BlockFaceTextures
+        BlockFaceTextures textures = new BlockFaceTextures
         {
             All = "fallback",
             Top = "top_tex",
@@ -74,7 +75,7 @@ public sealed class BlockFaceTexturesTests
         };
 
         // Act
-        var result = textures.Resolve();
+        string?[] result = textures.Resolve();
 
         // Assert
         result[0].Should().Be("fallback");   // east from all
@@ -89,10 +90,10 @@ public sealed class BlockFaceTexturesTests
     public void Resolve_WithNoProperties_ReturnsAllNulls()
     {
         // Arrange
-        var textures = new BlockFaceTextures();
+        BlockFaceTextures textures = new BlockFaceTextures();
 
         // Act
-        var result = textures.Resolve();
+        string?[] result = textures.Resolve();
 
         // Assert
         result.Should().HaveCount(6);

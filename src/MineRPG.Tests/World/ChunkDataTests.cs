@@ -1,4 +1,5 @@
 using FluentAssertions;
+
 using MineRPG.Core.Math;
 using MineRPG.World.Chunks;
 
@@ -10,7 +11,7 @@ public sealed class ChunkDataTests
     public void SetBlock_ThenGetBlock_ReturnsSameId()
     {
         // Arrange
-        var chunk = new ChunkData(ChunkCoord.Zero);
+        ChunkData chunk = new ChunkData(ChunkCoord.Zero);
 
         // Act
         chunk.SetBlock(5, 64, 3, 42);
@@ -23,7 +24,7 @@ public sealed class ChunkDataTests
     public void SetBlock_AtOrigin_DoesNotAffectOtherBlocks()
     {
         // Arrange
-        var chunk = new ChunkData(ChunkCoord.Zero);
+        ChunkData chunk = new ChunkData(ChunkCoord.Zero);
         chunk.SetBlock(0, 0, 0, 1);
 
         // Assert
@@ -35,7 +36,7 @@ public sealed class ChunkDataTests
     public void GetIndex_MatchesVoxelMath()
     {
         // Act & Assert
-        var index = ChunkData.GetIndex(3, 10, 7);
+        int index = ChunkData.GetIndex(3, 10, 7);
         index.Should().Be(VoxelMath.GetIndex(3, 10, 7, ChunkData.SizeX, ChunkData.SizeZ));
     }
 

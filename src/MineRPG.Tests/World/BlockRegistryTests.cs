@@ -1,7 +1,13 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
 using FluentAssertions;
+
 using MineRPG.Core.DataLoading;
 using MineRPG.Core.Logging;
 using MineRPG.World.Blocks;
+
 using NSubstitute;
 
 namespace MineRPG.Tests.World;
@@ -12,12 +18,12 @@ public sealed class BlockRegistryTests
     public void Constructor_AlwaysRegistersAirBlock()
     {
         // Arrange
-        var loader = Substitute.For<IDataLoader>();
+        IDataLoader loader = Substitute.For<IDataLoader>();
         loader.LoadAll<BlockDefinition>(Arg.Any<string>(), Arg.Any<bool>())
             .Returns([]);
 
         // Act
-        var registry = new BlockRegistry(loader, NullLogger.Instance);
+        BlockRegistry registry = new BlockRegistry(loader, NullLogger.Instance);
 
         // Assert
         registry.Get(0).Should().NotBeNull();
@@ -28,13 +34,13 @@ public sealed class BlockRegistryTests
     public void Get_WithUnknownId_ReturnsAir()
     {
         // Arrange
-        var loader = Substitute.For<IDataLoader>();
+        IDataLoader loader = Substitute.For<IDataLoader>();
         loader.LoadAll<BlockDefinition>(Arg.Any<string>(), Arg.Any<bool>())
             .Returns([]);
-        var registry = new BlockRegistry(loader, NullLogger.Instance);
+        BlockRegistry registry = new BlockRegistry(loader, NullLogger.Instance);
 
         // Act
-        var result = registry.Get(99);
+        BlockDefinition result = registry.Get(99);
 
         // Assert
         result.Id.Should().Be(0);
@@ -44,20 +50,20 @@ public sealed class BlockRegistryTests
     public void Constructor_ComputesPerFaceUvsFromTextures()
     {
         // Arrange
-        var stoneDef = new BlockDefinition
+        BlockDefinition stoneDef = new BlockDefinition
         {
             Id = 1,
             Name = "Stone",
             Flags = BlockFlags.Solid,
             Textures = new BlockFaceTextures { All = "stone" },
         };
-        var loader = Substitute.For<IDataLoader>();
+        IDataLoader loader = Substitute.For<IDataLoader>();
         loader.LoadAll<BlockDefinition>(Arg.Any<string>(), Arg.Any<bool>())
             .Returns([stoneDef]);
 
         // Act
-        var registry = new BlockRegistry(loader, NullLogger.Instance);
-        var def = registry.Get(1);
+        BlockRegistry registry = new BlockRegistry(loader, NullLogger.Instance);
+        BlockDefinition def = registry.Get(1);
 
         // Assert — single texture = 1x1 grid, full UV range
         def.FaceUvs[0].Should().BeApproximately(0f, 0.0001f);  // face 0 u0
@@ -70,7 +76,7 @@ public sealed class BlockRegistryTests
     public void Constructor_WithMultipleTextures_AssignsDistinctUvs()
     {
         // Arrange
-        var grassDef = new BlockDefinition
+        BlockDefinition grassDef = new BlockDefinition
         {
             Id = 3,
             Name = "Grass",
@@ -82,18 +88,18 @@ public sealed class BlockRegistryTests
                 Side = "grass_side",
             },
         };
-        var loader = Substitute.For<IDataLoader>();
+        IDataLoader loader = Substitute.For<IDataLoader>();
         loader.LoadAll<BlockDefinition>(Arg.Any<string>(), Arg.Any<bool>())
             .Returns([grassDef]);
 
         // Act
-        var registry = new BlockRegistry(loader, NullLogger.Instance);
-        var def = registry.Get(3);
+        BlockRegistry registry = new BlockRegistry(loader, NullLogger.Instance);
+        BlockDefinition def = registry.Get(3);
 
         // Assert — top face (index 2) should differ from side faces (index 0)
-        var topU0 = def.FaceUvs[2 * 4 + 0];
-        var sideU0 = def.FaceUvs[0 * 4 + 0];
-        var bottomU0 = def.FaceUvs[3 * 4 + 0];
+        float topU0 = def.FaceUvs[2 * 4 + 0];
+        float sideU0 = def.FaceUvs[0 * 4 + 0];
+        float bottomU0 = def.FaceUvs[3 * 4 + 0];
 
         // All 4 side faces should have same UVs
         def.FaceUvs[0 * 4 + 0].Should().Be(def.FaceUvs[1 * 4 + 0]); // east == west
@@ -108,19 +114,19 @@ public sealed class BlockRegistryTests
     public void GetByName_WithValidName_ReturnsBlock()
     {
         // Arrange
-        var stoneDef = new BlockDefinition
+        BlockDefinition stoneDef = new BlockDefinition
         {
             Id = 1,
             Name = "Stone",
             Flags = BlockFlags.Solid,
         };
-        var loader = Substitute.For<IDataLoader>();
+        IDataLoader loader = Substitute.For<IDataLoader>();
         loader.LoadAll<BlockDefinition>(Arg.Any<string>(), Arg.Any<bool>())
             .Returns([stoneDef]);
-        var registry = new BlockRegistry(loader, NullLogger.Instance);
+        BlockRegistry registry = new BlockRegistry(loader, NullLogger.Instance);
 
         // Act
-        var result = registry.GetByName("Stone");
+        BlockDefinition result = registry.GetByName("Stone");
 
         // Assert
         result.Id.Should().Be(1);
@@ -131,19 +137,19 @@ public sealed class BlockRegistryTests
     public void GetByName_IsCaseInsensitive()
     {
         // Arrange
-        var stoneDef = new BlockDefinition
+        BlockDefinition stoneDef = new BlockDefinition
         {
             Id = 1,
             Name = "Stone",
             Flags = BlockFlags.Solid,
         };
-        var loader = Substitute.For<IDataLoader>();
+        IDataLoader loader = Substitute.For<IDataLoader>();
         loader.LoadAll<BlockDefinition>(Arg.Any<string>(), Arg.Any<bool>())
             .Returns([stoneDef]);
-        var registry = new BlockRegistry(loader, NullLogger.Instance);
+        BlockRegistry registry = new BlockRegistry(loader, NullLogger.Instance);
 
         // Act
-        var result = registry.GetByName("stone");
+        BlockDefinition result = registry.GetByName("stone");
 
         // Assert
         result.Id.Should().Be(1);
@@ -153,13 +159,13 @@ public sealed class BlockRegistryTests
     public void GetByName_WithUnknownName_Throws()
     {
         // Arrange
-        var loader = Substitute.For<IDataLoader>();
+        IDataLoader loader = Substitute.For<IDataLoader>();
         loader.LoadAll<BlockDefinition>(Arg.Any<string>(), Arg.Any<bool>())
             .Returns([]);
-        var registry = new BlockRegistry(loader, NullLogger.Instance);
+        BlockRegistry registry = new BlockRegistry(loader, NullLogger.Instance);
 
         // Act
-        var act = () => registry.GetByName("Unknown");
+        Action act = () => registry.GetByName("Unknown");
 
         // Assert
         act.Should().Throw<KeyNotFoundException>();
@@ -169,22 +175,22 @@ public sealed class BlockRegistryTests
     public void TryGetByName_WithValidName_ReturnsTrue()
     {
         // Arrange
-        var stoneDef = new BlockDefinition
+        BlockDefinition stoneDef = new BlockDefinition
         {
             Id = 1,
             Name = "Stone",
             Flags = BlockFlags.Solid,
         };
-        var loader = Substitute.For<IDataLoader>();
+        IDataLoader loader = Substitute.For<IDataLoader>();
         loader.LoadAll<BlockDefinition>(Arg.Any<string>(), Arg.Any<bool>())
             .Returns([stoneDef]);
-        var registry = new BlockRegistry(loader, NullLogger.Instance);
+        BlockRegistry registry = new BlockRegistry(loader, NullLogger.Instance);
 
         // Act
-        var found = registry.TryGetByName("Stone", out var def);
+        bool isFound = registry.TryGetByName("Stone", out BlockDefinition def);
 
         // Assert
-        found.Should().BeTrue();
+        isFound.Should().BeTrue();
         def.Id.Should().Be(1);
     }
 
@@ -192,23 +198,23 @@ public sealed class BlockRegistryTests
     public void TryGetByName_WithUnknownName_ReturnsFalse()
     {
         // Arrange
-        var loader = Substitute.For<IDataLoader>();
+        IDataLoader loader = Substitute.For<IDataLoader>();
         loader.LoadAll<BlockDefinition>(Arg.Any<string>(), Arg.Any<bool>())
             .Returns([]);
-        var registry = new BlockRegistry(loader, NullLogger.Instance);
+        BlockRegistry registry = new BlockRegistry(loader, NullLogger.Instance);
 
         // Act
-        var found = registry.TryGetByName("Unknown", out _);
+        bool isFound = registry.TryGetByName("Unknown", out _);
 
         // Assert
-        found.Should().BeFalse();
+        isFound.Should().BeFalse();
     }
 
     [Fact]
     public void AtlasLayout_ExposesCorrectTextureCount()
     {
         // Arrange
-        var grassDef = new BlockDefinition
+        BlockDefinition grassDef = new BlockDefinition
         {
             Id = 3,
             Name = "Grass",
@@ -220,12 +226,12 @@ public sealed class BlockRegistryTests
                 Side = "grass_side",
             },
         };
-        var loader = Substitute.For<IDataLoader>();
+        IDataLoader loader = Substitute.For<IDataLoader>();
         loader.LoadAll<BlockDefinition>(Arg.Any<string>(), Arg.Any<bool>())
             .Returns([grassDef]);
 
         // Act
-        var registry = new BlockRegistry(loader, NullLogger.Instance);
+        BlockRegistry registry = new BlockRegistry(loader, NullLogger.Instance);
 
         // Assert
         registry.AtlasLayout.TextureNames.Should().HaveCount(3);

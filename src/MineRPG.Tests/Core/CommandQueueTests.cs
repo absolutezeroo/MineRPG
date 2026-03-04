@@ -1,4 +1,8 @@
+using System;
+using System.Collections.Generic;
+
 using FluentAssertions;
+
 using MineRPG.Core.Command;
 using MineRPG.Core.Logging;
 
@@ -49,7 +53,7 @@ public sealed class CommandQueueTests
     public void Enqueue_AndProcess_ExecutesCommand()
     {
         // Arrange
-        var cmd = new TestCommand();
+        TestCommand cmd = new TestCommand();
         _queue.Enqueue(cmd);
 
         // Act
@@ -63,10 +67,10 @@ public sealed class CommandQueueTests
     public void Process_MultipleCommands_ExecutesInFifoOrder()
     {
         // Arrange
-        var order = new List<int>();
-        for (var i = 0; i < 3; i++)
+        List<int> order = new List<int>();
+        for (int i = 0; i < 3; i++)
         {
-            var capture = i;
+            int capture = i;
             _queue.Enqueue(new LambdaCommand(() => order.Add(capture)));
         }
 
@@ -95,12 +99,12 @@ public sealed class CommandQueueTests
     public void Undo_ReversesLastCommand()
     {
         // Arrange
-        var cmd = new TestCommand();
+        TestCommand cmd = new TestCommand();
         _queue.Enqueue(cmd);
         _queue.Process();
 
         // Act
-        var result = _queue.Undo();
+        bool result = _queue.Undo();
 
         // Assert
         result.Should().BeTrue();
@@ -108,7 +112,10 @@ public sealed class CommandQueueTests
     }
 
     [Fact]
-    public void Undo_WhenEmpty_ReturnsFalse() => _queue.Undo().Should().BeFalse();
+    public void Undo_WhenEmpty_ReturnsFalse()
+    {
+        _queue.Undo().Should().BeFalse();
+    }
 
     [Fact]
     public void NonUndoableCommand_IsNotAddedToUndoStack()
@@ -125,7 +132,7 @@ public sealed class CommandQueueTests
     public void Process_WhenCommandThrows_ContinuesProcessing()
     {
         // Arrange
-        var good = new TestCommand();
+        TestCommand good = new TestCommand();
         _queue.Enqueue(new FailingCommand());
         _queue.Enqueue(good);
 

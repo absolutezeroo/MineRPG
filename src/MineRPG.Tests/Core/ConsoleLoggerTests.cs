@@ -1,4 +1,8 @@
+using System;
+using System.IO;
+
 using FluentAssertions;
+
 using MineRPG.Core.Logging;
 
 namespace MineRPG.Tests.Core;
@@ -9,10 +13,10 @@ public sealed class ConsoleLoggerTests
     public void MinLevel_FiltersBelowThreshold()
     {
         // Arrange
-        var output = new StringWriter();
+        StringWriter output = new StringWriter();
         Console.SetOut(output);
 
-        var logger = new ConsoleLogger { MinLevel = LogLevel.Warning };
+        ConsoleLogger logger = new ConsoleLogger { MinLevel = LogLevel.Warning };
 
         // Act
         logger.Debug("should not appear");
@@ -20,7 +24,7 @@ public sealed class ConsoleLoggerTests
         logger.Warning("should appear");
 
         // Assert
-        var text = output.ToString();
+        string text = output.ToString();
         text.Should().NotContain("should not appear");
         text.Should().Contain("should appear");
     }
@@ -29,10 +33,10 @@ public sealed class ConsoleLoggerTests
     public void Error_WritesToStdErr()
     {
         // Arrange
-        var errorOutput = new StringWriter();
+        StringWriter errorOutput = new StringWriter();
         Console.SetError(errorOutput);
 
-        var logger = new ConsoleLogger { MinLevel = LogLevel.Debug };
+        ConsoleLogger logger = new ConsoleLogger { MinLevel = LogLevel.Debug };
 
         // Act
         logger.Error("test error");
@@ -45,17 +49,17 @@ public sealed class ConsoleLoggerTests
     public void Error_WithException_IncludesExceptionInOutput()
     {
         // Arrange
-        var errorOutput = new StringWriter();
+        StringWriter errorOutput = new StringWriter();
         Console.SetError(errorOutput);
 
-        var logger = new ConsoleLogger { MinLevel = LogLevel.Debug };
-        var exception = new InvalidOperationException("boom");
+        ConsoleLogger logger = new ConsoleLogger { MinLevel = LogLevel.Debug };
+        InvalidOperationException exception = new InvalidOperationException("boom");
 
         // Act
         logger.Error("Something failed", exception);
 
         // Assert
-        var text = errorOutput.ToString();
+        string text = errorOutput.ToString();
         text.Should().Contain("Something failed");
         text.Should().Contain("boom");
     }
@@ -64,10 +68,10 @@ public sealed class ConsoleLoggerTests
     public void Debug_WithFormatArgs_FormatsCorrectly()
     {
         // Arrange
-        var output = new StringWriter();
+        StringWriter output = new StringWriter();
         Console.SetOut(output);
 
-        var logger = new ConsoleLogger { MinLevel = LogLevel.Debug };
+        ConsoleLogger logger = new ConsoleLogger { MinLevel = LogLevel.Debug };
 
         // Act
         logger.Debug("Player {0} at ({1}, {2})", "Steve", 10, 20);
@@ -80,16 +84,16 @@ public sealed class ConsoleLoggerTests
     public void Write_IncludesTimestampAndLevel()
     {
         // Arrange
-        var output = new StringWriter();
+        StringWriter output = new StringWriter();
         Console.SetOut(output);
 
-        var logger = new ConsoleLogger { MinLevel = LogLevel.Debug };
+        ConsoleLogger logger = new ConsoleLogger { MinLevel = LogLevel.Debug };
 
         // Act
         logger.Info("test message");
 
         // Assert
-        var text = output.ToString();
+        string text = output.ToString();
         text.Should().Contain("[INFO   ]");
         text.Should().Contain("test message");
     }

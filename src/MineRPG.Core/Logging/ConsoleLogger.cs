@@ -1,3 +1,4 @@
+using System;
 using System.Runtime.CompilerServices;
 
 namespace MineRPG.Core.Logging;
@@ -9,22 +10,48 @@ namespace MineRPG.Core.Logging;
 /// </summary>
 public sealed class ConsoleLogger : ILogger
 {
+    private const string TimestampFormat = "HH:mm:ss.fff";
+    private const string DebugLabel = "DEBUG  ";
+    private const string InfoLabel = "INFO   ";
+    private const string WarningLabel = "WARNING";
+    private const string ErrorLabel = "ERROR  ";
+    private const string UnknownLabel = "UNKNOWN";
+
     private readonly Lock _syncRoot = new();
 
+    /// <summary>
+    /// Minimum log level. Messages below this level are discarded.
+    /// </summary>
     public LogLevel MinLevel { get; set; } = LogLevel.Debug;
 
+    /// <inheritdoc />
     public void Debug(string message) => Write(LogLevel.Debug, message);
+
+    /// <inheritdoc />
     public void Debug(string format, params object?[] args) => Write(LogLevel.Debug, Format(format, args));
 
+    /// <inheritdoc />
     public void Info(string message) => Write(LogLevel.Info, message);
+
+    /// <inheritdoc />
     public void Info(string format, params object?[] args) => Write(LogLevel.Info, Format(format, args));
 
+    /// <inheritdoc />
     public void Warning(string message) => Write(LogLevel.Warning, message);
+
+    /// <inheritdoc />
     public void Warning(string format, params object?[] args) => Write(LogLevel.Warning, Format(format, args));
 
+    /// <inheritdoc />
     public void Error(string message) => Write(LogLevel.Error, message);
+
+    /// <inheritdoc />
     public void Error(string message, Exception exception) => Write(LogLevel.Error, $"{message}\n{exception}");
+
+    /// <inheritdoc />
     public void Error(string format, params object?[] args) => Write(LogLevel.Error, Format(format, args));
+
+    /// <inheritdoc />
     public void Error(string format, Exception exception, params object?[] args)
         => Write(LogLevel.Error, $"{Format(format, args)}\n{exception}");
 
@@ -35,23 +62,25 @@ public sealed class ConsoleLogger : ILogger
     private void Write(LogLevel level, string message)
     {
         if (level < MinLevel)
-            return;
-
-        var timestamp = DateTime.Now.ToString("HH:mm:ss.fff");
-        var label = level switch
         {
-            LogLevel.Debug => "DEBUG  ",
-            LogLevel.Info => "INFO   ",
-            LogLevel.Warning => "WARNING",
-            LogLevel.Error => "ERROR  ",
-            _ => "UNKNOWN",
+            return;
+        }
+
+        string timestamp = DateTime.Now.ToString(TimestampFormat);
+        string label = level switch
+        {
+            LogLevel.Debug => DebugLabel,
+            LogLevel.Info => InfoLabel,
+            LogLevel.Warning => WarningLabel,
+            LogLevel.Error => ErrorLabel,
+            _ => UnknownLabel,
         };
 
-        var line = $"[{label}] {timestamp}  {message}";
+        string line = $"[{label}] {timestamp}  {message}";
 
         lock (_syncRoot)
         {
-            var target = level >= LogLevel.Error ? Console.Error : Console.Out;
+            TextWriter target = level >= LogLevel.Error ? Console.Error : Console.Out;
             target.WriteLine(line);
         }
     }

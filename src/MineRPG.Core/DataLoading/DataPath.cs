@@ -1,3 +1,6 @@
+using System;
+using System.IO;
+
 namespace MineRPG.Core.DataLoading;
 
 /// <summary>
@@ -18,18 +21,29 @@ public static class DataPath
     /// Deprecated: prefer passing dataRoot via JsonDataLoader constructor.
     /// Configure the data root. Call from GameBootstrapper before loading any data.
     /// </summary>
+    /// <param name="absolutePath">The absolute path to the data root directory.</param>
     public static void SetRoot(string absolutePath)
     {
         if (!Directory.Exists(absolutePath))
+        {
             throw new DirectoryNotFoundException(
                 $"Data root directory does not exist: '{absolutePath}'");
+        }
 
         _root = absolutePath;
     }
 
-    public static string Combine(params string[] relativePath)
-        => Path.Combine(_root, Path.Combine(relativePath));
+    /// <summary>
+    /// Combines the data root with one or more relative path segments.
+    /// </summary>
+    /// <param name="relativePath">Path segments relative to the data root.</param>
+    /// <returns>The fully resolved path.</returns>
+    public static string Combine(params string[] relativePath) => Path.Combine(_root, Path.Combine(relativePath));
 
-    public static string SubDirectory(string name)
-        => Path.Combine(_root, name);
+    /// <summary>
+    /// Returns the path to a named subdirectory under the data root.
+    /// </summary>
+    /// <param name="name">The subdirectory name.</param>
+    /// <returns>The fully resolved subdirectory path.</returns>
+    public static string SubDirectory(string name) => Path.Combine(_root, name);
 }
