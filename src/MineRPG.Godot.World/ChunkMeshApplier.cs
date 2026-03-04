@@ -81,6 +81,18 @@ public static class ChunkMeshApplier
         global::Godot.Collections.Array arrays = new();
         arrays.Resize((int)Mesh.ArrayType.Max);
 
+        arrays[(int)Mesh.ArrayType.Vertex] = ConvertVertices(meshData);
+        arrays[(int)Mesh.ArrayType.Normal] = ConvertNormals(meshData);
+        arrays[(int)Mesh.ArrayType.TexUV] = ConvertUvs(meshData.Uvs, meshData.VertexCount);
+        arrays[(int)Mesh.ArrayType.TexUV2] = ConvertUvs(meshData.Uv2s, meshData.VertexCount);
+        arrays[(int)Mesh.ArrayType.Color] = ConvertColors(meshData);
+        arrays[(int)Mesh.ArrayType.Index] = meshData.Indices;
+
+        mesh.AddSurfaceFromArrays(Mesh.PrimitiveType.Triangles, arrays);
+    }
+
+    private static Vector3[] ConvertVertices(MeshData meshData)
+    {
         Vector3[] vertices = new Vector3[meshData.VertexCount];
 
         for (int i = 0; i < meshData.VertexCount; i++)
@@ -91,8 +103,11 @@ public static class ChunkMeshApplier
                 meshData.Vertices[i * VertexStride + 2]);
         }
 
-        arrays[(int)Mesh.ArrayType.Vertex] = vertices;
+        return vertices;
+    }
 
+    private static Vector3[] ConvertNormals(MeshData meshData)
+    {
         Vector3[] normals = new Vector3[meshData.VertexCount];
 
         for (int i = 0; i < meshData.VertexCount; i++)
@@ -103,30 +118,25 @@ public static class ChunkMeshApplier
                 meshData.Normals[i * VertexStride + 2]);
         }
 
-        arrays[(int)Mesh.ArrayType.Normal] = normals;
+        return normals;
+    }
 
-        Vector2[] uvs = new Vector2[meshData.VertexCount];
+    private static Vector2[] ConvertUvs(float[] sourceUvs, int vertexCount)
+    {
+        Vector2[] uvs = new Vector2[vertexCount];
 
-        for (int i = 0; i < meshData.VertexCount; i++)
+        for (int i = 0; i < vertexCount; i++)
         {
             uvs[i] = new Vector2(
-                meshData.Uvs[i * UvStride],
-                meshData.Uvs[i * UvStride + 1]);
+                sourceUvs[i * UvStride],
+                sourceUvs[i * UvStride + 1]);
         }
 
-        arrays[(int)Mesh.ArrayType.TexUV] = uvs;
+        return uvs;
+    }
 
-        Vector2[] secondaryUvs = new Vector2[meshData.VertexCount];
-
-        for (int i = 0; i < meshData.VertexCount; i++)
-        {
-            secondaryUvs[i] = new Vector2(
-                meshData.Uv2s[i * UvStride],
-                meshData.Uv2s[i * UvStride + 1]);
-        }
-
-        arrays[(int)Mesh.ArrayType.TexUV2] = secondaryUvs;
-
+    private static Color[] ConvertColors(MeshData meshData)
+    {
         Color[] colors = new Color[meshData.VertexCount];
 
         for (int i = 0; i < meshData.VertexCount; i++)
@@ -138,9 +148,6 @@ public static class ChunkMeshApplier
                 meshData.Colors[i * ColorStride + 3]);
         }
 
-        arrays[(int)Mesh.ArrayType.Color] = colors;
-        arrays[(int)Mesh.ArrayType.Index] = meshData.Indices;
-
-        mesh.AddSurfaceFromArrays(Mesh.PrimitiveType.Triangles, arrays);
+        return colors;
     }
 }

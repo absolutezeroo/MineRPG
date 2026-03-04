@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 using MineRPG.Core.Logging;
 
@@ -88,10 +87,13 @@ public sealed class StateMachine : IStateMachine
     /// <inheritdoc />
     public void TickAll(float deltaTime)
     {
-        // Stack enumerates top-to-bottom; reverse for bottom-to-top order.
-        foreach (IState state in _stack.Reverse())
+        // Stack enumerates top-to-bottom; copy to array and iterate bottom-to-top
+        // to avoid LINQ Reverse() allocation in this potentially per-frame method.
+        IState[] states = _stack.ToArray();
+
+        for (int i = states.Length - 1; i >= 0; i--)
         {
-            state.Tick(deltaTime);
+            states[i].Tick(deltaTime);
         }
     }
 }

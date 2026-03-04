@@ -27,10 +27,10 @@ public sealed class VoxelMathTests
     [InlineData(256, 0, 0, 1)]
     public void GetPosition_ReturnsCorrectCoordinates(int index, int expectedX, int expectedZ, int expectedY)
     {
-        (int x, int y, int z) = VoxelMath.GetPosition(index, SizeX, SizeZ);
-        x.Should().Be(expectedX);
-        y.Should().Be(expectedY);
-        z.Should().Be(expectedZ);
+        VoxelPosition3D position = VoxelMath.GetPosition(index, SizeX, SizeZ);
+        position.X.Should().Be(expectedX);
+        position.Y.Should().Be(expectedY);
+        position.Z.Should().Be(expectedZ);
     }
 
     [Fact]
@@ -43,10 +43,10 @@ public sealed class VoxelMathTests
                 for (int y = 0; y < 4; y++)
                 {
                     int index = VoxelMath.GetIndex(x, y, z, SizeX, SizeZ);
-                    (int rx, int ry, int rz) = VoxelMath.GetPosition(index, SizeX, SizeZ);
-                    rx.Should().Be(x);
-                    ry.Should().Be(y);
-                    rz.Should().Be(z);
+                    VoxelPosition3D position = VoxelMath.GetPosition(index, SizeX, SizeZ);
+                    position.X.Should().Be(x);
+                    position.Y.Should().Be(y);
+                    position.Z.Should().Be(z);
                 }
             }
         }
@@ -62,9 +62,9 @@ public sealed class VoxelMathTests
     [InlineData(-17, -16, -2, -1)]
     public void WorldToChunk_HandlesNegativeCoordinates(int worldX, int worldZ, int expectedCX, int expectedCZ)
     {
-        (int cx, int cz) = VoxelMath.WorldToChunk(worldX, worldZ, SizeX, SizeZ);
-        cx.Should().Be(expectedCX);
-        cz.Should().Be(expectedCZ);
+        ChunkCoord2D coord = VoxelMath.WorldToChunk(worldX, worldZ, SizeX, SizeZ);
+        coord.ChunkX.Should().Be(expectedCX);
+        coord.ChunkZ.Should().Be(expectedCZ);
     }
 
     [Theory]
@@ -75,9 +75,9 @@ public sealed class VoxelMathTests
     [InlineData(-16, -16, 0, 0)]
     public void WorldToLocal_ReturnsPositiveLocalCoordinates(int worldX, int worldZ, int expectedLX, int expectedLZ)
     {
-        (int lx, int lz) = VoxelMath.WorldToLocal(worldX, worldZ, SizeX, SizeZ);
-        lx.Should().Be(expectedLX);
-        lz.Should().Be(expectedLZ);
+        LocalCoord2D local = VoxelMath.WorldToLocal(worldX, worldZ, SizeX, SizeZ);
+        local.LocalX.Should().Be(expectedLX);
+        local.LocalZ.Should().Be(expectedLZ);
     }
 
     [Fact]

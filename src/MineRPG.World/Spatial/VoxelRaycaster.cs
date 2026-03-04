@@ -127,8 +127,8 @@ public sealed class VoxelRaycaster : IVoxelRaycaster
             return 0;
         }
 
-        (int chunkX, int chunkZ) = VoxelMath.WorldToChunk(worldX, worldZ, ChunkData.SizeX, ChunkData.SizeZ);
-        ChunkCoord coord = new(chunkX, chunkZ);
+        ChunkCoord2D chunkCoord = VoxelMath.WorldToChunk(worldX, worldZ, ChunkData.SizeX, ChunkData.SizeZ);
+        ChunkCoord coord = new(chunkCoord.ChunkX, chunkCoord.ChunkZ);
 
         if (!_chunkManager.TryGet(coord, out ChunkEntry? entry) || entry is null)
         {
@@ -140,7 +140,7 @@ public sealed class VoxelRaycaster : IVoxelRaycaster
             return 0;
         }
 
-        (int localX, int localZ) = VoxelMath.WorldToLocal(worldX, worldZ, ChunkData.SizeX, ChunkData.SizeZ);
-        return entry.Data.GetBlock(localX, worldY, localZ);
+        LocalCoord2D local = VoxelMath.WorldToLocal(worldX, worldZ, ChunkData.SizeX, ChunkData.SizeZ);
+        return entry.Data.GetBlock(local.LocalX, worldY, local.LocalZ);
     }
 }

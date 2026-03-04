@@ -128,4 +128,44 @@ public sealed class RegistryTests
         _registry.Register(2, new TestItem { Id = 2 });
         _registry.Count.Should().Be(2);
     }
+
+    [Fact]
+    public void Freeze_PreventsRegistration()
+    {
+        // Arrange
+        _registry.Register(1, new TestItem { Id = 1, Name = "Stone" });
+
+        // Act
+        _registry.Freeze();
+
+        // Assert
+        _registry.IsFrozen.Should().BeTrue();
+        Action act = () => _registry.Register(2, new TestItem { Id = 2, Name = "Dirt" });
+        act.Should().Throw<InvalidOperationException>()
+            .WithMessage("*frozen*");
+    }
+
+    [Fact]
+    public void IsFrozen_DefaultsFalse()
+    {
+        // Assert
+        _registry.IsFrozen.Should().BeFalse();
+    }
+
+    [Fact]
+    public void Freeze_AllowsReadsAfterFreezing()
+    {
+        // Arrange
+        TestItem item = new TestItem { Id = 1, Name = "Stone" };
+        _registry.Register(1, item);
+        _registry.Freeze();
+
+        // Act & Assert
+        _registry.Get(1).Should().BeSameAs(item);
+        _registry.TryGet(1, out TestItem? result).Should().BeTrue();
+        result.Should().BeSameAs(item);
+        _registry.Contains(1).Should().BeTrue();
+        _registry.GetAll().Should().HaveCount(1);
+        _registry.Count.Should().Be(1);
+    }
 }

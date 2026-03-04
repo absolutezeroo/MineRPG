@@ -8,6 +8,7 @@ namespace MineRPG.Core.Math;
 /// Produces seamless, high-quality gradient noise for terrain generation.
 ///
 /// Thread-safe: all state is readonly after construction.
+/// Gradient tables live in <see cref="NoiseGradients"/>.
 /// </summary>
 public sealed class FastNoise
 {
@@ -27,89 +28,17 @@ public sealed class FastNoise
     private const float Attn2DBase = 0.5f;
     private const float Attn3DBase = 0.6f;
 
+    // Gradient stride: number of floats per gradient vector
+    private const int Grad2Stride = 2;
+    private const int Grad3Stride = 3;
+
+    // Linear Congruential Generator constants (Knuth)
+    private const long LcgMultiplier = 6364136223846793005L;
+    private const long LcgIncrement = 1442695040888963407L;
+
     private readonly short[] _perm;
     private readonly short[] _permGrad2;
     private readonly short[] _permGrad3;
-
-    private static readonly float[] Grad2 =
-    [
-        0.130526192220052f, 0.99144486137381f,
-        0.38268343236509f, 0.923879532511287f,
-        0.608761429008721f, 0.793353340291235f,
-        0.793353340291235f, 0.608761429008721f,
-        0.923879532511287f, 0.38268343236509f,
-        0.99144486137381f, 0.130526192220052f,
-        0.99144486137381f, -0.130526192220052f,
-        0.923879532511287f, -0.38268343236509f,
-        0.793353340291235f, -0.608761429008721f,
-        0.608761429008721f, -0.793353340291235f,
-        0.38268343236509f, -0.923879532511287f,
-        0.130526192220052f, -0.99144486137381f,
-        -0.130526192220052f, -0.99144486137381f,
-        -0.38268343236509f, -0.923879532511287f,
-        -0.608761429008721f, -0.793353340291235f,
-        -0.793353340291235f, -0.608761429008721f,
-        -0.923879532511287f, -0.38268343236509f,
-        -0.99144486137381f, -0.130526192220052f,
-        -0.99144486137381f, 0.130526192220052f,
-        -0.923879532511287f, 0.38268343236509f,
-        -0.793353340291235f, 0.608761429008721f,
-        -0.608761429008721f, 0.793353340291235f,
-        -0.38268343236509f, 0.923879532511287f,
-        -0.130526192220052f, 0.99144486137381f,
-    ];
-
-    private static readonly float[] Grad3 =
-    [
-        -2.22474487139f, -2.22474487139f, -1f,
-        -2.22474487139f, -2.22474487139f, 1f,
-        -3.0862664687972017f, -1.1721513422464978f, 0f,
-        -1.1721513422464978f, -3.0862664687972017f, 0f,
-        -2.22474487139f, -1f, -2.22474487139f,
-        -2.22474487139f, 1f, -2.22474487139f,
-        -1.1721513422464978f, 0f, -3.0862664687972017f,
-        -3.0862664687972017f, 0f, -1.1721513422464978f,
-        -2.22474487139f, -1f, 2.22474487139f,
-        -2.22474487139f, 1f, 2.22474487139f,
-        -3.0862664687972017f, 0f, 1.1721513422464978f,
-        -1.1721513422464978f, 0f, 3.0862664687972017f,
-        -2.22474487139f, 2.22474487139f, -1f,
-        -2.22474487139f, 2.22474487139f, 1f,
-        -1.1721513422464978f, 3.0862664687972017f, 0f,
-        -3.0862664687972017f, 1.1721513422464978f, 0f,
-        -1f, -2.22474487139f, -2.22474487139f,
-        1f, -2.22474487139f, -2.22474487139f,
-        0f, -3.0862664687972017f, -1.1721513422464978f,
-        0f, -1.1721513422464978f, -3.0862664687972017f,
-        -1f, -2.22474487139f, 2.22474487139f,
-        1f, -2.22474487139f, 2.22474487139f,
-        0f, -1.1721513422464978f, 3.0862664687972017f,
-        0f, -3.0862664687972017f, 1.1721513422464978f,
-        -1f, 2.22474487139f, -2.22474487139f,
-        1f, 2.22474487139f, -2.22474487139f,
-        0f, 1.1721513422464978f, -3.0862664687972017f,
-        0f, 3.0862664687972017f, -1.1721513422464978f,
-        -1f, 2.22474487139f, 2.22474487139f,
-        1f, 2.22474487139f, 2.22474487139f,
-        0f, 3.0862664687972017f, 1.1721513422464978f,
-        0f, 1.1721513422464978f, 3.0862664687972017f,
-        2.22474487139f, -2.22474487139f, -1f,
-        2.22474487139f, -2.22474487139f, 1f,
-        1.1721513422464978f, -3.0862664687972017f, 0f,
-        3.0862664687972017f, -1.1721513422464978f, 0f,
-        2.22474487139f, -1f, -2.22474487139f,
-        2.22474487139f, 1f, -2.22474487139f,
-        3.0862664687972017f, 0f, -1.1721513422464978f,
-        1.1721513422464978f, 0f, -3.0862664687972017f,
-        2.22474487139f, -1f, 2.22474487139f,
-        2.22474487139f, 1f, 2.22474487139f,
-        1.1721513422464978f, 0f, 3.0862664687972017f,
-        3.0862664687972017f, 0f, 1.1721513422464978f,
-        2.22474487139f, 2.22474487139f, -1f,
-        2.22474487139f, 2.22474487139f, 1f,
-        3.0862664687972017f, 1.1721513422464978f, 0f,
-        1.1721513422464978f, 3.0862664687972017f, 0f,
-    ];
 
     /// <summary>
     /// The seed used to initialize the permutation tables.
@@ -136,12 +65,12 @@ public sealed class FastNoise
 
         // Knuth shuffle seeded by the given seed
         long shuffleSeed = seed;
-        int grad2HalfLength = Grad2.Length / 2;
-        int grad3ThirdLength = Grad3.Length / 3;
+        int grad2HalfLength = NoiseGradients.Grad2.Length / Grad2Stride;
+        int grad3ThirdLength = NoiseGradients.Grad3.Length / Grad3Stride;
 
         for (int i = PermSize - 1; i >= 0; i--)
         {
-            shuffleSeed = shuffleSeed * 6364136223846793005L + 1442695040888963407L;
+            shuffleSeed = shuffleSeed * LcgMultiplier + LcgIncrement;
             int randomIndex = (int)((shuffleSeed + 31) % (i + 1));
 
             if (randomIndex < 0)
@@ -239,7 +168,10 @@ public sealed class FastNoise
 
         for (int i = 0; i < octaves; i++)
         {
-            result += Sample3D(x * currentFrequency, y * currentFrequency, z * currentFrequency) * amplitude;
+            result += Sample3D(
+                x * currentFrequency,
+                y * currentFrequency,
+                z * currentFrequency) * amplitude;
             maxValue += amplitude;
             amplitude *= persistence;
             currentFrequency *= lacunarity;
@@ -294,8 +226,10 @@ public sealed class FastNoise
             return 0f;
         }
 
-        int gi2 = _permGrad2[(gi + _perm[gj & PermMask]) & PermMask] * 2;
-        return attn * attn * attn * attn * (Grad2[gi2] * dx + Grad2[gi2 + 1] * dy);
+        int gradIndex = _permGrad2[(gi + _perm[gj & PermMask]) & PermMask] * Grad2Stride;
+        return attn * attn * attn * attn
+               * (NoiseGradients.Grad2[gradIndex] * dx
+                  + NoiseGradients.Grad2[gradIndex + 1] * dy);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -312,7 +246,32 @@ public sealed class FastNoise
         float z0 = z - (k - unskew);
 
         int i1, j1, k1, i2, j2, k2;
+        ComputeSimplexVertices(x0, y0, z0, out i1, out j1, out k1, out i2, out j2, out k2);
 
+        float x1 = x0 - i1 + Unskew3D;
+        float y1 = y0 - j1 + Unskew3D;
+        float z1 = z0 - k1 + Unskew3D;
+        float x2 = x0 - i2 + 2f * Unskew3D;
+        float y2 = y0 - j2 + 2f * Unskew3D;
+        float z2 = z0 - k2 + 2f * Unskew3D;
+        float x3 = x0 - 1f + 3f * Unskew3D;
+        float y3 = y0 - 1f + 3f * Unskew3D;
+        float z3 = z0 - 1f + 3f * Unskew3D;
+
+        float noise = 0f;
+        noise += Contrib3(x0, y0, z0, i, j, k);
+        noise += Contrib3(x1, y1, z1, i + i1, j + j1, k + k1);
+        noise += Contrib3(x2, y2, z2, i + i2, j + j2, k + k2);
+        noise += Contrib3(x3, y3, z3, i + 1, j + 1, k + 1);
+        return noise * NoiseScale3D;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void ComputeSimplexVertices(
+        float x0, float y0, float z0,
+        out int i1, out int j1, out int k1,
+        out int i2, out int j2, out int k2)
+    {
         if (x0 >= y0)
         {
             if (y0 >= z0)
@@ -343,23 +302,6 @@ public sealed class FastNoise
                 i1 = 0; j1 = 1; k1 = 0; i2 = 1; j2 = 1; k2 = 0;
             }
         }
-
-        float x1 = x0 - i1 + Unskew3D;
-        float y1 = y0 - j1 + Unskew3D;
-        float z1 = z0 - k1 + Unskew3D;
-        float x2 = x0 - i2 + 2f * Unskew3D;
-        float y2 = y0 - j2 + 2f * Unskew3D;
-        float z2 = z0 - k2 + 2f * Unskew3D;
-        float x3 = x0 - 1f + 3f * Unskew3D;
-        float y3 = y0 - 1f + 3f * Unskew3D;
-        float z3 = z0 - 1f + 3f * Unskew3D;
-
-        float noise = 0f;
-        noise += Contrib3(x0, y0, z0, i, j, k);
-        noise += Contrib3(x1, y1, z1, i + i1, j + j1, k + k1);
-        noise += Contrib3(x2, y2, z2, i + i2, j + j2, k + k2);
-        noise += Contrib3(x3, y3, z3, i + 1, j + 1, k + 1);
-        return noise * NoiseScale3D;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -372,9 +314,11 @@ public sealed class FastNoise
             return 0f;
         }
 
-        int gi3 = _permGrad3[(gi + _perm[(gj + _perm[gk & PermMask]) & PermMask]) & PermMask] * 3;
+        int gradIndex = _permGrad3[(gi + _perm[(gj + _perm[gk & PermMask]) & PermMask]) & PermMask] * Grad3Stride;
         return attn * attn * attn * attn
-               * (Grad3[gi3] * dx + Grad3[gi3 + 1] * dy + Grad3[gi3 + 2] * dz);
+               * (NoiseGradients.Grad3[gradIndex] * dx
+                  + NoiseGradients.Grad3[gradIndex + 1] * dy
+                  + NoiseGradients.Grad3[gradIndex + 2] * dz);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

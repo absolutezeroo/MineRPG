@@ -20,17 +20,17 @@ public static class VoxelMath
     private const float SmoothStepSubtractor = 2f;
 
     /// <summary>
-    /// The 6 cardinal face directions as (dx, dy, dz) tuples.
+    /// The 6 cardinal face directions as <see cref="Direction3D"/> values.
     /// Index matches FaceDirection enum: Right=0, Left=1, Up=2, Down=3, Front=4, Back=5.
     /// </summary>
-    public static readonly (int Dx, int Dy, int Dz)[] FaceDirections =
+    public static readonly Direction3D[] FaceDirections =
     [
-        (1, 0, 0),    // Right  (+X)
-        (-1, 0, 0),   // Left   (-X)
-        (0, 1, 0),    // Up     (+Y)
-        (0, -1, 0),   // Down   (-Y)
-        (0, 0, 1),    // Front  (+Z)
-        (0, 0, -1),   // Back   (-Z)
+        new(1, 0, 0),    // Right  (+X)
+        new(-1, 0, 0),   // Left   (-X)
+        new(0, 1, 0),    // Up     (+Y)
+        new(0, -1, 0),   // Down   (-Y)
+        new(0, 0, 1),    // Front  (+Z)
+        new(0, 0, -1),   // Back   (-Z)
     ];
 
     /// <summary>
@@ -52,16 +52,16 @@ public static class VoxelMath
     /// <param name="index">The flat array index.</param>
     /// <param name="sizeX">Chunk size along the X axis.</param>
     /// <param name="sizeZ">Chunk size along the Z axis.</param>
-    /// <returns>The 3D coordinates (X, Y, Z).</returns>
+    /// <returns>The 3D coordinates as a <see cref="VoxelPosition3D"/>.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static (int X, int Y, int Z) GetPosition(int index, int sizeX, int sizeZ)
+    public static VoxelPosition3D GetPosition(int index, int sizeX, int sizeZ)
     {
         int sliceArea = sizeX * sizeZ;
         int y = index / sliceArea;
         int remainder = index % sliceArea;
         int z = remainder / sizeX;
         int x = remainder % sizeX;
-        return (x, y, z);
+        return new VoxelPosition3D(x, y, z);
     }
 
     /// <summary>
@@ -72,13 +72,13 @@ public static class VoxelMath
     /// <param name="worldZ">World-space Z coordinate.</param>
     /// <param name="chunkSizeX">Chunk size along the X axis.</param>
     /// <param name="chunkSizeZ">Chunk size along the Z axis.</param>
-    /// <returns>The chunk coordinates (ChunkX, ChunkZ).</returns>
+    /// <returns>The chunk coordinates as a <see cref="ChunkCoord2D"/>.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static (int ChunkX, int ChunkZ) WorldToChunk(int worldX, int worldZ, int chunkSizeX, int chunkSizeZ)
+    public static ChunkCoord2D WorldToChunk(int worldX, int worldZ, int chunkSizeX, int chunkSizeZ)
     {
         int chunkX = worldX >= 0 ? worldX / chunkSizeX : (worldX - chunkSizeX + 1) / chunkSizeX;
         int chunkZ = worldZ >= 0 ? worldZ / chunkSizeZ : (worldZ - chunkSizeZ + 1) / chunkSizeZ;
-        return (chunkX, chunkZ);
+        return new ChunkCoord2D(chunkX, chunkZ);
     }
 
     /// <summary>
@@ -89,13 +89,13 @@ public static class VoxelMath
     /// <param name="worldZ">World-space Z coordinate.</param>
     /// <param name="chunkSizeX">Chunk size along the X axis.</param>
     /// <param name="chunkSizeZ">Chunk size along the Z axis.</param>
-    /// <returns>The local coordinates (LocalX, LocalZ).</returns>
+    /// <returns>The local coordinates as a <see cref="LocalCoord2D"/>.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static (int LocalX, int LocalZ) WorldToLocal(int worldX, int worldZ, int chunkSizeX, int chunkSizeZ)
+    public static LocalCoord2D WorldToLocal(int worldX, int worldZ, int chunkSizeX, int chunkSizeZ)
     {
         int localX = ((worldX % chunkSizeX) + chunkSizeX) % chunkSizeX;
         int localZ = ((worldZ % chunkSizeZ) + chunkSizeZ) % chunkSizeZ;
-        return (localX, localZ);
+        return new LocalCoord2D(localX, localZ);
     }
 
     /// <summary>
@@ -117,7 +117,7 @@ public static class VoxelMath
     /// <returns>The clamped value.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static float Clamp(float value, float min, float max)
-        => value < min ? min : value > max ? max : value;
+        => System.Math.Clamp(value, min, max);
 
     /// <summary>
     /// Clamps an integer value between min and max.
@@ -128,7 +128,7 @@ public static class VoxelMath
     /// <returns>The clamped value.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int Clamp(int value, int min, int max)
-        => value < min ? min : value > max ? max : value;
+        => System.Math.Clamp(value, min, max);
 
     /// <summary>
     /// Hermite smooth step interpolation between two edges.

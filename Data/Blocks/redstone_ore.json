@@ -1,0 +1,9 @@
+{
+  "id": 12,
+  "name": "Redstone Ore",
+  "flags": 1,
+  "hardness": 3.0,
+  "textures": {
+    "all": "redstone_ore"
+  }
+}

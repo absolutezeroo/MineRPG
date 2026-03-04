@@ -25,4 +25,11 @@ public interface IObjectPool<T> where T : class
     /// </summary>
     /// <param name="item">The item to return to the pool.</param>
     void Return(T item);
+
+    /// <summary>
+    /// Pre-populates the pool with <paramref name="count"/> objects.
+    /// Useful for avoiding allocation spikes during gameplay.
+    /// </summary>
+    /// <param name="count">Number of objects to pre-allocate.</param>
+    void PreAllocate(int count);
 }

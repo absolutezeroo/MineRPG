@@ -15,8 +15,6 @@ public sealed class ConsoleLogger : ILogger
     private const string InfoLabel = "INFO   ";
     private const string WarningLabel = "WARNING";
     private const string ErrorLabel = "ERROR  ";
-    private const string UnknownLabel = "UNKNOWN";
-
     private readonly Lock _syncRoot = new();
 
     /// <summary>
@@ -73,7 +71,7 @@ public sealed class ConsoleLogger : ILogger
             LogLevel.Info => InfoLabel,
             LogLevel.Warning => WarningLabel,
             LogLevel.Error => ErrorLabel,
-            _ => UnknownLabel,
+            _ => throw new ArgumentOutOfRangeException(nameof(level), level, "Unhandled log level"),
         };
 
         string line = $"[{label}] {timestamp}  {message}";

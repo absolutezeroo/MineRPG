@@ -52,4 +52,14 @@ public interface IRegistry<TKey, TValue>
     /// <param name="key">The key to check.</param>
     /// <returns>True if the key exists in the registry.</returns>
     bool Contains(TKey key);
+
+    /// <summary>
+    /// Whether the registry has been frozen (no further registrations allowed).
+    /// </summary>
+    bool IsFrozen { get; }
+
+    /// <summary>
+    /// Freezes the registry, preventing any further calls to <see cref="Register"/>.
+    /// </summary>
+    void Freeze();
 }
