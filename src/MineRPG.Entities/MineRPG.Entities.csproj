@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <RootNamespace>MineRPG.Entities</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../MineRPG.Core/MineRPG.Core.csproj" />
+    <ProjectReference Include="../MineRPG.RPG/MineRPG.RPG.csproj" />
+  </ItemGroup>
+
+</Project>

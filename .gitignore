@@ -1,0 +1,39 @@
+# Godot 4+ specific ignores
+.godot/
+/android/
+/export_presets.cfg
+
+# .NET / C# build output
+bin/
+obj/
+*.user
+*.suo
+*.cache
+*.DotSettings
+
+# NuGet
+*.nupkg
+nuget.exe
+
+# IDE
+.vs/
+.idea/
+*.sln.iml
+
+# OS
+Thumbs.db
+.DS_Store
+Desktop.ini
+ehthumbs.db
+
+# Claude Code
+.claude/
+
+# Save data (generated at runtime)
+Saves/
+
+# Godot imported resources (auto-generated)
+*.import
+
+# Mono / .NET debug
+mono_crash.*.json

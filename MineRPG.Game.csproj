@@ -1,0 +1,20 @@
+<Project Sdk="Godot.NET.Sdk/4.6.1">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <RootNamespace>MineRPG.Game</RootNamespace>
+    <AssemblyName>MineRPG</AssemblyName>
+    <EnableDynamicLoading>true</EnableDynamicLoading>
+    <!-- Exclude sub-projects from Godot SDK's recursive .cs inclusion -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);src/**</DefaultItemExcludes>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="src/MineRPG.Core/MineRPG.Core.csproj" />
+    <ProjectReference Include="src/MineRPG.RPG/MineRPG.RPG.csproj" />
+    <ProjectReference Include="src/MineRPG.World/MineRPG.World.csproj" />
+    <ProjectReference Include="src/MineRPG.Entities/MineRPG.Entities.csproj" />
+    <ProjectReference Include="src/MineRPG.Network/MineRPG.Network.csproj" />
+  </ItemGroup>
+
+</Project>

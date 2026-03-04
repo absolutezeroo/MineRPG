@@ -1,0 +1,12 @@
+{
+  "id": 6,
+  "name": "Water",
+  "flags": 6,
+  "hardness": 0.0,
+  "textures": {
+    "all": "water"
+  },
+  "tintR": 0.8,
+  "tintG": 0.9,
+  "tintB": 1.0
+}

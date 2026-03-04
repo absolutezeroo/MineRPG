@@ -1,0 +1,9 @@
+{
+  "id": 7,
+  "name": "Leaves",
+  "flags": 3,
+  "hardness": 0.2,
+  "textures": {
+    "all": "leaves"
+  }
+}

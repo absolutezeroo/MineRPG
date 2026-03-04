@@ -1,0 +1,25 @@
+{
+  "id": "forest",
+  "biomeType": 1,
+  "baseHeight": 68,
+  "heightVariance": 12,
+  "surfaceBlock": 3,
+  "subSurfaceBlock": 2,
+  "stoneBlock": 1,
+  "surfaceBlockName": "Grass",
+  "subSurfaceBlockName": "Dirt",
+  "stoneBlockName": "Stone",
+  "minTemperature": 0.3,
+  "maxTemperature": 0.6,
+  "minHumidity": 0.5,
+  "maxHumidity": 1.0,
+  "subSurfaceDepth": 5,
+  "heightSplinePoints": [
+    { "inputValue": -1.0, "outputY": -4 },
+    { "inputValue": -0.3, "outputY": -1 },
+    { "inputValue": 0.0, "outputY": 0 },
+    { "inputValue": 0.4, "outputY": 3 },
+    { "inputValue": 0.8, "outputY": 8 },
+    { "inputValue": 1.0, "outputY": 12 }
+  ]
+}

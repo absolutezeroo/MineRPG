@@ -1,0 +1,9 @@
+{
+  "id": 1,
+  "name": "Stone",
+  "flags": 1,
+  "hardness": 5.0,
+  "textures": {
+    "all": "stone"
+  }
+}

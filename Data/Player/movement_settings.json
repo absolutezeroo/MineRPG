@@ -1,0 +1,9 @@
+{
+  "walkSpeed": 5.0,
+  "sprintSpeed": 8.0,
+  "jumpVelocity": 7.0,
+  "gravity": 20.0,
+  "mouseSensitivity": 0.002,
+  "interactionRange": 5.0,
+  "hotbarSize": 9
+}

@@ -1,0 +1,24 @@
+{
+  "id": "plains",
+  "biomeType": 0,
+  "baseHeight": 64,
+  "heightVariance": 8,
+  "surfaceBlock": 3,
+  "subSurfaceBlock": 2,
+  "stoneBlock": 1,
+  "surfaceBlockName": "Grass",
+  "subSurfaceBlockName": "Dirt",
+  "stoneBlockName": "Stone",
+  "minTemperature": 0.3,
+  "maxTemperature": 0.7,
+  "minHumidity": 0.3,
+  "maxHumidity": 0.7,
+  "subSurfaceDepth": 4,
+  "heightSplinePoints": [
+    { "inputValue": -1.0, "outputY": -3 },
+    { "inputValue": -0.3, "outputY": -1 },
+    { "inputValue": 0.0, "outputY": 0 },
+    { "inputValue": 0.5, "outputY": 2 },
+    { "inputValue": 1.0, "outputY": 5 }
+  ]
+}
