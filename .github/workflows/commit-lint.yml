@@ -1,0 +1,69 @@
+name: Commit Lint
+
+on:
+  pull_request:
+    branches: [develop, master]
+
+jobs:
+  commit-lint:
+    name: Validate Commit Messages
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate Conventional Commits
+        run: |
+          VALID_TYPES="feat|fix|refactor|perf|test|docs|chore|style|build|ci"
+          VALID_SCOPES="core|rpg|world|entities|network|godot-world|godot-entities|godot-ui|godot-network|game|tests"
+          PATTERN="^(${VALID_TYPES})(\((${VALID_SCOPES})\))?!?: .{1,72}$"
+
+          BASE_SHA="${{ github.event.pull_request.base.sha }}"
+          HEAD_SHA="${{ github.event.pull_request.head.sha }}"
+
+          echo "Checking commits from ${BASE_SHA}..${HEAD_SHA}"
+          echo "Pattern: ${PATTERN}"
+          echo ""
+
+          ERRORS=0
+
+          while IFS= read -r COMMIT_LINE; do
+            SHA=$(echo "$COMMIT_LINE" | cut -d' ' -f1)
+            MSG=$(echo "$COMMIT_LINE" | cut -d' ' -f2-)
+
+            # Skip merge commits
+            if echo "$MSG" | grep -qE "^Merge "; then
+              echo "SKIP (merge): $MSG"
+              continue
+            fi
+
+            if echo "$MSG" | grep -qE "$PATTERN"; then
+              echo "OK: $MSG"
+            else
+              echo "::error::Invalid commit message: $MSG (sha: $SHA)"
+              echo "  Expected format: type(scope): description"
+              echo "  Valid types: ${VALID_TYPES}"
+              echo "  Valid scopes: ${VALID_SCOPES}"
+              ERRORS=$((ERRORS + 1))
+            fi
+          done < <(git log --oneline "${BASE_SHA}..${HEAD_SHA}")
+
+          echo ""
+          if [ $ERRORS -gt 0 ]; then
+            echo "::error::${ERRORS} commit(s) do not follow Conventional Commits format."
+            echo ""
+            echo "Expected format: type(scope): description"
+            echo "  type: feat | fix | refactor | perf | test | docs | chore | style | build | ci"
+            echo "  scope (optional): core | rpg | world | entities | network | godot-world | godot-entities | godot-ui | godot-network | game | tests"
+            echo "  description: imperative mood, lowercase, no period, max 72 chars"
+            echo ""
+            echo "Examples:"
+            echo "  feat(world): implement greedy mesh builder"
+            echo "  fix(godot-world): fix chunk mesh not applied on main thread"
+            echo "  test(rpg): add damage calculator tests for critical hits"
+            exit 1
+          fi
+
+          echo "All commits follow Conventional Commits format."

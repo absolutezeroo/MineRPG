@@ -1,2 +1,50 @@
-# Normalize EOL for all files that Git considers text files.
+# Auto detect text files and normalize line endings
 * text=auto eol=lf
+
+# C# source
+*.cs text diff=csharp
+*.csproj text
+*.sln text
+*.props text
+*.targets text
+
+# Godot
+*.tscn text
+*.tres text
+*.godot text
+*.gdshader text
+*.import text
+
+# Data
+*.json text
+*.yaml text
+*.yml text
+*.xml text
+*.md text
+
+# Config
+.editorconfig text
+.gitignore text
+.gitattributes text
+
+# Binary assets (no diff, no merge)
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.bmp binary
+*.tga binary
+*.webp binary
+*.svg binary
+*.ico binary
+*.wav binary
+*.ogg binary
+*.mp3 binary
+*.ttf binary
+*.otf binary
+*.woff binary
+*.woff2 binary
+*.fbx binary
+*.glb binary
+*.gltf binary
+*.blend binary
+*.obj binary

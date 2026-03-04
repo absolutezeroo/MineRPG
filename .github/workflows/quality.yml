@@ -1,0 +1,212 @@
+name: Quality
+
+on:
+  pull_request:
+    branches: [develop, master]
+
+env:
+  MAX_FILE_LINES: 300
+  WARN_FILE_LINES: 250
+  MAX_METHOD_LINES: 40
+  WARN_METHOD_LINES: 30
+
+jobs:
+  file-size-check:
+    name: File Size Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check C# file lengths
+        run: |
+          echo "Checking .cs file lengths (warn > ${WARN_FILE_LINES}, fail > ${MAX_FILE_LINES})..."
+          echo ""
+
+          WARNINGS=0
+          ERRORS=0
+
+          while IFS= read -r FILE; do
+            LINES=$(wc -l < "$FILE")
+            if [ "$LINES" -gt "$MAX_FILE_LINES" ]; then
+              echo "::error file=${FILE}::${FILE}: ${LINES} lines (max ${MAX_FILE_LINES})"
+              ERRORS=$((ERRORS + 1))
+            elif [ "$LINES" -gt "$WARN_FILE_LINES" ]; then
+              echo "::warning file=${FILE}::${FILE}: ${LINES} lines (approaching limit of ${MAX_FILE_LINES})"
+              WARNINGS=$((WARNINGS + 1))
+            fi
+          done < <(find src/ Bootstrap/ -name "*.cs" -type f 2>/dev/null)
+
+          echo ""
+          echo "Summary: ${ERRORS} error(s), ${WARNINGS} warning(s)"
+
+          if [ $ERRORS -gt 0 ]; then
+            echo "::error::${ERRORS} file(s) exceed ${MAX_FILE_LINES} lines. Split large files into smaller, focused types."
+            exit 1
+          fi
+
+  method-length-check:
+    name: Method Length Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check method lengths
+        run: |
+          echo "Checking method lengths (warn > ${WARN_METHOD_LINES}, fail > ${MAX_METHOD_LINES})..."
+          echo ""
+
+          WARNINGS=0
+          ERRORS=0
+
+          # Simple brace-counting method length checker
+          while IFS= read -r FILE; do
+            python3 -c "
+          import re
+          import sys
+
+          with open('$FILE', 'r') as f:
+              lines = f.readlines()
+
+          method_pattern = re.compile(r'^\s*(public|private|protected|internal|static|override|virtual|abstract|sealed|async|partial|\s)+\s+\S+\s+\w+\s*[\(<]')
+          current_method = None
+          brace_depth = 0
+          method_start = 0
+          in_method = False
+
+          for i, line in enumerate(lines, 1):
+              stripped = line.strip()
+
+              # Skip comments and attributes
+              if stripped.startswith('//') or stripped.startswith('/*') or stripped.startswith('*') or stripped.startswith('['):
+                  continue
+
+              # Detect method declarations (not fields, not properties with => )
+              if not in_method and method_pattern.match(line) and not stripped.endswith(';') and '=>' not in stripped:
+                  current_method = stripped.split('(')[0].strip().split()[-1] if '(' in stripped else None
+                  if current_method:
+                      method_start = i
+                      brace_depth = 0
+                      in_method = False  # Wait for opening brace
+
+              # Count braces
+              for ch in stripped:
+                  if ch == '{':
+                      if current_method and not in_method:
+                          in_method = True
+                          brace_depth = 1
+                      elif in_method:
+                          brace_depth += 1
+                  elif ch == '}':
+                      if in_method:
+                          brace_depth -= 1
+                          if brace_depth == 0:
+                              length = i - method_start
+                              if length > ${MAX_METHOD_LINES}:
+                                  print(f'ERROR:{current_method}:{length}:{method_start}')
+                              elif length > ${WARN_METHOD_LINES}:
+                                  print(f'WARN:{current_method}:{length}:{method_start}')
+                              in_method = False
+                              current_method = None
+          " 2>/dev/null | while IFS=: read -r LEVEL METHOD LENGTH START; do
+              if [ "$LEVEL" = "ERROR" ]; then
+                echo "::error file=${FILE},line=${START}::${FILE}:${START} — method '${METHOD}' is ${LENGTH} lines (max ${MAX_METHOD_LINES})"
+                echo "E" >> /tmp/method_errors
+              elif [ "$LEVEL" = "WARN" ]; then
+                echo "::warning file=${FILE},line=${START}::${FILE}:${START} — method '${METHOD}' is ${LENGTH} lines (approaching limit)"
+                echo "W" >> /tmp/method_warnings
+              fi
+            done
+          done < <(find src/ Bootstrap/ -name "*.cs" -type f 2>/dev/null)
+
+          ERROR_COUNT=$(wc -l < /tmp/method_errors 2>/dev/null || echo 0)
+          WARN_COUNT=$(wc -l < /tmp/method_warnings 2>/dev/null || echo 0)
+
+          echo ""
+          echo "Summary: ${ERROR_COUNT} error(s), ${WARN_COUNT} warning(s)"
+
+          if [ "$ERROR_COUNT" -gt 0 ]; then
+            echo "::error::${ERROR_COUNT} method(s) exceed ${MAX_METHOD_LINES} lines. Extract smaller focused methods."
+            exit 1
+          fi
+
+  naming-check:
+    name: Naming Conventions Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check file-type name matching
+        run: |
+          echo "Checking that each .cs file name matches its primary public type..."
+          echo ""
+
+          ERRORS=0
+
+          while IFS= read -r FILE; do
+            BASENAME=$(basename "$FILE" .cs)
+
+            # Skip special files
+            if echo "$BASENAME" | grep -qE "^(AssemblyInfo|GlobalUsings|Usings)$"; then
+              continue
+            fi
+
+            # Check if file contains a matching public type declaration
+            if ! grep -qE "^\s*(public|internal)\s+(sealed\s+|abstract\s+|static\s+|partial\s+|readonly\s+)*\s*(class|struct|interface|enum|record)\s+${BASENAME}\b" "$FILE"; then
+              echo "::warning file=${FILE}::${FILE}: no public type named '${BASENAME}' found"
+            fi
+          done < <(find src/ Bootstrap/ -name "*.cs" -type f 2>/dev/null)
+
+      - name: Check for banned generic file names
+        run: |
+          BANNED_NAMES="Globals.cs Constants.cs Helpers.cs Utils.cs Manager.cs"
+          ERRORS=0
+
+          for NAME in $BANNED_NAMES; do
+            FOUND=$(find src/ Bootstrap/ -name "$NAME" -type f 2>/dev/null || true)
+            if [ -n "$FOUND" ]; then
+              echo "::error::Banned generic file name '${NAME}' found: ${FOUND}"
+              echo "  Use a descriptive prefixed name instead (e.g., ChunkManager.cs, MathExtensions.cs)"
+              ERRORS=$((ERRORS + 1))
+            fi
+          done
+
+          if [ $ERRORS -gt 0 ]; then
+            exit 1
+          fi
+
+          echo "No banned generic file names found."
+
+  data-validation:
+    name: Data File Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate JSON files
+        run: |
+          echo "Validating all JSON files in Data/..."
+          echo ""
+
+          ERRORS=0
+
+          while IFS= read -r FILE; do
+            if ! python3 -m json.tool "$FILE" > /dev/null 2>&1; then
+              echo "::error file=${FILE}::Invalid JSON: ${FILE}"
+              python3 -m json.tool "$FILE" 2>&1 | head -5
+              ERRORS=$((ERRORS + 1))
+            else
+              echo "OK: ${FILE}"
+            fi
+          done < <(find Data/ -name "*.json" -type f 2>/dev/null)
+
+          echo ""
+          if [ $ERRORS -gt 0 ]; then
+            echo "::error::${ERRORS} invalid JSON file(s) found in Data/"
+            exit 1
+          fi
+
+          echo "All JSON files are valid."
