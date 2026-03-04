@@ -19,7 +19,7 @@ public interface IDecorator
     /// <param name="chunkWorldX">World X of the chunk origin.</param>
     /// <param name="chunkWorldZ">World Z of the chunk origin.</param>
     /// <param name="random">Seeded random for deterministic placement.</param>
-    public void Decorate(
+    void Decorate(
         ChunkData data,
         BiomeDefinition[] biomeMap,
         int[] heightMap,

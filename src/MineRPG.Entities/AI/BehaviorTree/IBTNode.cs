@@ -11,11 +11,11 @@ public interface IBTNode
     /// </summary>
     /// <param name="deltaTime">Time elapsed since the last tick, in seconds.</param>
     /// <returns>The execution status indicating whether the node is still running, succeeded, or failed.</returns>
-    public BTStatus Execute(float deltaTime);
+    BTStatus Execute(float deltaTime);
 
     /// <summary>
     /// Reset the node to its initial state. Called when the tree is restarted
     /// or when a parent composite re-enters this node.
     /// </summary>
-    public void Reset();
+    void Reset();
 }

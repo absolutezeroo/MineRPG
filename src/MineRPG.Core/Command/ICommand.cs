@@ -10,20 +10,20 @@ public interface ICommand
     /// Whether this command is currently valid and can be executed.
     /// </summary>
     /// <returns>True if the command can be executed in the current state.</returns>
-    public bool CanExecute();
+    bool CanExecute();
 
     /// <summary>
     /// Execute the command, applying its effects.
     /// </summary>
-    public void Execute();
+    void Execute();
 
     /// <summary>
     /// Whether this command supports being undone.
     /// </summary>
-    public bool CanUndo { get; }
+    bool CanUndo { get; }
 
     /// <summary>
     /// Reverse the effects of a previously executed command.
     /// </summary>
-    public void Undo();
+    void Undo();
 }

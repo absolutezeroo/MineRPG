@@ -10,5 +10,5 @@ public interface ITickable
     /// Advance the system by one tick.
     /// </summary>
     /// <param name="deltaTime">Time elapsed since the last tick, in seconds.</param>
-    public void Tick(float deltaTime);
+    void Tick(float deltaTime);
 }

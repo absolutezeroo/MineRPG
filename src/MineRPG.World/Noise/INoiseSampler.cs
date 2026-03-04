@@ -12,7 +12,7 @@ public interface INoiseSampler
     /// <param name="x">The X coordinate.</param>
     /// <param name="z">The Z coordinate.</param>
     /// <returns>Noise value in approximately [-1, 1].</returns>
-    public float Sample2D(float x, float z);
+    float Sample2D(float x, float z);
 
     /// <summary>
     /// Samples 3D noise at the given coordinates.
@@ -21,5 +21,5 @@ public interface INoiseSampler
     /// <param name="y">The Y coordinate.</param>
     /// <param name="z">The Z coordinate.</param>
     /// <returns>Noise value in approximately [-1, 1].</returns>
-    public float Sample3D(float x, float y, float z);
+    float Sample3D(float x, float y, float z);
 }

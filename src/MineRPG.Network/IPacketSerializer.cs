@@ -13,12 +13,12 @@ public interface IPacketSerializer
     /// </summary>
     /// <param name="packet">The packet to serialize.</param>
     /// <returns>A byte array containing the serialized packet data.</returns>
-    public byte[] Serialize(IPacket packet);
+    byte[] Serialize(IPacket packet);
 
     /// <summary>
     /// Deserializes a packet from raw byte data, using the packet ID header to resolve the type.
     /// </summary>
     /// <param name="data">The raw byte data to deserialize.</param>
     /// <returns>The deserialized packet instance.</returns>
-    public IPacket Deserialize(ReadOnlyMemory<byte> data);
+    IPacket Deserialize(ReadOnlyMemory<byte> data);
 }

@@ -14,14 +14,14 @@ public interface IEventBus
     /// </summary>
     /// <typeparam name="T">The event type (must be a struct).</typeparam>
     /// <param name="handler">The handler to invoke when the event is published.</param>
-    public void Subscribe<T>(Action<T> handler) where T : struct;
+    void Subscribe<T>(Action<T> handler) where T : struct;
 
     /// <summary>
     /// Unsubscribe a previously registered handler.
     /// </summary>
     /// <typeparam name="T">The event type (must be a struct).</typeparam>
     /// <param name="handler">The handler to remove.</param>
-    public void Unsubscribe<T>(Action<T> handler) where T : struct;
+    void Unsubscribe<T>(Action<T> handler) where T : struct;
 
     /// <summary>
     /// Dispatch <paramref name="eventData"/> to all current subscribers.
@@ -30,7 +30,7 @@ public interface IEventBus
     /// </summary>
     /// <typeparam name="T">The event type (must be a struct).</typeparam>
     /// <param name="eventData">The event data to publish.</param>
-    public void Publish<T>(T eventData) where T : struct;
+    void Publish<T>(T eventData) where T : struct;
 
     /// <summary>
     /// Buffer the event for later dispatch. Call <see cref="FlushQueued"/>
@@ -39,17 +39,17 @@ public interface IEventBus
     /// </summary>
     /// <typeparam name="T">The event type (must be a struct).</typeparam>
     /// <param name="eventData">The event data to queue.</param>
-    public void PublishQueued<T>(T eventData) where T : struct;
+    void PublishQueued<T>(T eventData) where T : struct;
 
     /// <summary>
     /// Dispatch all queued events. Returns the number of events flushed.
     /// Should be called from the main thread (e.g., in _Process).
     /// </summary>
     /// <returns>The number of events that were flushed.</returns>
-    public int FlushQueued();
+    int FlushQueued();
 
     /// <summary>
     /// Remove all subscribers and drain any queued events.
     /// </summary>
-    public void Clear();
+    void Clear();
 }

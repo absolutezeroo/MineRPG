@@ -14,7 +14,7 @@ public interface IServiceLocator
     /// </summary>
     /// <typeparam name="T">The service type to register.</typeparam>
     /// <param name="instance">The service instance to register.</param>
-    public void Register<T>(T instance) where T : class;
+    void Register<T>(T instance) where T : class;
 
     /// <summary>
     /// Replace an existing registration, or register if none exists.
@@ -22,7 +22,7 @@ public interface IServiceLocator
     /// </summary>
     /// <typeparam name="T">The service type to replace.</typeparam>
     /// <param name="instance">The new service instance.</param>
-    public void Replace<T>(T instance) where T : class;
+    void Replace<T>(T instance) where T : class;
 
     /// <summary>
     /// Retrieve a registered service.
@@ -30,7 +30,7 @@ public interface IServiceLocator
     /// </summary>
     /// <typeparam name="T">The service type to retrieve.</typeparam>
     /// <returns>The registered service instance.</returns>
-    public T Get<T>() where T : class;
+    T Get<T>() where T : class;
 
     /// <summary>
     /// Try to retrieve a registered service without throwing.
@@ -38,5 +38,5 @@ public interface IServiceLocator
     /// <typeparam name="T">The service type to retrieve.</typeparam>
     /// <param name="service">The service instance if found; null otherwise.</param>
     /// <returns>True if the service was found.</returns>
-    public bool TryGet<T>([NotNullWhen(true)] out T? service) where T : class;
+    bool TryGet<T>([NotNullWhen(true)] out T? service) where T : class;
 }

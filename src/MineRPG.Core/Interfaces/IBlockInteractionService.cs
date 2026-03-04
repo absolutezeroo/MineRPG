@@ -18,7 +18,7 @@ public interface IBlockInteractionService
     /// <param name="dirZ">Ray direction Z component.</param>
     /// <param name="maxDistance">Maximum ray distance.</param>
     /// <returns>True if a block was broken.</returns>
-    public bool TryBreakBlock(float originX, float originY, float originZ,
+    bool TryBreakBlock(float originX, float originY, float originZ,
         float dirX, float dirY, float dirZ, float maxDistance);
 
     /// <summary>
@@ -33,6 +33,6 @@ public interface IBlockInteractionService
     /// <param name="maxDistance">Maximum ray distance.</param>
     /// <param name="blockId">The block type ID to place.</param>
     /// <returns>True if a block was placed.</returns>
-    public bool TryPlaceBlock(float originX, float originY, float originZ,
+    bool TryPlaceBlock(float originX, float originY, float originZ,
         float dirX, float dirY, float dirZ, float maxDistance, ushort blockId);
 }

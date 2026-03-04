@@ -12,5 +12,5 @@ public interface ILootResolver
     /// <param name="lootTableRef">The loot table reference identifier.</param>
     /// <param name="rng">Random number generator for weighted selection.</param>
     /// <returns>A read-only list of resolved item instances.</returns>
-    public IReadOnlyList<ItemInstance> Resolve(string lootTableRef, Random rng);
+    IReadOnlyList<ItemInstance> Resolve(string lootTableRef, Random rng);
 }

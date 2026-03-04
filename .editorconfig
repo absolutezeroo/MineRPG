@@ -128,7 +128,7 @@ csharp_style_prefer_null_check_over_type_check = true:suggestion
 # ---------------------------------------------------------------------------
 # 12. Modifier preferences
 # ---------------------------------------------------------------------------
-dotnet_style_require_accessibility_modifiers = always:error
+dotnet_style_require_accessibility_modifiers = for_non_interface_members:error
 csharp_preferred_modifier_order = public,private,protected,internal,file,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,required,volatile,async:error
 dotnet_style_readonly_field = true:warning
 
@@ -322,8 +322,32 @@ dotnet_diagnostic.IDE0008.severity = none
 # CA1707: Identifiers should not contain underscores (except private fields)
 dotnet_diagnostic.CA1707.severity = warning
 
-# CA1051: Do not declare visible instance fields
-dotnet_diagnostic.CA1051.severity = warning
+# CA1031: Do not catch general exception — valid in event bus, command queue
+dotnet_diagnostic.CA1031.severity = suggestion
+
+# CA1051: Do not declare visible instance fields — structs use public fields
+dotnet_diagnostic.CA1051.severity = suggestion
+
+# CA1305: Culture-specific formatting — not relevant for game logging
+dotnet_diagnostic.CA1305.severity = suggestion
+
+# CA1510: Use ThrowIfNull — suggestion, not error
+dotnet_diagnostic.CA1510.severity = suggestion
+
+# CA1711: Identifiers should not have incorrect suffix — CommandQueue is fine
+dotnet_diagnostic.CA1711.severity = none
+
+# CA1716: Reserved keyword as member name — Error/Get/Return/Exit are standard
+dotnet_diagnostic.CA1716.severity = none
+
+# CA1724: Type name conflicts with namespace — Registry/StateMachine in matching namespaces
+dotnet_diagnostic.CA1724.severity = none
+
+# CA1815: Struct should override Equals — event structs don't need equality
+dotnet_diagnostic.CA1815.severity = suggestion
+
+# CA5394: Insecure Random — game randomness doesn't need crypto security
+dotnet_diagnostic.CA5394.severity = none
 
 # CA1062: Validate arguments of public methods
 dotnet_diagnostic.CA1062.severity = suggestion

@@ -13,25 +13,25 @@ public interface IChunkStorage
     /// </summary>
     /// <param name="coord">The chunk coordinate.</param>
     /// <returns>True if the chunk exists in storage.</returns>
-    public bool Exists(ChunkCoord coord);
+    bool Exists(ChunkCoord coord);
 
     /// <summary>
     /// Loads serialized chunk data from storage.
     /// </summary>
     /// <param name="coord">The chunk coordinate.</param>
     /// <returns>The raw serialized bytes.</returns>
-    public byte[] Load(ChunkCoord coord);
+    byte[] Load(ChunkCoord coord);
 
     /// <summary>
     /// Saves serialized chunk data to storage.
     /// </summary>
     /// <param name="coord">The chunk coordinate.</param>
     /// <param name="data">The serialized bytes to save.</param>
-    public void Save(ChunkCoord coord, byte[] data);
+    void Save(ChunkCoord coord, byte[] data);
 
     /// <summary>
     /// Deletes a saved chunk from storage.
     /// </summary>
     /// <param name="coord">The chunk coordinate.</param>
-    public void Delete(ChunkCoord coord);
+    void Delete(ChunkCoord coord);
 }

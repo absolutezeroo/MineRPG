@@ -9,40 +9,40 @@ public interface IStateMachine
     /// <summary>
     /// The currently active (top-of-stack) state, or null if the stack is empty.
     /// </summary>
-    public IState? CurrentState { get; }
+    IState? CurrentState { get; }
 
     /// <summary>
     /// The number of states currently on the stack.
     /// </summary>
-    public int Depth { get; }
+    int Depth { get; }
 
     /// <summary>
     /// Replace the current top state. Calls Exit on old, Enter on new.
     /// </summary>
     /// <param name="state">The new state to transition to.</param>
-    public void ChangeState(IState state);
+    void ChangeState(IState state);
 
     /// <summary>
     /// Push a new state on top. Calls Pause on current, Enter on new.
     /// </summary>
     /// <param name="state">The state to push onto the stack.</param>
-    public void PushState(IState state);
+    void PushState(IState state);
 
     /// <summary>
     /// Pop the top state. Calls Exit on current, Resume on new top (if any).
     /// </summary>
-    public void PopState();
+    void PopState();
 
     /// <summary>
     /// Tick only the top state.
     /// </summary>
     /// <param name="deltaTime">Time elapsed since the last tick, in seconds.</param>
-    public void Tick(float deltaTime);
+    void Tick(float deltaTime);
 
     /// <summary>
     /// Tick every state in the stack from bottom to top.
     /// Use when background states need updates (e.g., buff timers while in dialogue).
     /// </summary>
     /// <param name="deltaTime">Time elapsed since the last tick, in seconds.</param>
-    public void TickAll(float deltaTime);
+    void TickAll(float deltaTime);
 }

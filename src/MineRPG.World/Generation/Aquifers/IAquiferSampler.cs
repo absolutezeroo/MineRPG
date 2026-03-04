@@ -15,5 +15,5 @@ public interface IAquiferSampler
     /// <param name="worldZ">World Z coordinate.</param>
     /// <param name="surfaceY">Surface height at this column.</param>
     /// <returns>Block ID: 0 for air, water ID, or lava ID.</returns>
-    public ushort GetFluidBlock(int worldX, int worldY, int worldZ, int surfaceY);
+    ushort GetFluidBlock(int worldX, int worldY, int worldZ, int surfaceY);
 }

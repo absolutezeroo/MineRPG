@@ -14,5 +14,5 @@ public interface IDamageFormula
     /// <param name="defense">Snapshot of the defender's defensive stats.</param>
     /// <param name="rng">Random number generator for crit rolls and variance.</param>
     /// <returns>A hit result containing final damage, crit status, and entity identifiers.</returns>
-    public HitResult Calculate(AttackData attack, DefenseData defense, Random rng);
+    HitResult Calculate(AttackData attack, DefenseData defense, Random rng);
 }

@@ -11,52 +11,52 @@ public interface ILogger
     /// <summary>
     /// Minimum log level. Messages below this level are discarded.
     /// </summary>
-    public LogLevel MinLevel { get; set; }
+    LogLevel MinLevel { get; set; }
 
     /// <summary>Log a debug message.</summary>
     /// <param name="message">The message to log.</param>
-    public void Debug(string message);
+    void Debug(string message);
 
     /// <summary>Log a formatted debug message.</summary>
     /// <param name="format">The format string with positional placeholders.</param>
     /// <param name="args">The format arguments.</param>
-    public void Debug(string format, params object?[] args);
+    void Debug(string format, params object?[] args);
 
     /// <summary>Log an informational message.</summary>
     /// <param name="message">The message to log.</param>
-    public void Info(string message);
+    void Info(string message);
 
     /// <summary>Log a formatted informational message.</summary>
     /// <param name="format">The format string with positional placeholders.</param>
     /// <param name="args">The format arguments.</param>
-    public void Info(string format, params object?[] args);
+    void Info(string format, params object?[] args);
 
     /// <summary>Log a warning message.</summary>
     /// <param name="message">The message to log.</param>
-    public void Warning(string message);
+    void Warning(string message);
 
     /// <summary>Log a formatted warning message.</summary>
     /// <param name="format">The format string with positional placeholders.</param>
     /// <param name="args">The format arguments.</param>
-    public void Warning(string format, params object?[] args);
+    void Warning(string format, params object?[] args);
 
     /// <summary>Log an error message.</summary>
     /// <param name="message">The message to log.</param>
-    public void Error(string message);
+    void Error(string message);
 
     /// <summary>Log an error message with an associated exception.</summary>
     /// <param name="message">The message to log.</param>
     /// <param name="exception">The exception that occurred.</param>
-    public void Error(string message, Exception exception);
+    void Error(string message, Exception exception);
 
     /// <summary>Log a formatted error message.</summary>
     /// <param name="format">The format string with positional placeholders.</param>
     /// <param name="args">The format arguments.</param>
-    public void Error(string format, params object?[] args);
+    void Error(string format, params object?[] args);
 
     /// <summary>Log a formatted error message with an associated exception.</summary>
     /// <param name="format">The format string with positional placeholders.</param>
     /// <param name="exception">The exception that occurred.</param>
     /// <param name="args">The format arguments.</param>
-    public void Error(string format, Exception exception, params object?[] args);
+    void Error(string format, Exception exception, params object?[] args);
 }

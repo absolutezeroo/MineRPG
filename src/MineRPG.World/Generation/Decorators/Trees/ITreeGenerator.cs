@@ -10,7 +10,7 @@ public interface ITreeGenerator
     /// <summary>
     /// The unique type identifier for this tree generator (e.g., "oak_tree").
     /// </summary>
-    public string TypeId { get; }
+    string TypeId { get; }
 
     /// <summary>
     /// Places a tree at the given world position into the chunk data.
@@ -21,5 +21,5 @@ public interface ITreeGenerator
     /// <param name="baseY">Y position of the trunk base.</param>
     /// <param name="localZ">Local Z position of the trunk base.</param>
     /// <param name="random">Seeded random for height and shape variation.</param>
-    public void Generate(ChunkData data, int localX, int baseY, int localZ, System.Random random);
+    void Generate(ChunkData data, int localX, int baseY, int localZ, System.Random random);
 }

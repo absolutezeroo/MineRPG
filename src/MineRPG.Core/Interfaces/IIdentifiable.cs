@@ -9,5 +9,5 @@ public interface IIdentifiable
     /// <summary>
     /// The stable integer identifier for this object.
     /// </summary>
-    public int Id { get; }
+    int Id { get; }
 }
