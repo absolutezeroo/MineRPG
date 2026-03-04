@@ -9,14 +9,9 @@
     <PackageReference Include="GodotSharp" Version="$(GodotSharpVersion)" />
   </ItemGroup>
 
-  <!-- NOTE: Godot.UI ideally depends only on Core + RPG per ARCHITECTURE.md.
-       World and Entities refs are needed until DebugOverlay is refactored
-       to read data via IEventBus / ViewModel contracts instead of direct access. -->
   <ItemGroup>
     <ProjectReference Include="../MineRPG.Core/MineRPG.Core.csproj" />
     <ProjectReference Include="../MineRPG.RPG/MineRPG.RPG.csproj" />
-    <ProjectReference Include="../MineRPG.Entities/MineRPG.Entities.csproj" />
-    <ProjectReference Include="../MineRPG.World/MineRPG.World.csproj" />
   </ItemGroup>
 
 </Project>

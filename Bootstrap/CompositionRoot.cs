@@ -98,6 +98,12 @@ public static class CompositionRoot
         var playerData = new PlayerData(movementSettings);
         locator.Register<PlayerData>(playerData);
 
+        var debugDataProvider = new DebugDataProvider(playerData, chunkManager, biomeSelector);
+        locator.Register<IDebugDataProvider>(debugDataProvider);
+
+        var hotbarController = new HotbarController(playerData);
+        locator.Register<IHotbarController>(hotbarController);
+
         logger.Info("CompositionRoot: All services wired. Seed={0}, SaveRoot={1}", worldSeed, saveRoot);
     }
 

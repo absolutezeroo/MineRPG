@@ -1,14 +1,14 @@
 using Godot;
 using MineRPG.Core.DI;
+using MineRPG.Core.Interfaces;
 using MineRPG.Core.Logging;
-using MineRPG.Entities.Player;
 
 namespace MineRPG.Godot.UI;
 
 /// <summary>
 /// 9-slot hotbar displayed at the bottom center of the screen.
 /// Slots are empty panels for now (no item system wired yet).
-/// Scroll wheel changes the selected slot and updates PlayerData.SelectedBlockId.
+/// Scroll wheel changes the selected slot via <see cref="IHotbarController"/>.
 /// </summary>
 public sealed partial class HotbarNode : Control
 {
@@ -25,12 +25,12 @@ public sealed partial class HotbarNode : Control
     private readonly Rect2[] _slotRects = new Rect2[SlotCount];
     private int _selectedIndex;
 
-    private PlayerData _playerData = null!;
+    private IHotbarController _hotbar = null!;
     private ILogger _logger = null!;
 
     public override void _Ready()
     {
-        _playerData = ServiceLocator.Instance.Get<PlayerData>();
+        _hotbar = ServiceLocator.Instance.Get<IHotbarController>();
         _logger = ServiceLocator.Instance.Get<ILogger>();
 
         SetAnchorsPreset(LayoutPreset.FullRect);
@@ -47,14 +47,14 @@ public sealed partial class HotbarNode : Control
         if (mouseBtn.ButtonIndex == MouseButton.WheelUp)
         {
             _selectedIndex = (_selectedIndex - 1 + SlotCount) % SlotCount;
-            _playerData.SelectedBlockId = (ushort)(_selectedIndex + 1);
+            _hotbar.SelectSlot(_selectedIndex);
             QueueRedraw();
             GetViewport().SetInputAsHandled();
         }
         else if (mouseBtn.ButtonIndex == MouseButton.WheelDown)
         {
             _selectedIndex = (_selectedIndex + 1) % SlotCount;
-            _playerData.SelectedBlockId = (ushort)(_selectedIndex + 1);
+            _hotbar.SelectSlot(_selectedIndex);
             QueueRedraw();
             GetViewport().SetInputAsHandled();
         }

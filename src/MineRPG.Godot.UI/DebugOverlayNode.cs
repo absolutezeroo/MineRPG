@@ -1,17 +1,14 @@
 using System.Text;
 using Godot;
 using MineRPG.Core.DI;
+using MineRPG.Core.Interfaces;
 using MineRPG.Core.Logging;
-using MineRPG.Core.Math;
-using MineRPG.Entities.Player;
-using MineRPG.World.Chunks;
-using MineRPG.World.Generation;
 
 namespace MineRPG.Godot.UI;
 
 /// <summary>
 /// Left-aligned debug overlay toggled by F3.
-/// Reads live data from pure-layer services each visible frame.
+/// Reads live data from <see cref="IDebugDataProvider"/> each visible frame.
 /// Uses a single reused StringBuilder to minimize per-frame allocations.
 /// </summary>
 public sealed partial class DebugOverlayNode : Control
@@ -19,18 +16,14 @@ public sealed partial class DebugOverlayNode : Control
     private Label _label = null!;
     private readonly StringBuilder _sb = new(512);
 
-    private PlayerData _playerData = null!;
-    private IChunkManager _chunkManager = null!;
-    private BiomeSelector _biomeSelector = null!;
+    private IDebugDataProvider _debugData = null!;
     private ILogger _logger = null!;
 
     private Camera3D? _camera;
 
     public override void _Ready()
     {
-        _playerData = ServiceLocator.Instance.Get<PlayerData>();
-        _chunkManager = ServiceLocator.Instance.Get<IChunkManager>();
-        _biomeSelector = ServiceLocator.Instance.Get<BiomeSelector>();
+        _debugData = ServiceLocator.Instance.Get<IDebugDataProvider>();
         _logger = ServiceLocator.Instance.Get<ILogger>();
 
         SetAnchorsPreset(LayoutPreset.TopLeft);
@@ -69,22 +62,14 @@ public sealed partial class DebugOverlayNode : Control
         if (!Visible)
             return;
 
-        var px = _playerData.PositionX;
-        var py = _playerData.PositionY;
-        var pz = _playerData.PositionZ;
-
-        var (cx, cz) = VoxelMath.WorldToChunk(
-            (int)MathF.Floor(px),
-            (int)MathF.Floor(pz),
-            ChunkData.SizeX,
-            ChunkData.SizeZ);
-
-        var biome = _biomeSelector.Select((int)MathF.Floor(px), (int)MathF.Floor(pz));
+        var px = _debugData.PlayerX;
+        var py = _debugData.PlayerY;
+        var pz = _debugData.PlayerZ;
 
         var fps = Engine.GetFramesPerSecond();
         var memoryBytes = OS.GetStaticMemoryUsage();
         var memoryMb = memoryBytes / (1024.0 * 1024.0);
-        var chunks = _chunkManager.Count;
+        var chunks = _debugData.LoadedChunkCount;
         var drawCalls = RenderingServer.GetRenderingInfo(
             RenderingServer.RenderingInfo.TotalObjectsInFrame);
 
@@ -98,8 +83,8 @@ public sealed partial class DebugOverlayNode : Control
             .Append(px.ToString("F1")).Append(" / ")
             .Append(py.ToString("F1")).Append(" / ")
             .Append(pz.ToString("F1")).AppendLine();
-        _sb.Append("Chunk: ").Append(cx).Append(", ").Append(cz).AppendLine();
-        _sb.Append("Biome: ").Append(biome.BiomeType).AppendLine();
+        _sb.Append("Chunk: ").Append(_debugData.ChunkX).Append(", ").Append(_debugData.ChunkZ).AppendLine();
+        _sb.Append("Biome: ").Append(_debugData.CurrentBiome).AppendLine();
         _sb.Append("Chunks loaded: ").Append(chunks).AppendLine();
         _sb.Append("Draw calls: ").Append(drawCalls).AppendLine();
         _sb.Append("Memory: ").Append(memoryMb.ToString("F1")).Append(" MB").AppendLine();
