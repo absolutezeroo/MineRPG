@@ -3,16 +3,16 @@ using System.Runtime.CompilerServices;
 namespace MineRPG.World.Spatial;
 
 /// <summary>
-/// A plane in 3D space represented by normal (A,B,C) and distance D.
-/// Equation: Ax + By + Cz + D = 0.
+/// A plane in 3D space represented by normal (NormalX, NormalY, NormalZ) and Distance.
+/// Equation: NormalX*x + NormalY*y + NormalZ*z + Distance = 0.
 /// Used for frustum culling — tests whether AABBs are inside a camera frustum.
 /// </summary>
-public readonly struct FrustumPlane(float a, float b, float c, float d)
+public readonly struct FrustumPlane(float normalX, float normalY, float normalZ, float distance)
 {
-    public readonly float A = a;
-    public readonly float B = b;
-    public readonly float C = c;
-    public readonly float D = d;
+    public float NormalX { get; } = normalX;
+    public float NormalY { get; } = normalY;
+    public float NormalZ { get; } = normalZ;
+    public float Distance { get; } = distance;
 
     /// <summary>
     /// Tests whether an AABB is completely outside the negative half-space of this plane.
@@ -23,10 +23,10 @@ public readonly struct FrustumPlane(float a, float b, float c, float d)
     public bool IsBoxOutside(float minX, float minY, float minZ, float maxX, float maxY, float maxZ)
     {
         // Select the p-vertex (the corner furthest in the direction of the plane normal)
-        var px = A >= 0 ? maxX : minX;
-        var py = B >= 0 ? maxY : minY;
-        var pz = C >= 0 ? maxZ : minZ;
+        var px = NormalX >= 0 ? maxX : minX;
+        var py = NormalY >= 0 ? maxY : minY;
+        var pz = NormalZ >= 0 ? maxZ : minZ;
 
-        return A * px + B * py + C * pz + D < 0;
+        return NormalX * px + NormalY * py + NormalZ * pz + Distance < 0;
     }
 }

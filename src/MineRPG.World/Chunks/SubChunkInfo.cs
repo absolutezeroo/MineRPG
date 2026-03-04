@@ -10,16 +10,16 @@ public readonly struct SubChunkInfo(int yIndex, bool isEmpty, bool isFullySolid,
     /// <summary>
     /// Vertical index [0..SubChunkCount). SubChunk Y range = [YIndex*16, YIndex*16+16).
     /// </summary>
-    public readonly int YIndex = yIndex;
+    public int YIndex { get; } = yIndex;
 
     /// <summary>True when all 4096 blocks in this sub-chunk are air (block ID 0).</summary>
-    public readonly bool IsEmpty = isEmpty;
+    public bool IsEmpty { get; } = isEmpty;
 
     /// <summary>True when all 4096 blocks are non-air (no internal faces can exist).</summary>
-    public readonly bool IsFullySolid = isFullySolid;
+    public bool IsFullySolid { get; } = isFullySolid;
 
     /// <summary>Number of non-air blocks. Useful for heuristics.</summary>
-    public readonly int NonAirCount = nonAirCount;
+    public int NonAirCount { get; } = nonAirCount;
 
     public int MinY => YIndex * SubChunkConstants.SubChunkSize;
     public int MaxY => MinY + SubChunkConstants.SubChunkSize;
