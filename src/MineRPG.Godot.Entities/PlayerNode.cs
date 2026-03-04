@@ -188,7 +188,7 @@ public sealed partial class PlayerNode : CharacterBody3D
 
     private void TryBreakBlock()
     {
-        if (_blockInteraction is null)
+        if (!ResolveBlockInteraction())
         {
             return;
         }
@@ -197,7 +197,7 @@ public sealed partial class PlayerNode : CharacterBody3D
         Vector3 forward = -_camera.GlobalTransform.Basis.Z;
         float range = _playerData.MovementSettings.InteractionRange;
 
-        _blockInteraction.TryBreakBlock(
+        _blockInteraction!.TryBreakBlock(
             origin.X, origin.Y, origin.Z,
             forward.X, forward.Y, forward.Z,
             range);
@@ -205,7 +205,7 @@ public sealed partial class PlayerNode : CharacterBody3D
 
     private void TryPlaceBlock()
     {
-        if (_blockInteraction is null)
+        if (!ResolveBlockInteraction())
         {
             return;
         }
@@ -214,10 +214,32 @@ public sealed partial class PlayerNode : CharacterBody3D
         Vector3 forward = -_camera.GlobalTransform.Basis.Z;
         float range = _playerData.MovementSettings.InteractionRange;
 
-        _blockInteraction.TryPlaceBlock(
+        _blockInteraction!.TryPlaceBlock(
             origin.X, origin.Y, origin.Z,
             forward.X, forward.Y, forward.Z,
             range, _playerData.SelectedBlockId);
+    }
+
+    /// <summary>
+    /// Lazily resolves IBlockInteractionService from the ServiceLocator.
+    /// Needed because GameBootstrapper registers it via CallDeferred,
+    /// which runs after all nodes have had their _Ready() called.
+    /// </summary>
+    private bool ResolveBlockInteraction()
+    {
+        if (_blockInteraction is not null)
+        {
+            return true;
+        }
+
+        if (ServiceLocator.Instance.TryGet<IBlockInteractionService>(out IBlockInteractionService? service))
+        {
+            _blockInteraction = service;
+            _logger.Info("PlayerNode: IBlockInteractionService resolved (lazy).");
+            return true;
+        }
+
+        return false;
     }
 
     private void CaptureMouse()

@@ -9,12 +9,26 @@
     <DefaultItemExcludes>$(DefaultItemExcludes);src/**;docs/**</DefaultItemExcludes>
   </PropertyGroup>
 
+  <!--
+    Bridge source files compiled directly into main assembly.
+    Godot 4 only discovers ScriptPathAttribute in the primary assembly,
+    so bridge Godot node classes MUST live here (godotengine/godot#77675).
+    Files stay in src/MineRPG.Godot.*/ for organisation; only compilation changes.
+  -->
   <ItemGroup>
-    <!-- Godot bridge projects (each pulls in its pure dependencies transitively) -->
-    <ProjectReference Include="src/MineRPG.Godot.World/MineRPG.Godot.World.csproj" />
-    <ProjectReference Include="src/MineRPG.Godot.Entities/MineRPG.Godot.Entities.csproj" />
-    <ProjectReference Include="src/MineRPG.Godot.UI/MineRPG.Godot.UI.csproj" />
-    <ProjectReference Include="src/MineRPG.Godot.Network/MineRPG.Godot.Network.csproj" />
+    <Compile Include="src/MineRPG.Godot.World/**/*.cs" Exclude="src/MineRPG.Godot.World/obj/**;src/MineRPG.Godot.World/bin/**" />
+    <Compile Include="src/MineRPG.Godot.Entities/**/*.cs" Exclude="src/MineRPG.Godot.Entities/obj/**;src/MineRPG.Godot.Entities/bin/**" />
+    <Compile Include="src/MineRPG.Godot.UI/**/*.cs" Exclude="src/MineRPG.Godot.UI/obj/**;src/MineRPG.Godot.UI/bin/**" />
+    <Compile Include="src/MineRPG.Godot.Network/**/*.cs" Exclude="src/MineRPG.Godot.Network/obj/**;src/MineRPG.Godot.Network/bin/**" />
+  </ItemGroup>
+
+  <!-- Pure logic projects referenced directly -->
+  <ItemGroup>
+    <ProjectReference Include="src/MineRPG.Core/MineRPG.Core.csproj" />
+    <ProjectReference Include="src/MineRPG.RPG/MineRPG.RPG.csproj" />
+    <ProjectReference Include="src/MineRPG.World/MineRPG.World.csproj" />
+    <ProjectReference Include="src/MineRPG.Entities/MineRPG.Entities.csproj" />
+    <ProjectReference Include="src/MineRPG.Network/MineRPG.Network.csproj" />
   </ItemGroup>
 
   <ItemGroup>
