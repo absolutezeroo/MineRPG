@@ -1,0 +1,11 @@
+{
+  "pillar_min_height": 15,
+  "pillar_chance": 0.05,
+  "pillar_width": 2,
+  "stalactite_chance": 0.02,
+  "stalactite_max_length": 8,
+  "stalagmite_chance": 0.02,
+  "stalagmite_max_height": 6,
+  "formation_block_name": "Stone",
+  "eligible_biomes": []
+}
