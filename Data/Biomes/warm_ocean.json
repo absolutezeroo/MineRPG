@@ -1,0 +1,42 @@
+{
+  "id": "warm_ocean",
+  "displayName": "Warm Ocean",
+  "category": 0,
+  "climateTarget": {
+    "continentalness": { "min": -1.0, "max": -0.55 },
+    "erosion": { "min": -1.0, "max": 1.0 },
+    "peaks_and_valleys": { "min": -1.0, "max": 1.0 },
+    "temperature": { "min": 0.55, "max": 1.0 },
+    "humidity": { "min": -1.0, "max": 1.0 },
+    "depth": { "min": 0.0, "max": 0.2 }
+  },
+  "baseHeight": 35,
+  "heightVariation": 4.0,
+  "terrainScale": 0.8,
+  "surfaceBlockName": "Sand",
+  "subSurfaceBlockName": "Sand",
+  "stoneBlockName": "Stone",
+  "underwaterBlockName": null,
+  "subSurfaceDepth": 4,
+  "vegetation": [],
+  "ores": [],
+  "structures": [],
+  "ambiance": {
+    "sky_color": "#87CEEB",
+    "fog_color": "#D0E8F8",
+    "water_color": "#45ADF2",
+    "grass_color": "#8DD46B",
+    "foliage_color": "#60C030",
+    "fog_density": 0.0004
+  },
+  "gameplay": {
+    "mob_spawn_table": [],
+    "difficulty_modifier": 0.9,
+    "loot_table_overrides": []
+  },
+  "heightSplinePoints": [
+    { "inputValue": -1.0, "outputY": -5.0 },
+    { "inputValue": 0.0, "outputY": -3.0 },
+    { "inputValue": 1.0, "outputY": -1.0 }
+  ]
+}

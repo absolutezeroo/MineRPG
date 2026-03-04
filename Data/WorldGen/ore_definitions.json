@@ -1,0 +1,82 @@
+[
+  {
+    "block_name": "Coal Ore",
+    "min_height": 0,
+    "max_height": 192,
+    "peak_height": 96,
+    "vein_size": 17,
+    "frequency": 30,
+    "distribution": "Triangle",
+    "air_exposure_reduction": 0.0
+  },
+  {
+    "block_name": "Iron Ore",
+    "min_height": -64,
+    "max_height": 72,
+    "peak_height": 15,
+    "vein_size": 9,
+    "frequency": 20,
+    "distribution": "Triangle",
+    "air_exposure_reduction": 0.0
+  },
+  {
+    "block_name": "Copper Ore",
+    "min_height": -16,
+    "max_height": 112,
+    "peak_height": 48,
+    "vein_size": 10,
+    "frequency": 16,
+    "distribution": "Triangle",
+    "air_exposure_reduction": 0.0
+  },
+  {
+    "block_name": "Gold Ore",
+    "min_height": -64,
+    "max_height": 32,
+    "peak_height": -16,
+    "vein_size": 9,
+    "frequency": 4,
+    "distribution": "Triangle",
+    "air_exposure_reduction": 0.5
+  },
+  {
+    "block_name": "Redstone Ore",
+    "min_height": -64,
+    "max_height": 15,
+    "peak_height": -32,
+    "vein_size": 8,
+    "frequency": 8,
+    "distribution": "Triangle",
+    "air_exposure_reduction": 0.0
+  },
+  {
+    "block_name": "Lapis Ore",
+    "min_height": -64,
+    "max_height": 64,
+    "peak_height": 0,
+    "vein_size": 7,
+    "frequency": 2,
+    "distribution": "Triangle",
+    "air_exposure_reduction": 0.0
+  },
+  {
+    "block_name": "Diamond Ore",
+    "min_height": -64,
+    "max_height": 16,
+    "peak_height": -59,
+    "vein_size": 4,
+    "frequency": 2,
+    "distribution": "Triangle",
+    "air_exposure_reduction": 0.5
+  },
+  {
+    "block_name": "Emerald Ore",
+    "min_height": -16,
+    "max_height": 256,
+    "peak_height": 100,
+    "vein_size": 1,
+    "frequency": 1,
+    "distribution": "Uniform",
+    "air_exposure_reduction": 0.0
+  }
+]

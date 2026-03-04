@@ -1,0 +1,12 @@
+{
+  "lava_level": -55,
+  "sea_level": 62,
+  "surface_clearance": 12,
+  "deep_aquifer_threshold": 31,
+  "grid_spacing": 16,
+  "barrier_width": 2,
+  "floodedness_frequency": 0.015,
+  "floodedness_threshold": 0.3,
+  "level_noise_frequency": 0.02,
+  "level_variation": 8
+}

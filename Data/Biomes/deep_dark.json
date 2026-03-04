@@ -1,0 +1,42 @@
+{
+  "id": "deep_dark",
+  "displayName": "Deep Dark",
+  "category": 5,
+  "climateTarget": {
+    "continentalness": { "min": -1.0, "max": 1.0 },
+    "erosion": { "min": -1.0, "max": 1.0 },
+    "peaks_and_valleys": { "min": -1.0, "max": 1.0 },
+    "temperature": { "min": -1.0, "max": 1.0 },
+    "humidity": { "min": -1.0, "max": 1.0 },
+    "depth": { "min": 0.7, "max": 1.0 }
+  },
+  "baseHeight": 10,
+  "heightVariation": 5.0,
+  "terrainScale": 1.0,
+  "surfaceBlockName": "Stone",
+  "subSurfaceBlockName": "Stone",
+  "stoneBlockName": "Stone",
+  "underwaterBlockName": null,
+  "subSurfaceDepth": 2,
+  "vegetation": [],
+  "ores": [],
+  "structures": [],
+  "ambiance": {
+    "sky_color": "#050510",
+    "fog_color": "#0A0A18",
+    "water_color": "#0A1020",
+    "grass_color": "#3A3A3A",
+    "foliage_color": "#2A2A2A",
+    "fog_density": 0.005
+  },
+  "gameplay": {
+    "mob_spawn_table": [],
+    "difficulty_modifier": 2.0,
+    "loot_table_overrides": []
+  },
+  "heightSplinePoints": [
+    { "inputValue": -1.0, "outputY": -3.0 },
+    { "inputValue": 0.0, "outputY": 0.0 },
+    { "inputValue": 1.0, "outputY": 5.0 }
+  ]
+}

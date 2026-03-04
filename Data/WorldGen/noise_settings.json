@@ -1,0 +1,66 @@
+{
+  "continentalness": {
+    "type": "simplex",
+    "seed_offset": 0,
+    "frequency": 0.003,
+    "octaves": 6,
+    "lacunarity": 2.0,
+    "gain": 0.5
+  },
+  "erosion": {
+    "type": "simplex",
+    "seed_offset": 10000,
+    "frequency": 0.005,
+    "octaves": 5,
+    "lacunarity": 2.2,
+    "gain": 0.45
+  },
+  "weirdness": {
+    "type": "simplex",
+    "seed_offset": 20000,
+    "frequency": 0.004,
+    "octaves": 4,
+    "lacunarity": 2.0,
+    "gain": 0.5
+  },
+  "temperature": {
+    "type": "simplex",
+    "seed_offset": 30000,
+    "frequency": 0.002,
+    "octaves": 3,
+    "lacunarity": 2.5,
+    "gain": 0.4
+  },
+  "humidity": {
+    "type": "simplex",
+    "seed_offset": 40000,
+    "frequency": 0.002,
+    "octaves": 3,
+    "lacunarity": 2.5,
+    "gain": 0.4
+  },
+  "cave_cheese": {
+    "type": "simplex_3d",
+    "seed_offset": 50000,
+    "frequency": 0.015,
+    "octaves": 3,
+    "lacunarity": 2.0,
+    "gain": 0.5
+  },
+  "cave_spaghetti_1": {
+    "type": "simplex_3d",
+    "seed_offset": 60000,
+    "frequency": 0.03,
+    "octaves": 2,
+    "lacunarity": 2.0,
+    "gain": 0.5
+  },
+  "cave_spaghetti_2": {
+    "type": "simplex_3d",
+    "seed_offset": 70000,
+    "frequency": 0.03,
+    "octaves": 2,
+    "lacunarity": 2.0,
+    "gain": 0.5
+  }
+}

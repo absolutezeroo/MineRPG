@@ -1,0 +1,18 @@
+{
+  "sea_level": 62,
+  "world_min_y": 0,
+  "world_max_y": 256,
+  "chunk_size_x": 16,
+  "chunk_size_y": 256,
+  "chunk_size_z": 16,
+  "bedrock_y": 0,
+  "cave_cheese_threshold": 0.45,
+  "cave_spaghetti_threshold": 0.15,
+  "cave_noodle_threshold": 0.08,
+  "cave_min_y": 1,
+  "cave_surface_margin": 4,
+  "overhang_strength": 12.0,
+  "river_pv_threshold": -0.3,
+  "river_max_depth": 4,
+  "biome_blend_radius": 4
+}

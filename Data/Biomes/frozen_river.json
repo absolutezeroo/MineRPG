@@ -1,0 +1,42 @@
+{
+  "id": "frozen_river",
+  "displayName": "Frozen River",
+  "category": 6,
+  "climateTarget": {
+    "continentalness": { "min": -0.11, "max": 1.0 },
+    "erosion": { "min": -1.0, "max": 1.0 },
+    "peaks_and_valleys": { "min": -1.0, "max": -0.6 },
+    "temperature": { "min": -1.0, "max": -0.45 },
+    "humidity": { "min": -1.0, "max": 1.0 },
+    "depth": { "min": 0.0, "max": 0.2 }
+  },
+  "baseHeight": 60,
+  "heightVariation": 2.0,
+  "terrainScale": 1.0,
+  "surfaceBlockName": "Sand",
+  "subSurfaceBlockName": "Sand",
+  "stoneBlockName": "Stone",
+  "underwaterBlockName": null,
+  "subSurfaceDepth": 2,
+  "vegetation": [],
+  "ores": [],
+  "structures": [],
+  "ambiance": {
+    "sky_color": "#A0C0E8",
+    "fog_color": "#D0E0F0",
+    "water_color": "#3060C0",
+    "grass_color": "#80B497",
+    "foliage_color": "#60A17B",
+    "fog_density": 0.0005
+  },
+  "gameplay": {
+    "mob_spawn_table": [],
+    "difficulty_modifier": 1.0,
+    "loot_table_overrides": []
+  },
+  "heightSplinePoints": [
+    { "inputValue": -1.0, "outputY": -6.0 },
+    { "inputValue": 0.0, "outputY": -3.0 },
+    { "inputValue": 1.0, "outputY": 0.0 }
+  ]
+}
