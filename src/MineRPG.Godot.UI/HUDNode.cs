@@ -41,8 +41,8 @@ public sealed partial class HUDNode : CanvasLayer
     private void InjectCamera()
     {
         // [Export] NodePath may not auto-resolve on private fields in CanvasLayer.
-        // Fallback: find the camera via the scene tree (all _Ready calls have completed).
-        _camera ??= GetTree().CurrentScene.GetNode<Camera3D>("PlayerNode/Camera3D");
+        // Fallback: use the viewport's active Camera3D (no hardcoded paths).
+        _camera ??= GetViewport().GetCamera3D();
 
         if (_camera is null)
         {

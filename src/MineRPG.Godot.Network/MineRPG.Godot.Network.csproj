@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <RootNamespace>MineRPG.Godot.Network</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="GodotSharp" Version="$(GodotSharpVersion)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../MineRPG.Core/MineRPG.Core.csproj" />
+    <ProjectReference Include="../MineRPG.Network/MineRPG.Network.csproj" />
+  </ItemGroup>
+
+</Project>

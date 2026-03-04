@@ -10,11 +10,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="src/MineRPG.Core/MineRPG.Core.csproj" />
-    <ProjectReference Include="src/MineRPG.RPG/MineRPG.RPG.csproj" />
-    <ProjectReference Include="src/MineRPG.World/MineRPG.World.csproj" />
-    <ProjectReference Include="src/MineRPG.Entities/MineRPG.Entities.csproj" />
-    <ProjectReference Include="src/MineRPG.Network/MineRPG.Network.csproj" />
+    <!-- Godot bridge projects (each pulls in its pure dependencies transitively) -->
+    <ProjectReference Include="src/MineRPG.Godot.World/MineRPG.Godot.World.csproj" />
+    <ProjectReference Include="src/MineRPG.Godot.Entities/MineRPG.Godot.Entities.csproj" />
+    <ProjectReference Include="src/MineRPG.Godot.UI/MineRPG.Godot.UI.csproj" />
+    <ProjectReference Include="src/MineRPG.Godot.Network/MineRPG.Godot.Network.csproj" />
   </ItemGroup>
 
 </Project>

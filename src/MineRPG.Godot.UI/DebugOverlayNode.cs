@@ -4,7 +4,6 @@ using MineRPG.Core.DI;
 using MineRPG.Core.Logging;
 using MineRPG.Core.Math;
 using MineRPG.Entities.Player;
-using MineRPG.Godot.Entities;
 using MineRPG.World.Chunks;
 using MineRPG.World.Generation;
 
@@ -57,7 +56,7 @@ public sealed partial class DebugOverlayNode : Control
 
     public override void _Input(InputEvent @event)
     {
-        if (!@event.IsActionPressed(InputActions.DebugToggle))
+        if (!@event.IsActionPressed(InputActionNames.DebugToggle))
             return;
 
         Visible = !Visible;
