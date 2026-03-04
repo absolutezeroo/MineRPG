@@ -23,5 +23,27 @@ public sealed class ChunkEntry(ChunkCoord coord)
     /// </summary>
     public volatile bool IsModified;
 
+    /// <summary>
+    /// Sub-chunk metadata computed after generation. Null until generation completes.
+    /// Used by the mesher to skip empty/solid sub-chunks and by occlusion culling.
+    /// </summary>
+    public SubChunkInfo[]? SubChunks { get; set; }
+
+    /// <summary>
+    /// Highest Y coordinate with a non-air block. -1 if the chunk is all air.
+    /// Computed after generation. Used for occlusion culling.
+    /// </summary>
+    public int HighestBlockY { get; set; } = -1;
+
     public void SetState(ChunkState state) => _state = state;
+
+    /// <summary>
+    /// Recomputes sub-chunk metadata and highest block Y.
+    /// Call after generation or after block modifications.
+    /// </summary>
+    public void RecomputeSubChunkInfo()
+    {
+        SubChunks = Data.ComputeSubChunkInfo();
+        HighestBlockY = Data.GetHighestNonAirY();
+    }
 }

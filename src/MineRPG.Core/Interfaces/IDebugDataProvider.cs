@@ -17,4 +17,11 @@ public interface IDebugDataProvider
     string CurrentBiome { get; }
 
     int LoadedChunkCount { get; }
+    int VisibleChunkCount { get; }
+    int ChunksInQueue { get; }
+    double AverageMeshTimeMs { get; }
+    long TotalVertices { get; }
+    int RenderDistance { get; }
+    int PoolIdleCount { get; }
+    int PoolActiveCount { get; }
 }

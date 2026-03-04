@@ -1,6 +1,7 @@
 using Godot;
 using MineRPG.Core.DataLoading;
 using MineRPG.Core.DI;
+using MineRPG.Core.Diagnostics;
 using MineRPG.Core.Events;
 using MineRPG.Core.Interfaces;
 using MineRPG.Core.Logging;
@@ -98,7 +99,10 @@ public static class CompositionRoot
         var playerData = new PlayerData(movementSettings);
         locator.Register<PlayerData>(playerData);
 
-        var debugDataProvider = new DebugDataProvider(playerData, chunkManager, biomeSelector);
+        var performanceMonitor = new PerformanceMonitor();
+        locator.Register<PerformanceMonitor>(performanceMonitor);
+
+        var debugDataProvider = new DebugDataProvider(playerData, chunkManager, biomeSelector, performanceMonitor);
         locator.Register<IDebugDataProvider>(debugDataProvider);
 
         var hotbarController = new HotbarController(playerData);

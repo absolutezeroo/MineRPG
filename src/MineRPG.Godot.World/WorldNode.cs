@@ -14,10 +14,12 @@ namespace MineRPG.Godot.World;
 /// Root node for the voxel world. Owns ChunkNode instances.
 /// Exposes block modification API for the player bridge to call.
 /// Tracks player chunk position to trigger load/unload via events.
+/// Uses a ChunkNodePool to recycle nodes instead of QueueFree.
 /// </summary>
 public sealed partial class WorldNode : Node3D
 {
 	private readonly Dictionary<ChunkCoord, ChunkNode> _chunkNodes = new();
+	private readonly ChunkNodePool _chunkNodePool = new();
 	private IChunkManager _chunkManager = null!;
 	private IChunkMeshBuilder _meshBuilder = null!;
 	private IEventBus _eventBus = null!;
@@ -25,6 +27,8 @@ public sealed partial class WorldNode : Node3D
 	private ChunkLoadingScheduler? _scheduler;
 
 	private ChunkCoord _lastKnownPlayerChunk = new(int.MinValue, int.MinValue);
+
+	public ChunkNodePool NodePool => _chunkNodePool;
 
 	public override void _Ready()
 	{
@@ -66,8 +70,9 @@ public sealed partial class WorldNode : Node3D
 		if (_chunkNodes.TryGetValue(coord, out var existing))
 			return existing;
 
-		var node = new ChunkNode();
+		var node = _chunkNodePool.Rent();
 		node.Initialize(coord);
+		node.Visible = true;
 		AddChild(node);
 		_chunkNodes[coord] = node;
 		return node;
@@ -75,12 +80,14 @@ public sealed partial class WorldNode : Node3D
 
 	public bool HasChunkNode(ChunkCoord coord) => _chunkNodes.ContainsKey(coord);
 
+	public IEnumerable<ChunkNode> GetChunkNodes() => _chunkNodes.Values;
+
 	public void RemoveChunkNode(ChunkCoord coord)
 	{
 		if (!_chunkNodes.TryGetValue(coord, out var node))
 			return;
 
-		node.QueueFree();
+		_chunkNodePool.Return(node);
 		_chunkNodes.Remove(coord);
 	}
 
