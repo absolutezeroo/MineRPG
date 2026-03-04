@@ -1,12 +1,14 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
 using Godot;
 
 using MineRPG.Core.DI;
+using MineRPG.Core.Diagnostics;
 using MineRPG.Core.Events;
 using MineRPG.Core.Logging;
 using MineRPG.Core.Math;
@@ -26,11 +28,12 @@ namespace MineRPG.Godot.World;
 public sealed partial class ChunkLoadingScheduler : Node
 {
     private const int MaxChunksPerFrame = 2;
-    private const int RenderDistance = 8;
+    private const int RenderDistance = 10;
 
     private readonly ConcurrentQueue<ChunkEntry> _readyQueue = new();
     private readonly ConcurrentDictionary<ChunkCoord, CancellationTokenSource> _pendingCts = new();
     private readonly ConcurrentDictionary<ChunkCoord, byte> _pendingRemeshes = new();
+    private readonly ConcurrentDictionary<ChunkCoord, byte> _blockEditRemeshes = new();
 
     private IChunkManager _chunkManager = null!;
     private IWorldGenerator _generator = null!;
@@ -38,6 +41,7 @@ public sealed partial class ChunkLoadingScheduler : Node
     private IEventBus _eventBus = null!;
     private ILogger _logger = null!;
     private WorldNode _worldNode = null!;
+    private PerformanceMonitor? _performanceMonitor;
     private ChunkPersistenceService? _persistence;
     private ChunkAutosaveScheduler? _autosaveScheduler;
 
@@ -59,6 +63,12 @@ public sealed partial class ChunkLoadingScheduler : Node
         if (ServiceLocator.Instance.TryGet<ChunkAutosaveScheduler>(out ChunkAutosaveScheduler? autosave))
         {
             _autosaveScheduler = autosave;
+        }
+
+        if (ServiceLocator.Instance.TryGet<PerformanceMonitor>(out PerformanceMonitor? monitor))
+        {
+            _performanceMonitor = monitor;
+            _performanceMonitor.SetRenderDistance(RenderDistance);
         }
 
         ServiceLocator.Instance.Register(this);
@@ -86,6 +96,8 @@ public sealed partial class ChunkLoadingScheduler : Node
             ApplyChunkMesh(entry);
             applied++;
         }
+
+        UpdatePerformanceMetrics();
     }
 
     /// <summary>
@@ -110,6 +122,8 @@ public sealed partial class ChunkLoadingScheduler : Node
             return;
         }
 
+        _blockEditRemeshes.TryAdd(coord, 0);
+
         ChunkEntry capturedEntry = entry;
         ChunkCoord capturedCoord = coord;
 
@@ -117,8 +131,11 @@ public sealed partial class ChunkLoadingScheduler : Node
         {
             try
             {
+                long meshStart = Stopwatch.GetTimestamp();
                 ChunkData?[] neighbors = _chunkManager.GetNeighborData(capturedCoord);
                 ChunkMeshResult mesh = _meshBuilder.Build(capturedEntry.Data, neighbors, CancellationToken.None);
+                _performanceMonitor?.RecordMeshTime(Stopwatch.GetTimestamp() - meshStart);
+                _performanceMonitor?.IncrementChunksMeshed();
                 capturedEntry.PendingMesh = mesh;
                 capturedEntry.SetState(ChunkState.Ready);
                 _readyQueue.Enqueue(capturedEntry);
@@ -126,6 +143,7 @@ public sealed partial class ChunkLoadingScheduler : Node
             catch (Exception exception)
             {
                 _pendingRemeshes.TryRemove(capturedCoord, out _);
+                _blockEditRemeshes.TryRemove(capturedCoord, out _);
                 _logger.Error("Block edit remesh failed for {0}: {1}", exception, capturedCoord, exception.Message);
             }
         });
@@ -189,11 +207,15 @@ public sealed partial class ChunkLoadingScheduler : Node
                 }
 
                 entry.SetState(ChunkState.Generated);
+                _performanceMonitor?.IncrementChunksGenerated();
                 entry.RecomputeSubChunkInfo();
                 entry.SetState(ChunkState.Meshing);
 
+                long meshStart = Stopwatch.GetTimestamp();
                 ChunkData?[] neighbors = _chunkManager.GetNeighborData(entry.Coord);
                 ChunkMeshResult mesh = _meshBuilder.Build(entry.Data, neighbors, cts.Token);
+                _performanceMonitor?.RecordMeshTime(Stopwatch.GetTimestamp() - meshStart);
+                _performanceMonitor?.IncrementChunksMeshed();
 
                 if (cts.Token.IsCancellationRequested)
                 {
@@ -227,6 +249,7 @@ public sealed partial class ChunkLoadingScheduler : Node
         }
 
         bool isRemesh = _pendingRemeshes.TryRemove(entry.Coord, out _);
+        bool isBlockEdit = _blockEditRemeshes.TryRemove(entry.Coord, out _);
 
         ChunkNode chunkNode = _worldNode.GetOrCreateChunkNode(entry.Coord);
         chunkNode.ApplyMesh(entry.PendingMesh!);
@@ -234,7 +257,7 @@ public sealed partial class ChunkLoadingScheduler : Node
 
         _eventBus.Publish(new ChunkMeshedEvent { Coord = entry.Coord });
 
-        if (!isRemesh)
+        if (!isRemesh || isBlockEdit)
         {
             ScheduleNeighborRemeshes(entry.Coord);
         }
@@ -285,6 +308,21 @@ public sealed partial class ChunkLoadingScheduler : Node
                 }
             });
         }
+    }
+
+    private void UpdatePerformanceMetrics()
+    {
+        if (_performanceMonitor is null)
+        {
+            return;
+        }
+
+        _performanceMonitor.SetChunksInQueue(_readyQueue.Count + _pendingCts.Count);
+        _performanceMonitor.SetActiveChunks(_chunkManager.Count);
+        _performanceMonitor.SetVisibleChunks(_worldNode.ChunkNodeCount);
+
+        ChunkNodePool pool = _worldNode.NodePool;
+        _performanceMonitor.SetPoolStats(pool.IdleCount, pool.ActiveCount, pool.RecycleCount);
     }
 
     private void UnloadChunk(ChunkCoord coord)

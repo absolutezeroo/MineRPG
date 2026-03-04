@@ -37,6 +37,11 @@ public sealed partial class WorldNode : Node3D
     /// </summary>
     public ChunkNodePool NodePool => _chunkNodePool;
 
+    /// <summary>
+    /// Gets the number of active chunk nodes in the scene tree.
+    /// </summary>
+    public int ChunkNodeCount => _chunkNodes.Count;
+
     /// <inheritdoc />
     public override void _Ready()
     {
@@ -186,6 +191,7 @@ public sealed partial class WorldNode : Node3D
 
         if (!_chunkManager.TryGet(coord, out ChunkEntry? entry) || entry is null)
         {
+            _logger.Debug("PlaceBlock: chunk not loaded at {0}", position);
             return;
         }
 
@@ -196,6 +202,7 @@ public sealed partial class WorldNode : Node3D
 
         if (oldBlockId != 0)
         {
+            _logger.Debug("PlaceBlock: position {0} already occupied (blockId={1})", position, oldBlockId);
             return;
         }
 
@@ -211,6 +218,7 @@ public sealed partial class WorldNode : Node3D
         });
 
         ScheduleOrSyncRemesh(coord);
+        _logger.Debug("Block placed at {0}, blockId={1}", position, blockId);
     }
 
     private void OnPlayerPositionUpdated(PlayerPositionUpdatedEvent evt) => UpdatePlayerPosition(evt.X, evt.Z);

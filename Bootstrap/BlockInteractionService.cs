@@ -1,4 +1,6 @@
 using MineRPG.Core.Interfaces;
+using MineRPG.Core.Logging;
+using MineRPG.Entities.Player;
 using MineRPG.Godot.World;
 using MineRPG.World.Spatial;
 
@@ -9,8 +11,18 @@ namespace MineRPG.Game.Bootstrap;
 /// Lives in MineRPG.Game where all project references are available.
 /// Bridges between the player (Godot.Entities) and the world (Godot.World).
 /// </summary>
-public sealed class BlockInteractionService(IVoxelRaycaster raycaster, WorldNode worldNode) : IBlockInteractionService
+public sealed class BlockInteractionService(
+    IVoxelRaycaster raycaster,
+    WorldNode worldNode,
+    PlayerData playerData,
+    ILogger logger) : IBlockInteractionService
 {
+    /// <summary>Half-width of the player capsule on X/Z axes.</summary>
+    private const float PlayerHalfWidth = 0.3f;
+
+    /// <summary>Half-height of the player capsule on Y axis.</summary>
+    private const float PlayerHalfHeight = 0.9f;
+
     /// <summary>
     /// Attempts to break the block at the given ray origin and direction.
     /// </summary>
@@ -56,7 +68,36 @@ public sealed class BlockInteractionService(IVoxelRaycaster raycaster, WorldNode
             return false;
         }
 
-        worldNode.PlaceBlock(result.AdjacentPosition, blockId);
+        WorldPosition target = result.AdjacentPosition;
+
+        if (BlockOverlapsPlayer(target))
+        {
+            logger.Debug("TryPlaceBlock: rejected — block at {0} overlaps player", target);
+            return false;
+        }
+
+        worldNode.PlaceBlock(target, blockId);
         return true;
+    }
+
+    /// <summary>
+    /// Checks whether a block at the given world position would overlap the player's body.
+    /// Uses an AABB approximation of the player capsule (radius 0.3, height 1.8).
+    /// </summary>
+    private bool BlockOverlapsPlayer(WorldPosition blockPos)
+    {
+        float px = playerData.PositionX;
+        float py = playerData.PositionY;
+        float pz = playerData.PositionZ;
+
+        // Block occupies [bx, bx+1) x [by, by+1) x [bz, bz+1)
+        // Player AABB: [px-hw, px+hw) x [py-hh, py+hh) x [pz-hw, pz+hw)
+        int bx = blockPos.X;
+        int by = blockPos.Y;
+        int bz = blockPos.Z;
+
+        return bx < px + PlayerHalfWidth && px - PlayerHalfWidth < bx + 1
+            && by < py + PlayerHalfHeight && py - PlayerHalfHeight < by + 1
+            && bz < pz + PlayerHalfWidth && pz - PlayerHalfWidth < bz + 1;
     }
 }

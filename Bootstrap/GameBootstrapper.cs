@@ -5,6 +5,7 @@ using MineRPG.Core.DI;
 using MineRPG.Core.Events;
 using MineRPG.Core.Interfaces;
 using MineRPG.Core.Logging;
+using MineRPG.Entities.Player;
 using MineRPG.Godot.World;
 using MineRPG.World.Spatial;
 
@@ -46,7 +47,8 @@ public sealed partial class GameBootstrapper : Node
         if (worldNode is not null)
         {
             IVoxelRaycaster raycaster = locator.Get<IVoxelRaycaster>();
-            BlockInteractionService blockInteraction = new BlockInteractionService(raycaster, worldNode);
+            PlayerData playerData = locator.Get<PlayerData>();
+            BlockInteractionService blockInteraction = new BlockInteractionService(raycaster, worldNode, playerData, logger);
             locator.Register<IBlockInteractionService>(blockInteraction);
 
             logger.Info("GameBootstrapper: WorldNode and BlockInteractionService registered.");
