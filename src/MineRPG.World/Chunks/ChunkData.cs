@@ -46,4 +46,50 @@ public sealed class ChunkData(ChunkCoord coord)
 
     public static bool IsInBounds(int x, int y, int z)
         => (uint)x < SizeX && (uint)y < SizeY && (uint)z < SizeZ;
+
+    /// <summary>
+    /// Computes metadata for each 16x16x16 sub-chunk. Call after generation completes.
+    /// Returns an array of <see cref="SubChunkConstants.SubChunkCount"/> entries.
+    /// </summary>
+    public SubChunkInfo[] ComputeSubChunkInfo()
+    {
+        var result = new SubChunkInfo[SubChunkConstants.SubChunkCount];
+
+        for (var sy = 0; sy < SubChunkConstants.SubChunkCount; sy++)
+        {
+            var minY = sy * SubChunkConstants.SubChunkSize;
+            var nonAirCount = 0;
+
+            for (var y = minY; y < minY + SubChunkConstants.SubChunkSize; y++)
+            for (var z = 0; z < SizeZ; z++)
+            for (var x = 0; x < SizeX; x++)
+            {
+                if (_blocks[GetIndex(x, y, z)] != 0)
+                    nonAirCount++;
+            }
+
+            var isEmpty = nonAirCount == 0;
+            var isFullySolid = nonAirCount == SubChunkConstants.BlocksPerSubChunk;
+            result[sy] = new SubChunkInfo(sy, isEmpty, isFullySolid, nonAirCount);
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Returns the highest Y coordinate that contains a non-air block, or -1 if the chunk is empty.
+    /// Useful for occlusion culling and LOD decisions.
+    /// </summary>
+    public int GetHighestNonAirY()
+    {
+        for (var y = SizeY - 1; y >= 0; y--)
+        for (var z = 0; z < SizeZ; z++)
+        for (var x = 0; x < SizeX; x++)
+        {
+            if (_blocks[GetIndex(x, y, z)] != 0)
+                return y;
+        }
+
+        return -1;
+    }
 }

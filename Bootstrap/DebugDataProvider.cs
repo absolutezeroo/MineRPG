@@ -1,3 +1,4 @@
+using MineRPG.Core.Diagnostics;
 using MineRPG.Core.Interfaces;
 using MineRPG.Core.Math;
 using MineRPG.Entities.Player;
@@ -14,7 +15,8 @@ namespace MineRPG.Game.Bootstrap;
 public sealed class DebugDataProvider(
     PlayerData playerData,
     IChunkManager chunkManager,
-    BiomeSelector biomeSelector) : IDebugDataProvider
+    BiomeSelector biomeSelector,
+    PerformanceMonitor performanceMonitor) : IDebugDataProvider
 {
     public float PlayerX => playerData.PositionX;
     public float PlayerY => playerData.PositionY;
@@ -58,4 +60,11 @@ public sealed class DebugDataProvider(
     }
 
     public int LoadedChunkCount => chunkManager.Count;
+    public int VisibleChunkCount => (int)performanceMonitor.VisibleChunks;
+    public int ChunksInQueue => (int)performanceMonitor.ChunksInQueue;
+    public double AverageMeshTimeMs => performanceMonitor.AverageMeshTimeMs;
+    public long TotalVertices => performanceMonitor.TotalVertices;
+    public int RenderDistance => performanceMonitor.RenderDistance;
+    public int PoolIdleCount => (int)performanceMonitor.PoolIdleCount;
+    public int PoolActiveCount => (int)performanceMonitor.PoolActiveCount;
 }

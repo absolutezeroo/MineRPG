@@ -123,6 +123,7 @@ public sealed partial class ChunkLoadingScheduler : Node
 				}
 
 				entry.SetState(ChunkState.Generated);
+				entry.RecomputeSubChunkInfo();
 				entry.SetState(ChunkState.Meshing);
 
 				var neighbors = _chunkManager.GetNeighborData(entry.Coord);

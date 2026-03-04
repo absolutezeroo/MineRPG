@@ -14,7 +14,7 @@ namespace MineRPG.Godot.UI;
 public sealed partial class DebugOverlayNode : Control
 {
     private Label _label = null!;
-    private readonly StringBuilder _sb = new(512);
+    private readonly StringBuilder _sb = new(1024);
 
     private IDebugDataProvider _debugData = null!;
     private ILogger _logger = null!;
@@ -67,31 +67,49 @@ public sealed partial class DebugOverlayNode : Control
         var pz = _debugData.PlayerZ;
 
         var fps = Engine.GetFramesPerSecond();
+        var frameTimeMs = fps > 0 ? 1000.0 / fps : 0;
         var memoryBytes = OS.GetStaticMemoryUsage();
         var memoryMb = memoryBytes / (1024.0 * 1024.0);
-        var chunks = _debugData.LoadedChunkCount;
         var drawCalls = RenderingServer.GetRenderingInfo(
             RenderingServer.RenderingInfo.TotalObjectsInFrame);
+        var vertices = RenderingServer.GetRenderingInfo(
+            RenderingServer.RenderingInfo.TotalPrimitivesInFrame);
 
         var lookDir = _camera is not null && _camera.IsInsideTree()
             ? -_camera.GlobalTransform.Basis.Z
             : Vector3.Zero;
 
         _sb.Clear();
-        _sb.Append("FPS: ").Append(fps).AppendLine();
+        _sb.Append("FPS: ").Append(fps)
+            .Append(" (").Append(frameTimeMs.ToString("F1")).Append(" ms)").AppendLine();
+        _sb.AppendLine();
+
         _sb.Append("XYZ: ")
             .Append(px.ToString("F1")).Append(" / ")
             .Append(py.ToString("F1")).Append(" / ")
             .Append(pz.ToString("F1")).AppendLine();
         _sb.Append("Chunk: ").Append(_debugData.ChunkX).Append(", ").Append(_debugData.ChunkZ).AppendLine();
         _sb.Append("Biome: ").Append(_debugData.CurrentBiome).AppendLine();
-        _sb.Append("Chunks loaded: ").Append(chunks).AppendLine();
-        _sb.Append("Draw calls: ").Append(drawCalls).AppendLine();
-        _sb.Append("Memory: ").Append(memoryMb.ToString("F1")).Append(" MB").AppendLine();
         _sb.Append("Look: ")
             .Append(lookDir.X.ToString("F2")).Append(" / ")
             .Append(lookDir.Y.ToString("F2")).Append(" / ")
             .Append(lookDir.Z.ToString("F2")).AppendLine();
+        _sb.AppendLine();
+
+        _sb.Append("Chunks loaded: ").Append(_debugData.LoadedChunkCount).AppendLine();
+        _sb.Append("Chunks visible: ").Append(_debugData.VisibleChunkCount).AppendLine();
+        _sb.Append("Chunks in queue: ").Append(_debugData.ChunksInQueue).AppendLine();
+        _sb.Append("Render distance: ").Append(_debugData.RenderDistance).AppendLine();
+        _sb.AppendLine();
+
+        _sb.Append("Draw calls: ").Append(drawCalls).AppendLine();
+        _sb.Append("Vertices: ").Append(vertices).AppendLine();
+        _sb.Append("Mesh avg: ").Append(_debugData.AverageMeshTimeMs.ToString("F2")).Append(" ms").AppendLine();
+        _sb.AppendLine();
+
+        _sb.Append("Memory: ").Append(memoryMb.ToString("F1")).Append(" MB").AppendLine();
+        _sb.Append("Pool: ").Append(_debugData.PoolActiveCount).Append(" active / ")
+            .Append(_debugData.PoolIdleCount).Append(" idle").AppendLine();
 
         _label.Text = _sb.ToString();
     }
