@@ -47,8 +47,8 @@ public sealed class EnhancedRiverCarver
         _riverBedBlockId = riverBedBlockId;
         _iceBlockId = iceBlockId;
 
-        _meanderNoise = new FastNoise(worldSeed ^ 0xAABBCCDD);
-        _widthNoise = new FastNoise(worldSeed ^ 0xDDCCBBAA);
+        _meanderNoise = new FastNoise(unchecked(worldSeed ^ (int)0xAABBCCDD));
+        _widthNoise = new FastNoise(unchecked(worldSeed ^ (int)0xDDCCBBAA));
     }
 
     /// <summary>

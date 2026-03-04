@@ -5,7 +5,9 @@ using System.Threading;
 
 using FluentAssertions;
 
+using MineRPG.Core.DataLoading;
 using MineRPG.Core.Logging;
+using MineRPG.Core.Math;
 using MineRPG.World.Blocks;
 using MineRPG.World.Chunks;
 using MineRPG.World.Generation;
@@ -19,10 +21,10 @@ public sealed class WorldGeneratorTests
     public WorldGeneratorTests()
     {
         ILogger logger = NullLogger.Instance;
-        Core.DataLoading.JsonDataLoader loader = new Core.DataLoading.JsonDataLoader(logger, FindDataRoot());
+        JsonDataLoader loader = new JsonDataLoader(logger, FindDataRoot());
         BlockRegistry blockRegistry = new BlockRegistry(loader, logger);
 
-        List<BiomeDefinition> biomes = loader.LoadAll<BiomeDefinition>("Biomes");
+        IReadOnlyList<BiomeDefinition> biomes = loader.LoadAll<BiomeDefinition>("Biomes");
         BiomeBlockResolver.ResolveAll(biomes, blockRegistry, logger);
 
         const int seed = 42;
@@ -37,7 +39,7 @@ public sealed class WorldGeneratorTests
     public void Generate_ProducesNonEmptyChunk()
     {
         // Arrange
-        ChunkEntry entry = new ChunkEntry(new Core.Math.ChunkCoord(0, 0));
+        ChunkEntry entry = new ChunkEntry(new ChunkCoord(0, 0));
 
         // Act
         _generator.Generate(entry, CancellationToken.None);
@@ -65,7 +67,7 @@ public sealed class WorldGeneratorTests
     public void Generate_BedrockAtY0()
     {
         // Arrange
-        ChunkEntry entry = new ChunkEntry(new Core.Math.ChunkCoord(0, 0));
+        ChunkEntry entry = new ChunkEntry(new ChunkCoord(0, 0));
 
         // Act
         _generator.Generate(entry, CancellationToken.None);
@@ -85,7 +87,7 @@ public sealed class WorldGeneratorTests
     public void Generate_IsDeterministic()
     {
         // Arrange
-        Core.Math.ChunkCoord coord = new Core.Math.ChunkCoord(5, -3);
+        ChunkCoord coord = new ChunkCoord(5, -3);
         ChunkEntry entry1 = new ChunkEntry(coord);
         ChunkEntry entry2 = new ChunkEntry(coord);
 
@@ -107,7 +109,7 @@ public sealed class WorldGeneratorTests
     public void Generate_RespectsCanellationToken()
     {
         // Arrange
-        ChunkEntry entry = new ChunkEntry(new Core.Math.ChunkCoord(0, 0));
+        ChunkEntry entry = new ChunkEntry(new ChunkCoord(0, 0));
         using CancellationTokenSource cts = new CancellationTokenSource();
         cts.Cancel();
 

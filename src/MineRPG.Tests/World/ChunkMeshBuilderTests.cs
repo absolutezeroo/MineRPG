@@ -4,7 +4,9 @@ using System.Threading.Tasks;
 
 using FluentAssertions;
 
+using MineRPG.Core.DataLoading;
 using MineRPG.Core.Logging;
+using MineRPG.Core.Math;
 using MineRPG.World.Blocks;
 using MineRPG.World.Chunks;
 using MineRPG.World.Meshing;
@@ -19,7 +21,7 @@ public sealed class ChunkMeshBuilderTests
     public ChunkMeshBuilderTests()
     {
         ILogger logger = NullLogger.Instance;
-        Core.DataLoading.JsonDataLoader loader = new Core.DataLoading.JsonDataLoader(logger, FindDataRoot());
+        JsonDataLoader loader = new JsonDataLoader(logger, FindDataRoot());
         _blockRegistry = new BlockRegistry(loader, logger);
         _meshBuilder = new ChunkMeshBuilder(_blockRegistry);
     }
@@ -28,11 +30,11 @@ public sealed class ChunkMeshBuilderTests
     public void Build_EmptyChunk_ReturnsEmptyMesh()
     {
         // Arrange
-        ChunkData chunk = new ChunkData(Core.Math.ChunkCoord.Zero);
+        ChunkData chunk = new ChunkData(ChunkCoord.Zero);
         ChunkData?[] neighbors = new ChunkData?[4];
 
         // Act
-        ChunkMeshResult result = _meshBuilder.Build(chunk, neighbors);
+        ChunkMeshResult result = _meshBuilder.Build(chunk, neighbors, CancellationToken.None);
 
         // Assert
         result.IsEmpty.Should().BeTrue();
@@ -44,12 +46,12 @@ public sealed class ChunkMeshBuilderTests
     public void Build_SingleBlock_ProducesFaces()
     {
         // Arrange
-        ChunkData chunk = new ChunkData(Core.Math.ChunkCoord.Zero);
+        ChunkData chunk = new ChunkData(ChunkCoord.Zero);
         chunk.SetBlock(8, 64, 8, 1); // Stone in the middle
         ChunkData?[] neighbors = new ChunkData?[4];
 
         // Act
-        ChunkMeshResult result = _meshBuilder.Build(chunk, neighbors);
+        ChunkMeshResult result = _meshBuilder.Build(chunk, neighbors, CancellationToken.None);
 
         // Assert
         result.IsEmpty.Should().BeFalse();
@@ -64,13 +66,13 @@ public sealed class ChunkMeshBuilderTests
     public void Build_TwoAdjacentBlocks_CullsSharedFace()
     {
         // Arrange
-        ChunkData chunk = new ChunkData(Core.Math.ChunkCoord.Zero);
+        ChunkData chunk = new ChunkData(ChunkCoord.Zero);
         chunk.SetBlock(8, 64, 8, 1); // Stone
         chunk.SetBlock(9, 64, 8, 1); // Stone adjacent on X axis
         ChunkData?[] neighbors = new ChunkData?[4];
 
         // Act
-        ChunkMeshResult result = _meshBuilder.Build(chunk, neighbors);
+        ChunkMeshResult result = _meshBuilder.Build(chunk, neighbors, CancellationToken.None);
 
         // Assert
         // Two blocks sharing a face: 2*6 faces - 2 shared = 10 faces = 40 vertices, 60 indices
@@ -83,12 +85,12 @@ public sealed class ChunkMeshBuilderTests
     public void Build_LiquidBlock_ProducesLiquidMesh()
     {
         // Arrange
-        ChunkData chunk = new ChunkData(Core.Math.ChunkCoord.Zero);
+        ChunkData chunk = new ChunkData(ChunkCoord.Zero);
         chunk.SetBlock(8, 64, 8, 6); // Water (ID 6, Transparent + Liquid)
         ChunkData?[] neighbors = new ChunkData?[4];
 
         // Act
-        ChunkMeshResult result = _meshBuilder.Build(chunk, neighbors);
+        ChunkMeshResult result = _meshBuilder.Build(chunk, neighbors, CancellationToken.None);
 
         // Assert
         result.Liquid.IsEmpty.Should().BeFalse("water should produce liquid mesh");
@@ -99,7 +101,7 @@ public sealed class ChunkMeshBuilderTests
     public void Build_IsThreadSafe()
     {
         // Arrange — fill chunk with a layer of stone
-        ChunkData chunk = new ChunkData(Core.Math.ChunkCoord.Zero);
+        ChunkData chunk = new ChunkData(ChunkCoord.Zero);
         for (int x = 0; x < ChunkData.SizeX; x++)
         {
             for (int z = 0; z < ChunkData.SizeZ; z++)
@@ -113,7 +115,7 @@ public sealed class ChunkMeshBuilderTests
         // Act — build meshes concurrently from multiple threads
         Task<int>[] tasks = Enumerable.Range(0, 4).Select(_ => Task.Run(() =>
         {
-            ChunkMeshResult result = _meshBuilder.Build(chunk, neighbors);
+            ChunkMeshResult result = _meshBuilder.Build(chunk, neighbors, CancellationToken.None);
             return result.Opaque.VertexCount;
         })).ToArray();
 

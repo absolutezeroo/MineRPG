@@ -1,5 +1,6 @@
 using FluentAssertions;
 
+using MineRPG.Entities.AI.Perception;
 using MineRPG.Entities.AI.Spawning;
 
 namespace MineRPG.Tests.Entities;
@@ -53,7 +54,7 @@ public sealed class SpawnRuleTests
     [Fact]
     public void PerceptionData_DefaultValues_AreReasonable()
     {
-        AI.Perception.PerceptionData data = new AI.Perception.PerceptionData();
+        PerceptionData data = new PerceptionData();
 
         data.SightRange.Should().Be(16f);
         data.HearingRange.Should().Be(8f);

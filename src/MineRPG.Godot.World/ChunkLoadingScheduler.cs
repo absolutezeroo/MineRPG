@@ -117,8 +117,8 @@ public sealed partial class ChunkLoadingScheduler : Node
         {
             try
             {
-                ChunkNeighborData neighbors = _chunkManager.GetNeighborData(capturedCoord);
-                ChunkMeshResult mesh = _meshBuilder.Build(capturedEntry.Data, neighbors);
+                ChunkData?[] neighbors = _chunkManager.GetNeighborData(capturedCoord);
+                ChunkMeshResult mesh = _meshBuilder.Build(capturedEntry.Data, neighbors, CancellationToken.None);
                 capturedEntry.PendingMesh = mesh;
                 capturedEntry.SetState(ChunkState.Ready);
                 _readyQueue.Enqueue(capturedEntry);
@@ -141,7 +141,7 @@ public sealed partial class ChunkLoadingScheduler : Node
 
     private void UpdateLoadedChunks(ChunkCoord center)
     {
-        List<ChunkCoord> needed = _chunkManager.GetCoordsInRange(center, RenderDistance);
+        IReadOnlyList<ChunkCoord> needed = _chunkManager.GetCoordsInRange(center, RenderDistance);
         HashSet<ChunkCoord> neededSet = new(needed);
 
         // Snapshot to safely modify the collection during iteration
@@ -192,8 +192,8 @@ public sealed partial class ChunkLoadingScheduler : Node
                 entry.RecomputeSubChunkInfo();
                 entry.SetState(ChunkState.Meshing);
 
-                ChunkNeighborData neighbors = _chunkManager.GetNeighborData(entry.Coord);
-                ChunkMeshResult mesh = _meshBuilder.Build(entry.Data, neighbors);
+                ChunkData?[] neighbors = _chunkManager.GetNeighborData(entry.Coord);
+                ChunkMeshResult mesh = _meshBuilder.Build(entry.Data, neighbors, cts.Token);
 
                 if (cts.Token.IsCancellationRequested)
                 {
@@ -273,8 +273,8 @@ public sealed partial class ChunkLoadingScheduler : Node
             {
                 try
                 {
-                    ChunkNeighborData neighbors = _chunkManager.GetNeighborData(capturedCoord);
-                    ChunkMeshResult mesh = _meshBuilder.Build(capturedNeighbor.Data, neighbors);
+                    ChunkData?[] neighbors = _chunkManager.GetNeighborData(capturedCoord);
+                    ChunkMeshResult mesh = _meshBuilder.Build(capturedNeighbor.Data, neighbors, CancellationToken.None);
                     capturedNeighbor.PendingMesh = mesh;
                     _readyQueue.Enqueue(capturedNeighbor);
                 }

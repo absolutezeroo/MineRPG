@@ -229,7 +229,7 @@ public sealed class ChunkLoadingService
 
         // Generation on a background thread
         ChunkData chunkData = await Task.Run(
-            () => _worldGenerator.Generate(coord, cancellationToken),
+            () => _worldGenerator.Generate(entry, cancellationToken),
             cancellationToken);
 
         entry.SetData(chunkData);
@@ -240,7 +240,7 @@ public sealed class ChunkLoadingService
             () => _meshBuilder.Build(chunkData, neighbors, cancellationToken),
             cancellationToken);
 
-        entry.SetMesh(meshData);
+        entry.SetData(meshData);
 
         _eventBus.Publish(new ChunkReadyEvent { Coord = coord });
         _logger.Debug("Chunk ready at {0}", coord);

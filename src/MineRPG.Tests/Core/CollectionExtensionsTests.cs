@@ -68,20 +68,6 @@ public sealed class CollectionExtensionsTests
     }
 
     [Fact]
-    public void AddRange_FromSpan_AddsAllElements()
-    {
-        // Arrange
-        List<int> list = new List<int> { 1, 2 };
-        ReadOnlySpan<int> span = stackalloc int[] { 3, 4, 5 };
-
-        // Act
-        list.AddRange(span);
-
-        // Assert
-        list.Should().Equal(1, 2, 3, 4, 5);
-    }
-
-    [Fact]
     public void WeightedRandom_WithEqualWeights_ReturnsAnyItem()
     {
         // Arrange

@@ -229,8 +229,8 @@ public sealed partial class WorldNode : Node3D
             return;
         }
 
-        ChunkNeighborData neighbors = _chunkManager.GetNeighborData(coord);
-        ChunkMeshResult mesh = _meshBuilder.Build(entry.Data, neighbors);
+        ChunkData?[] neighbors = _chunkManager.GetNeighborData(coord);
+        ChunkMeshResult mesh = _meshBuilder.Build(entry.Data, neighbors, CancellationToken.None);
 
         if (_chunkNodes.TryGetValue(coord, out ChunkNode? chunkNode))
         {

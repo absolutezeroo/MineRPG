@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 
+using Godot;
+
 namespace MineRPG.Godot.World;
 
 /// <summary>
@@ -55,7 +57,7 @@ public sealed class ChunkNodePool
         node.ClearMesh();
         node.Visible = false;
 
-        Godot.Node? parent = node.GetParent();
+        Node? parent = node.GetParent();
         parent?.RemoveChild(node);
 
         _idle.Push(node);

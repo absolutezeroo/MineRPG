@@ -15,7 +15,7 @@ public sealed class AquiferSampler : IAquiferSampler
 {
     private const int SeedFloodedness = 0x11223344;
     private const int SeedLevel = 0x55667788;
-    private const int SeedBarrier = 0x99AABB00;
+    private const int SeedBarrier = unchecked((int)0x99AABB00);
 
     private readonly FastNoise _floodednessNoise;
     private readonly FastNoise _levelNoise;

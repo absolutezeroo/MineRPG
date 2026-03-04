@@ -78,7 +78,7 @@ public static class CompositionRoot
         ChunkManager chunkManager = new ChunkManager(eventBus, logger);
         locator.Register<IChunkManager>(chunkManager);
 
-        List<BiomeDefinition> biomes = dataLoader.LoadAll<BiomeDefinition>("Biomes");
+        IReadOnlyList<BiomeDefinition> biomes = dataLoader.LoadAll<BiomeDefinition>("Biomes");
         BiomeBlockResolver.ResolveAll(biomes, blockRegistry, logger);
         BiomeSelector biomeSelector = new BiomeSelector(biomes, worldSeed);
         locator.Register<BiomeSelector>(biomeSelector);

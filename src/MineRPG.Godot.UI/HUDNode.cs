@@ -35,7 +35,7 @@ public sealed partial class HUDNode : CanvasLayer
         hotbar.Name = "Hotbar";
         AddChild(hotbar);
 
-        CallDeferred(MethodName.InjectCamera);
+        Callable.From(InjectCamera).CallDeferred();
 
         _logger.Info("HUDNode ready.");
     }

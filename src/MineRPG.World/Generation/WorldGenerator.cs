@@ -2,6 +2,7 @@ using System;
 using System.Runtime.CompilerServices;
 using System.Threading;
 
+using MineRPG.Core.Math;
 using MineRPG.World.Blocks;
 using MineRPG.World.Chunks;
 

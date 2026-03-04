@@ -2,6 +2,7 @@ using System;
 using System.Buffers;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Threading;
 
 using MineRPG.World.Blocks;
 using MineRPG.World.Chunks;
@@ -66,8 +67,9 @@ public sealed class ChunkMeshBuilder : IChunkMeshBuilder
     /// </summary>
     /// <param name="chunk">The chunk data to mesh.</param>
     /// <param name="neighbors">Data from the 4 cardinal neighbor chunks.</param>
+    /// <param name="cancellationToken">Token to cancel the meshing operation.</param>
     /// <returns>Separate mesh data for opaque and liquid surfaces.</returns>
-    public ChunkMeshResult Build(ChunkData chunk, ChunkData?[] neighbors)
+    public ChunkMeshResult Build(ChunkData chunk, ChunkData?[] neighbors, CancellationToken cancellationToken)
     {
         MeshAccumulator opaque = new(InitialOpaqueCapacity);
         MeshAccumulator liquid = new(InitialLiquidCapacity);
@@ -248,17 +250,25 @@ public sealed class ChunkMeshBuilder : IChunkMeshBuilder
         // This inverts the Z flip compared to X/Y: flip for -X, -Y, +Z.
         if ((normalX + normalY - normalZ) < 0)
         {
-            cornerU[0] = 0;      cornerV[0] = 0;
-            cornerU[1] = 0;      cornerV[1] = height;
-            cornerU[2] = width;  cornerV[2] = height;
-            cornerU[3] = width;  cornerV[3] = 0;
+            cornerU[0] = 0;
+            cornerV[0] = 0;
+            cornerU[1] = 0;
+            cornerV[1] = height;
+            cornerU[2] = width;
+            cornerV[2] = height;
+            cornerU[3] = width;
+            cornerV[3] = 0;
         }
         else
         {
-            cornerU[0] = 0;      cornerV[0] = 0;
-            cornerU[1] = width;  cornerV[1] = 0;
-            cornerU[2] = width;  cornerV[2] = height;
-            cornerU[3] = 0;      cornerV[3] = height;
+            cornerU[0] = 0;
+            cornerV[0] = 0;
+            cornerU[1] = width;
+            cornerV[1] = 0;
+            cornerU[2] = width;
+            cornerV[2] = height;
+            cornerU[3] = 0;
+            cornerV[3] = height;
         }
 
         // UV = tiling coords so the shader can fract() per block.
@@ -272,17 +282,25 @@ public sealed class ChunkMeshBuilder : IChunkMeshBuilder
 
         if ((normalX + normalY - normalZ) < 0)
         {
-            tilingU[0] = 0;     tilingV[0] = 0;
-            tilingU[1] = 0;     tilingV[1] = height;
-            tilingU[2] = width; tilingV[2] = height;
-            tilingU[3] = width; tilingV[3] = 0;
+            tilingU[0] = 0;
+            tilingV[0] = 0;
+            tilingU[1] = 0;
+            tilingV[1] = height;
+            tilingU[2] = width;
+            tilingV[2] = height;
+            tilingU[3] = width;
+            tilingV[3] = 0;
         }
         else
         {
-            tilingU[0] = 0;     tilingV[0] = 0;
-            tilingU[1] = width; tilingV[1] = 0;
-            tilingU[2] = width; tilingV[2] = height;
-            tilingU[3] = 0;     tilingV[3] = height;
+            tilingU[0] = 0;
+            tilingV[0] = 0;
+            tilingU[1] = width;
+            tilingV[1] = 0;
+            tilingU[2] = width;
+            tilingV[2] = height;
+            tilingU[3] = 0;
+            tilingV[3] = height;
         }
 
         // Side faces (v-axis = Y): flip tiling V so textures aren't upside-down.
@@ -415,9 +433,15 @@ public sealed class ChunkMeshBuilder : IChunkMeshBuilder
     {
         switch (axis)
         {
-            case AxisX: x = value; break;
-            case AxisY: y = value; break;
-            default: z = value; break;
+            case AxisX:
+                x = value;
+                break;
+            case AxisY:
+                y = value;
+                break;
+            default:
+                z = value;
+                break;
         }
     }
 

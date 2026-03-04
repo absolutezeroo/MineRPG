@@ -47,20 +47,6 @@ public static class CollectionExtensions
     }
 
     /// <summary>
-    /// Add a range from a <see cref="ReadOnlySpan{T}"/> without allocating an intermediate array.
-    /// </summary>
-    /// <typeparam name="T">The element type.</typeparam>
-    /// <param name="list">The list to add elements to.</param>
-    /// <param name="span">The span of elements to add.</param>
-    public static void AddRange<T>(this List<T> list, ReadOnlySpan<T> span)
-    {
-        for (int i = 0; i < span.Length; i++)
-        {
-            list.Add(span[i]);
-        }
-    }
-
-    /// <summary>
     /// Weighted random selection. Each item provides its own weight.
     /// Returns the selected item, or default if the list is empty.
     /// </summary>

@@ -54,35 +54,67 @@ public sealed class ClimateNoiseConfig
         {
             Continentalness = new NoiseSettings
             {
-                SeedOffset = 0, Frequency = 0.003f, Octaves = 6, Lacunarity = 2.0f, Gain = 0.5f,
+                SeedOffset = 0,
+                Frequency = 0.003f,
+                Octaves = 6,
+                Lacunarity = 2.0f,
+                Gain = 0.5f,
             },
             Erosion = new NoiseSettings
             {
-                SeedOffset = 10000, Frequency = 0.005f, Octaves = 5, Lacunarity = 2.2f, Gain = 0.45f,
+                SeedOffset = 10000,
+                Frequency = 0.005f,
+                Octaves = 5,
+                Lacunarity = 2.2f,
+                Gain = 0.45f,
             },
             Weirdness = new NoiseSettings
             {
-                SeedOffset = 20000, Frequency = 0.004f, Octaves = 4, Lacunarity = 2.0f, Gain = 0.5f,
+                SeedOffset = 20000,
+                Frequency = 0.004f,
+                Octaves = 4,
+                Lacunarity = 2.0f,
+                Gain = 0.5f,
             },
             Temperature = new NoiseSettings
             {
-                SeedOffset = 30000, Frequency = 0.002f, Octaves = 3, Lacunarity = 2.5f, Gain = 0.4f,
+                SeedOffset = 30000,
+                Frequency = 0.002f,
+                Octaves = 3,
+                Lacunarity = 2.5f,
+                Gain = 0.4f,
             },
             Humidity = new NoiseSettings
             {
-                SeedOffset = 40000, Frequency = 0.002f, Octaves = 3, Lacunarity = 2.5f, Gain = 0.4f,
+                SeedOffset = 40000,
+                Frequency = 0.002f,
+                Octaves = 3,
+                Lacunarity = 2.5f,
+                Gain = 0.4f,
             },
             CaveCheese = new NoiseSettings
             {
-                SeedOffset = 50000, Frequency = 0.015f, Octaves = 3, Lacunarity = 2.0f, Gain = 0.5f,
+                SeedOffset = 50000,
+                Frequency = 0.015f,
+                Octaves = 3,
+                Lacunarity = 2.0f,
+                Gain = 0.5f,
             },
             CaveSpaghetti1 = new NoiseSettings
             {
-                SeedOffset = 60000, Frequency = 0.03f, Octaves = 2, Lacunarity = 2.0f, Gain = 0.5f,
+                SeedOffset = 60000,
+                Frequency = 0.03f,
+                Octaves = 2,
+                Lacunarity = 2.0f,
+                Gain = 0.5f,
             },
             CaveSpaghetti2 = new NoiseSettings
             {
-                SeedOffset = 70000, Frequency = 0.03f, Octaves = 2, Lacunarity = 2.0f, Gain = 0.5f,
+                SeedOffset = 70000,
+                Frequency = 0.03f,
+                Octaves = 2,
+                Lacunarity = 2.0f,
+                Gain = 0.5f,
             },
         };
     }

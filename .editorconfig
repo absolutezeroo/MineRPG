@@ -92,7 +92,7 @@ csharp_space_between_square_brackets = false
 # 8. Wrapping
 # ---------------------------------------------------------------------------
 csharp_preserve_single_line_statements = false
-csharp_preserve_single_line_blocks = false
+csharp_preserve_single_line_blocks = true
 
 # ---------------------------------------------------------------------------
 # 9. Expression-bodied members
@@ -319,8 +319,14 @@ dotnet_diagnostic.IDE0161.severity = error
 dotnet_diagnostic.IDE0007.severity = error
 dotnet_diagnostic.IDE0008.severity = none
 
-# CA1707: Identifiers should not contain underscores (except private fields)
-dotnet_diagnostic.CA1707.severity = warning
+# CA1707: Identifiers should not contain underscores — handled by naming rules, test methods use underscores
+dotnet_diagnostic.CA1707.severity = none
+
+# CA1806: Do not ignore method results — suggestion only
+dotnet_diagnostic.CA1806.severity = suggestion
+
+# CA1024: Use properties where appropriate — not always applicable
+dotnet_diagnostic.CA1024.severity = suggestion
 
 # CA1031: Do not catch general exception — valid in event bus, command queue
 dotnet_diagnostic.CA1031.severity = suggestion
@@ -346,20 +352,44 @@ dotnet_diagnostic.CA1724.severity = none
 # CA1815: Struct should override Equals — event structs don't need equality
 dotnet_diagnostic.CA1815.severity = suggestion
 
+# CA2213: Disposable fields — Godot nodes are managed by the scene tree, not IDisposable
+dotnet_diagnostic.CA2213.severity = none
+
 # CA5394: Insecure Random — game randomness doesn't need crypto security
 dotnet_diagnostic.CA5394.severity = none
 
 # CA1062: Validate arguments of public methods
 dotnet_diagnostic.CA1062.severity = suggestion
 
-# CA1819: Properties should not return arrays
-dotnet_diagnostic.CA1819.severity = warning
+# CA1802: Use literals instead of readonly fields — perf micro-optimization not relevant
+dotnet_diagnostic.CA1802.severity = suggestion
+
+# CA1819: Properties should not return arrays — common pattern in voxel/mesh code
+dotnet_diagnostic.CA1819.severity = none
+
+# CA1823: Unused fields — may be reserved for future use or documentation
+dotnet_diagnostic.CA1823.severity = suggestion
+
+# CA1032: Implement standard exception constructors — not needed for all custom exceptions
+dotnet_diagnostic.CA1032.severity = suggestion
+
+# CA1001: Types that own disposable fields — Godot nodes managed by scene tree
+dotnet_diagnostic.CA1001.severity = none
+
+# CA1859: Use concrete types for perf — defeats dependency injection
+dotnet_diagnostic.CA1859.severity = none
+
+# CA2000: Dispose objects before losing scope — Godot nodes managed by scene tree
+dotnet_diagnostic.CA2000.severity = none
 
 # CA2007: Do not directly await a Task (ConfigureAwait)
 dotnet_diagnostic.CA2007.severity = none
 
 # CS1591: Missing XML comment for publicly visible type or member
 dotnet_diagnostic.CS1591.severity = suggestion
+
+# xUnit1031: Blocking task operations in tests — acceptable for thread-safety tests
+dotnet_diagnostic.xUnit1031.severity = suggestion
 
 # =============================================================================
 # Project / Build Files

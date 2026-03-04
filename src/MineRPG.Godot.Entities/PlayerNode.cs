@@ -103,7 +103,7 @@ public sealed partial class PlayerNode : CharacterBody3D
 
         float deltaTime = (float)delta;
 
-        MovementSettings settings = _playerData.MovementSettings;
+        PlayerMovementSettings settings = _playerData.MovementSettings;
 
         if (!IsOnFloor())
         {
