@@ -35,6 +35,10 @@ public static class BiomeBlockResolver
             biome.StoneBlock = ResolveBlock(
                 biome.StoneBlockName, biome.StoneBlock,
                 biome.Id, "stoneBlock", blockRegistry, logger);
+
+            biome.UnderwaterBlock = ResolveBlock(
+                biome.UnderwaterBlockName, biome.UnderwaterBlock,
+                biome.Id, "underwaterBlock", blockRegistry, logger);
         }
     }
 

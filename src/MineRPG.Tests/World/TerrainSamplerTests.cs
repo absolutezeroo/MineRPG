@@ -32,8 +32,8 @@ public sealed class TerrainSamplerTests
         TerrainSampler sampler = CreateSampler();
 
         // Act
-        ColumnSample a = sampler.SampleColumn(100, 200);
-        ColumnSample b = sampler.SampleColumn(100, 200);
+        TerrainColumn a = sampler.SampleColumn(100, 200);
+        TerrainColumn b = sampler.SampleColumn(100, 200);
 
         // Assert
         a.SurfaceY.Should().Be(b.SurfaceY);
@@ -50,7 +50,7 @@ public sealed class TerrainSamplerTests
         {
             for (int z = -50; z <= 50; z += 5)
             {
-                ColumnSample col = sampler.SampleColumn(x, z);
+                TerrainColumn col = sampler.SampleColumn(x, z);
                 col.SurfaceY.Should().BeInRange(1, ChunkData.SizeY - 2,
                     $"surface at ({x},{z}) should be within valid range");
             }
@@ -70,7 +70,7 @@ public sealed class TerrainSamplerTests
         {
             for (int z = 0; z < 500; z += 10)
             {
-                ColumnSample col = sampler.SampleColumn(x, z);
+                TerrainColumn col = sampler.SampleColumn(x, z);
                 if (col.SurfaceY < min)
                 {
                     min = col.SurfaceY;
@@ -95,7 +95,7 @@ public sealed class TerrainSamplerTests
         TerrainSampler sampler = CreateSampler();
 
         // Act
-        ColumnSample col = sampler.SampleColumn(0, 0);
+        TerrainColumn col = sampler.SampleColumn(0, 0);
 
         // Assert
         col.PrimaryBiome.Should().NotBeNull();
@@ -113,7 +113,7 @@ public sealed class TerrainSamplerTests
         {
             for (int z = 0; z < 16; z++)
             {
-                ColumnSample col = sampler.SampleColumn(x, z);
+                TerrainColumn col = sampler.SampleColumn(x, z);
                 // Right at the surface minus 2: inside subsurface, should be solid
                 float density = sampler.SampleCaveDensity(x, col.SurfaceY - 2, z,
                     col.SurfaceY, col.Continentalness);

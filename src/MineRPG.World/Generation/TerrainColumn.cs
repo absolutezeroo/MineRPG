@@ -1,3 +1,5 @@
+using MineRPG.World.Biomes.Climate;
+
 namespace MineRPG.World.Generation;
 
 /// <summary>
@@ -27,4 +29,9 @@ public readonly struct TerrainColumn
     /// Raw continentalness value in [-1, 1] for cave suppression near oceans.
     /// </summary>
     public float Continentalness { get; init; }
+
+    /// <summary>
+    /// Full climate parameters sampled at this column.
+    /// </summary>
+    public ClimateParameters Climate { get; init; }
 }

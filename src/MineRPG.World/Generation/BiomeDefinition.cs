@@ -1,11 +1,16 @@
+using System.Collections.Generic;
+
+using MineRPG.World.Biomes;
+using MineRPG.World.Biomes.Climate;
+
 using Newtonsoft.Json;
 
 namespace MineRPG.World.Generation;
 
 /// <summary>
-/// Data-driven biome configuration. Loaded from Data/Biomes/*.json.
-/// Block IDs reference BlockRegistry. Prefer name-based resolution
-/// via BiomeBlockResolver for maintainability.
+/// Data-driven biome configuration supporting 6D climate targeting.
+/// Loaded from Data/Biomes/*.json. Adding a new biome requires only a JSON file.
+/// Block IDs reference BlockRegistry via name-based resolution.
 /// </summary>
 public sealed class BiomeDefinition
 {
@@ -14,27 +19,43 @@ public sealed class BiomeDefinition
 
     private HeightSpline? _heightSpline;
 
-    /// <summary>Unique biome identifier.</summary>
+    /// <summary>Unique biome identifier (e.g., "plains", "snowy_mountains").</summary>
     [JsonProperty("id")]
     public string Id { get; init; } = "";
 
-    /// <summary>The category of biome.</summary>
+    /// <summary>Display name for the biome.</summary>
+    [JsonProperty("displayName")]
+    public string DisplayName { get; init; } = "";
+
+    /// <summary>The geographical category of this biome.</summary>
+    [JsonProperty("category")]
+    public BiomeCategory Category { get; init; }
+
+    /// <summary>Legacy biome type enum for backwards compatibility.</summary>
     [JsonProperty("biomeType")]
     public BiomeType BiomeType { get; init; }
+
+    /// <summary>The 6D climate target for biome selection.</summary>
+    [JsonProperty("climateTarget")]
+    public BiomeClimateTarget ClimateTarget { get; init; }
 
     /// <summary>Base terrain height for this biome.</summary>
     [JsonProperty("baseHeight")]
     public int BaseHeight { get; init; } = 64;
 
     /// <summary>Maximum height variance from the base.</summary>
-    [JsonProperty("heightVariance")]
-    public int HeightVariance { get; init; } = 20;
+    [JsonProperty("heightVariation")]
+    public float HeightVariation { get; init; } = 8f;
 
-    /// <summary>Block ID for the surface layer.</summary>
+    /// <summary>Scale factor for local terrain detail noise.</summary>
+    [JsonProperty("terrainScale")]
+    public float TerrainScale { get; init; } = 1f;
+
+    /// <summary>Block ID for the top surface layer.</summary>
     [JsonProperty("surfaceBlock")]
     public ushort SurfaceBlock { get; set; }
 
-    /// <summary>Block ID for the sub-surface layer.</summary>
+    /// <summary>Block ID for the sub-surface layer (filler).</summary>
     [JsonProperty("subSurfaceBlock")]
     public ushort SubSurfaceBlock { get; set; }
 
@@ -42,42 +63,69 @@ public sealed class BiomeDefinition
     [JsonProperty("stoneBlock")]
     public ushort StoneBlock { get; set; }
 
-    /// <summary>Optional: name-based block reference resolved at startup.</summary>
+    /// <summary>Name-based surface block reference resolved at startup.</summary>
     [JsonProperty("surfaceBlockName")]
     public string? SurfaceBlockName { get; init; }
 
-    /// <summary>Optional: name-based block reference resolved at startup.</summary>
+    /// <summary>Name-based sub-surface block reference resolved at startup.</summary>
     [JsonProperty("subSurfaceBlockName")]
     public string? SubSurfaceBlockName { get; init; }
 
-    /// <summary>Optional: name-based block reference resolved at startup.</summary>
+    /// <summary>Name-based stone block reference resolved at startup.</summary>
     [JsonProperty("stoneBlockName")]
     public string? StoneBlockName { get; init; }
 
-    /// <summary>Minimum temperature for this biome to be selected.</summary>
-    [JsonProperty("minTemperature")]
-    public float MinTemperature { get; init; }
+    /// <summary>Block ID for underwater floor surfaces.</summary>
+    [JsonProperty("underwaterBlock")]
+    public ushort UnderwaterBlock { get; set; }
 
-    /// <summary>Maximum temperature for this biome to be selected.</summary>
-    [JsonProperty("maxTemperature")]
-    public float MaxTemperature { get; init; }
-
-    /// <summary>Minimum humidity for this biome to be selected.</summary>
-    [JsonProperty("minHumidity")]
-    public float MinHumidity { get; init; }
-
-    /// <summary>Maximum humidity for this biome to be selected.</summary>
-    [JsonProperty("maxHumidity")]
-    public float MaxHumidity { get; init; }
+    /// <summary>Name-based underwater block reference resolved at startup.</summary>
+    [JsonProperty("underwaterBlockName")]
+    public string? UnderwaterBlockName { get; init; }
 
     /// <summary>Thickness of the sub-surface layer (dirt/sand). Default 4.</summary>
     [JsonProperty("subSurfaceDepth")]
     public int SubSurfaceDepth { get; init; } = 4;
 
+    /// <summary>Legacy minimum temperature for backwards compatibility.</summary>
+    [JsonProperty("minTemperature")]
+    public float MinTemperature { get; init; }
+
+    /// <summary>Legacy maximum temperature for backwards compatibility.</summary>
+    [JsonProperty("maxTemperature")]
+    public float MaxTemperature { get; init; }
+
+    /// <summary>Legacy minimum humidity for backwards compatibility.</summary>
+    [JsonProperty("minHumidity")]
+    public float MinHumidity { get; init; }
+
+    /// <summary>Legacy maximum humidity for backwards compatibility.</summary>
+    [JsonProperty("maxHumidity")]
+    public float MaxHumidity { get; init; }
+
+    /// <summary>Vegetation entries for this biome.</summary>
+    [JsonProperty("vegetation")]
+    public IReadOnlyList<VegetationEntry> Vegetation { get; init; } = [];
+
+    /// <summary>Ore distribution entries for this biome.</summary>
+    [JsonProperty("ores")]
+    public IReadOnlyList<OreEntry> Ores { get; init; } = [];
+
+    /// <summary>Structure generation entries for this biome.</summary>
+    [JsonProperty("structures")]
+    public IReadOnlyList<StructureEntry> Structures { get; init; } = [];
+
+    /// <summary>Visual ambiance settings for this biome.</summary>
+    [JsonProperty("ambiance")]
+    public BiomeAmbiance Ambiance { get; init; } = new();
+
+    /// <summary>Gameplay settings for this biome.</summary>
+    [JsonProperty("gameplay")]
+    public BiomeGameplay Gameplay { get; init; } = new();
+
     /// <summary>
     /// Optional biome-local height offset spline points.
     /// Maps PV noise to a small Y offset on top of the global terrain height.
-    /// If null, a flat spline with zero offset is used.
     /// </summary>
     [JsonProperty("heightSplinePoints")]
     public SplinePoint[]? HeightSplinePoints { get; init; }
@@ -90,4 +138,12 @@ public sealed class BiomeDefinition
     public HeightSpline HeightSpline => _heightSpline ??= HeightSplinePoints is { Length: >= MinSplinePoints }
         ? new HeightSpline(HeightSplinePoints)
         : HeightSpline.CreateDefault(DefaultSplineOffset, DefaultSplineOffset);
+
+    /// <summary>
+    /// Returns true if this biome has a valid 6D climate target configured.
+    /// </summary>
+    [JsonIgnore]
+    public bool HasClimateTarget =>
+        ClimateTarget.Continentalness.Min != 0f || ClimateTarget.Continentalness.Max != 0f
+        || ClimateTarget.Temperature.Min != 0f || ClimateTarget.Temperature.Max != 0f;
 }

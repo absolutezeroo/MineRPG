@@ -1,20 +1,20 @@
 {
-  "id": "desert",
-  "displayName": "Desert",
+  "id": "savanna",
+  "displayName": "Savanna",
   "category": 2,
   "climateTarget": {
     "continentalness": { "min": -0.11, "max": 0.55 },
-    "erosion": { "min": 0.1, "max": 1.0 },
+    "erosion": { "min": 0.0, "max": 1.0 },
     "peaks_and_valleys": { "min": -0.5, "max": 0.5 },
     "temperature": { "min": 0.55, "max": 1.0 },
-    "humidity": { "min": -1.0, "max": -0.1 },
+    "humidity": { "min": -0.1, "max": 0.3 },
     "depth": { "min": 0.0, "max": 0.2 }
   },
-  "baseHeight": 66,
+  "baseHeight": 68,
   "heightVariation": 4.0,
   "terrainScale": 1.0,
-  "surfaceBlockName": "Sand",
-  "subSurfaceBlockName": "Sand",
+  "surfaceBlockName": "Grass",
+  "subSurfaceBlockName": "Dirt",
   "stoneBlockName": "Stone",
   "underwaterBlockName": null,
   "subSurfaceDepth": 4,
@@ -22,16 +22,16 @@
   "ores": [],
   "structures": [],
   "ambiance": {
-    "sky_color": "#8CB8FF",
-    "fog_color": "#E8D8B0",
-    "water_color": "#32A0A0",
+    "sky_color": "#90B8E0",
+    "fog_color": "#D8C8A0",
+    "water_color": "#3480A0",
     "grass_color": "#BFB755",
     "foliage_color": "#AEA42A",
-    "fog_density": 0.0003
+    "fog_density": 0.0004
   },
   "gameplay": {
     "mob_spawn_table": [],
-    "difficulty_modifier": 1.2,
+    "difficulty_modifier": 1.1,
     "loot_table_overrides": []
   },
   "heightSplinePoints": [

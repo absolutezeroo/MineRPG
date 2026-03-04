@@ -2,13 +2,15 @@ using System;
 using System.Collections.Generic;
 
 using MineRPG.Core.Math;
+using MineRPG.World.Biomes.Climate;
 
 namespace MineRPG.World.Generation;
 
 /// <summary>
-/// Selects a biome at a world (x,z) position using two noise channels:
-/// temperature and humidity. Chooses the biome definition whose range
-/// best matches the sampled values.
+/// Selects a biome at a world position using 6D climate parameters.
+/// Uses squared Euclidean distance in climate space to find the closest match.
+/// Falls back to legacy temperature/humidity matching for old biome definitions.
+/// Thread-safe: all state is readonly after construction.
 /// </summary>
 public sealed class BiomeSelector
 {
@@ -22,8 +24,9 @@ public sealed class BiomeSelector
     private static readonly int HumiditySeedMask = unchecked((int)0x87654321);
 
     private readonly IReadOnlyList<BiomeDefinition> _biomes;
-    private readonly FastNoise _temperatureNoise;
-    private readonly FastNoise _humidityNoise;
+    private readonly FastNoise? _temperatureNoise;
+    private readonly FastNoise? _humidityNoise;
+    private readonly bool _hasClimateTargets;
 
     /// <summary>
     /// Creates a biome selector with the given definitions and world seed.
@@ -39,28 +42,175 @@ public sealed class BiomeSelector
         }
 
         _biomes = biomes;
-        _temperatureNoise = new FastNoise(seed ^ TemperatureSeedMask);
-        _humidityNoise = new FastNoise(seed ^ HumiditySeedMask);
+
+        // Check if any biomes use the new 6D climate targets
+        _hasClimateTargets = false;
+        for (int i = 0; i < biomes.Count; i++)
+        {
+            if (biomes[i].HasClimateTarget)
+            {
+                _hasClimateTargets = true;
+                break;
+            }
+        }
+
+        // Only create legacy noise if needed
+        if (!_hasClimateTargets)
+        {
+            _temperatureNoise = new FastNoise(seed ^ TemperatureSeedMask);
+            _humidityNoise = new FastNoise(seed ^ HumiditySeedMask);
+        }
     }
 
     /// <summary>
-    /// Selects the best-matching biome for the given world position.
+    /// Selects the best-matching biome for the given 6D climate parameters.
+    /// </summary>
+    /// <param name="parameters">The sampled climate parameters.</param>
+    /// <returns>The biome definition with the smallest 6D distance.</returns>
+    public BiomeDefinition Select(in ClimateParameters parameters)
+    {
+        if (!_hasClimateTargets)
+        {
+            return SelectLegacyFromClimate(in parameters);
+        }
+
+        BiomeDefinition? best = null;
+        float bestDistance = float.MaxValue;
+
+        for (int i = 0; i < _biomes.Count; i++)
+        {
+            BiomeDefinition biome = _biomes[i];
+
+            if (!biome.HasClimateTarget)
+            {
+                continue;
+            }
+
+            float distance = biome.ClimateTarget.SquaredDistanceTo(in parameters);
+
+            if (distance < bestDistance)
+            {
+                bestDistance = distance;
+                best = biome;
+            }
+        }
+
+        return best ?? _biomes[0];
+    }
+
+    /// <summary>
+    /// Returns the primary and secondary biomes with a blend weight for smooth transitions.
+    /// </summary>
+    /// <param name="parameters">The sampled climate parameters.</param>
+    /// <returns>Primary biome, secondary biome, and blend weight in [0, 1].</returns>
+    public (BiomeDefinition Primary, BiomeDefinition Secondary, float BlendWeight) SelectWeighted(
+        in ClimateParameters parameters)
+    {
+        if (!_hasClimateTargets)
+        {
+            BiomeDefinition fallback = SelectLegacyFromClimate(in parameters);
+            return (fallback, fallback, 0f);
+        }
+
+        BiomeDefinition? first = null;
+        BiomeDefinition? second = null;
+        float firstDistance = float.MaxValue;
+        float secondDistance = float.MaxValue;
+
+        for (int i = 0; i < _biomes.Count; i++)
+        {
+            BiomeDefinition biome = _biomes[i];
+
+            if (!biome.HasClimateTarget)
+            {
+                continue;
+            }
+
+            float distance = biome.ClimateTarget.SquaredDistanceTo(in parameters);
+
+            if (distance < firstDistance)
+            {
+                second = first;
+                secondDistance = firstDistance;
+                first = biome;
+                firstDistance = distance;
+            }
+            else if (distance < secondDistance)
+            {
+                second = biome;
+                secondDistance = distance;
+            }
+        }
+
+        first ??= _biomes[0];
+        second ??= first;
+
+        float distanceDiff = MathF.Sqrt(secondDistance) - MathF.Sqrt(firstDistance);
+        float blendWeight = 1f - Math.Clamp(distanceDiff * BlendDistanceMultiplier, 0f, 1f);
+        blendWeight *= blendWeight;
+
+        return (first, second, blendWeight);
+    }
+
+    /// <summary>
+    /// Legacy: selects biome at world position using internal temperature/humidity noise.
     /// </summary>
     /// <param name="worldX">World X coordinate.</param>
     /// <param name="worldZ">World Z coordinate.</param>
     /// <returns>The best-matching biome definition.</returns>
     public BiomeDefinition Select(int worldX, int worldZ)
     {
+        if (_temperatureNoise == null || _humidityNoise == null)
+        {
+            return _biomes[0];
+        }
+
         float temperature = (_temperatureNoise.Sample2D(worldX * NoiseScale, worldZ * NoiseScale)
                              + NoiseNormalizationOffset) * NoiseNormalizationScale;
         float humidity = (_humidityNoise.Sample2D(worldX * NoiseScale, worldZ * NoiseScale)
                           + NoiseNormalizationOffset) * NoiseNormalizationScale;
 
+        return SelectLegacyByTempHumidity(temperature, humidity);
+    }
+
+    /// <summary>
+    /// Legacy: returns weighted biome pair at world position using internal noise.
+    /// </summary>
+    /// <param name="worldX">World X coordinate.</param>
+    /// <param name="worldZ">World Z coordinate.</param>
+    /// <returns>Primary, secondary biomes and blend weight.</returns>
+    public (BiomeDefinition Primary, BiomeDefinition Secondary, float BlendWeight) SelectWeighted(
+        int worldX, int worldZ)
+    {
+        if (_temperatureNoise == null || _humidityNoise == null)
+        {
+            return (_biomes[0], _biomes[0], 0f);
+        }
+
+        float temperature = (_temperatureNoise.Sample2D(worldX * NoiseScale, worldZ * NoiseScale)
+                             + NoiseNormalizationOffset) * NoiseNormalizationScale;
+        float humidity = (_humidityNoise.Sample2D(worldX * NoiseScale, worldZ * NoiseScale)
+                          + NoiseNormalizationOffset) * NoiseNormalizationScale;
+
+        return SelectWeightedLegacy(temperature, humidity);
+    }
+
+    private BiomeDefinition SelectLegacyFromClimate(in ClimateParameters parameters)
+    {
+        float temperature = (parameters.Temperature + 1f) * NoiseNormalizationScale;
+        float humidity = (parameters.Humidity + 1f) * NoiseNormalizationScale;
+        return SelectLegacyByTempHumidity(temperature, humidity);
+    }
+
+    private BiomeDefinition SelectLegacyByTempHumidity(float temperature, float humidity)
+    {
         BiomeDefinition? best = null;
         float bestScore = float.MaxValue;
 
-        foreach (BiomeDefinition biome in _biomes)
+        for (int i = 0; i < _biomes.Count; i++)
         {
+            BiomeDefinition biome = _biomes[i];
+
             if (temperature < biome.MinTemperature || temperature > biome.MaxTemperature)
             {
                 continue;
@@ -71,9 +221,9 @@ public sealed class BiomeSelector
                 continue;
             }
 
-            float temperatureCenter = (biome.MinTemperature + biome.MaxTemperature) * NoiseNormalizationScale;
-            float humidityCenter = (biome.MinHumidity + biome.MaxHumidity) * NoiseNormalizationScale;
-            float score = MathF.Abs(temperature - temperatureCenter) + MathF.Abs(humidity - humidityCenter);
+            float tempCenter = (biome.MinTemperature + biome.MaxTemperature) * NoiseNormalizationScale;
+            float humidCenter = (biome.MinHumidity + biome.MaxHumidity) * NoiseNormalizationScale;
+            float score = MathF.Abs(temperature - tempCenter) + MathF.Abs(humidity - humidCenter);
 
             if (score < bestScore)
             {
@@ -85,21 +235,9 @@ public sealed class BiomeSelector
         return best ?? _biomes[0];
     }
 
-    /// <summary>
-    /// Returns the primary and secondary biomes with a blend weight in [0, 1].
-    /// Weight 0 = 100% primary. Used for smooth transitions at biome boundaries.
-    /// </summary>
-    /// <param name="worldX">World X coordinate.</param>
-    /// <param name="worldZ">World Z coordinate.</param>
-    /// <returns>A tuple of (Primary, Secondary, BlendWeight).</returns>
-    public (BiomeDefinition Primary, BiomeDefinition Secondary, float BlendWeight) SelectWeighted(
-        int worldX, int worldZ)
+    private (BiomeDefinition Primary, BiomeDefinition Secondary, float BlendWeight) SelectWeightedLegacy(
+        float temperature, float humidity)
     {
-        float temperature = (_temperatureNoise.Sample2D(worldX * NoiseScale, worldZ * NoiseScale)
-                             + NoiseNormalizationOffset) * NoiseNormalizationScale;
-        float humidity = (_humidityNoise.Sample2D(worldX * NoiseScale, worldZ * NoiseScale)
-                          + NoiseNormalizationOffset) * NoiseNormalizationScale;
-
         BiomeDefinition? first = null;
         BiomeDefinition? second = null;
         float firstRank = float.MaxValue;
@@ -107,14 +245,13 @@ public sealed class BiomeSelector
         float firstRawDistance = float.MaxValue;
         float secondRawDistance = float.MaxValue;
 
-        foreach (BiomeDefinition biome in _biomes)
+        for (int i = 0; i < _biomes.Count; i++)
         {
-            float temperatureCenter = (biome.MinTemperature + biome.MaxTemperature) * NoiseNormalizationScale;
-            float humidityCenter = (biome.MinHumidity + biome.MaxHumidity) * NoiseNormalizationScale;
-            float rawDistance = MathF.Abs(temperature - temperatureCenter)
-                                + MathF.Abs(humidity - humidityCenter);
+            BiomeDefinition biome = _biomes[i];
+            float tempCenter = (biome.MinTemperature + biome.MaxTemperature) * NoiseNormalizationScale;
+            float humidCenter = (biome.MinHumidity + biome.MaxHumidity) * NoiseNormalizationScale;
+            float rawDistance = MathF.Abs(temperature - tempCenter) + MathF.Abs(humidity - humidCenter);
 
-            // In-range biomes get priority for ranking only
             bool isInside = temperature >= biome.MinTemperature && temperature <= biome.MaxTemperature
                             && humidity >= biome.MinHumidity && humidity <= biome.MaxHumidity;
             float rank = isInside ? rawDistance * InRangeRankMultiplier : rawDistance;
@@ -139,10 +276,9 @@ public sealed class BiomeSelector
         first ??= _biomes[0];
         second ??= first;
 
-        // Blend weight uses raw (un-halved) distances for consistent behavior
         float distanceDifference = secondRawDistance - firstRawDistance;
         float blendWeight = 1f - Math.Clamp(distanceDifference * BlendDistanceMultiplier, 0f, 1f);
-        blendWeight *= blendWeight; // smooth quadratic falloff
+        blendWeight *= blendWeight;
 
         return (first, second, blendWeight);
     }

@@ -1,20 +1,20 @@
 {
-  "id": "desert",
-  "displayName": "Desert",
+  "id": "sunflower_plains",
+  "displayName": "Sunflower Plains",
   "category": 2,
   "climateTarget": {
     "continentalness": { "min": -0.11, "max": 0.55 },
     "erosion": { "min": 0.1, "max": 1.0 },
     "peaks_and_valleys": { "min": -0.5, "max": 0.5 },
-    "temperature": { "min": 0.55, "max": 1.0 },
-    "humidity": { "min": -1.0, "max": -0.1 },
+    "temperature": { "min": 0.0, "max": 0.55 },
+    "humidity": { "min": 0.1, "max": 0.3 },
     "depth": { "min": 0.0, "max": 0.2 }
   },
-  "baseHeight": 66,
-  "heightVariation": 4.0,
+  "baseHeight": 68,
+  "heightVariation": 3.0,
   "terrainScale": 1.0,
-  "surfaceBlockName": "Sand",
-  "subSurfaceBlockName": "Sand",
+  "surfaceBlockName": "Grass",
+  "subSurfaceBlockName": "Dirt",
   "stoneBlockName": "Stone",
   "underwaterBlockName": null,
   "subSurfaceDepth": 4,
@@ -22,21 +22,21 @@
   "ores": [],
   "structures": [],
   "ambiance": {
-    "sky_color": "#8CB8FF",
-    "fog_color": "#E8D8B0",
-    "water_color": "#32A0A0",
-    "grass_color": "#BFB755",
-    "foliage_color": "#AEA42A",
-    "fog_density": 0.0003
+    "sky_color": "#7EB2FF",
+    "fog_color": "#C8DDFF",
+    "water_color": "#3F76E4",
+    "grass_color": "#8BCC52",
+    "foliage_color": "#6BBE30",
+    "fog_density": 0.0004
   },
   "gameplay": {
     "mob_spawn_table": [],
-    "difficulty_modifier": 1.2,
+    "difficulty_modifier": 1.0,
     "loot_table_overrides": []
   },
   "heightSplinePoints": [
-    { "inputValue": -1.0, "outputY": -1.0 },
+    { "inputValue": -1.0, "outputY": -0.5 },
     { "inputValue": 0.0, "outputY": 0.0 },
-    { "inputValue": 1.0, "outputY": 1.5 }
+    { "inputValue": 1.0, "outputY": 0.5 }
   ]
 }

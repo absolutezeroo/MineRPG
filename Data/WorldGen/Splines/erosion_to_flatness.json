@@ -1,0 +1,7 @@
+[
+  { "inputValue": -1.0, "outputY": 1.5 },
+  { "inputValue": -0.5, "outputY": 1.2 },
+  { "inputValue": 0.0, "outputY": 1.0 },
+  { "inputValue": 0.5, "outputY": 0.5 },
+  { "inputValue": 1.0, "outputY": 0.2 }
+]

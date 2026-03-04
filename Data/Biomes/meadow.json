@@ -1,23 +1,23 @@
 {
-  "id": "plains",
-  "displayName": "Plains",
-  "category": 2,
+  "id": "meadow",
+  "displayName": "Meadow",
+  "category": 3,
   "climateTarget": {
-    "continentalness": { "min": -0.11, "max": 0.55 },
-    "erosion": { "min": 0.1, "max": 1.0 },
+    "continentalness": { "min": 0.55, "max": 1.0 },
+    "erosion": { "min": -0.1, "max": 0.55 },
     "peaks_and_valleys": { "min": -0.5, "max": 0.5 },
-    "temperature": { "min": -0.15, "max": 0.55 },
-    "humidity": { "min": -1.0, "max": 0.1 },
+    "temperature": { "min": -0.45, "max": 0.2 },
+    "humidity": { "min": -0.1, "max": 0.3 },
     "depth": { "min": 0.0, "max": 0.2 }
   },
-  "baseHeight": 68,
-  "heightVariation": 4.0,
+  "baseHeight": 90,
+  "heightVariation": 6.0,
   "terrainScale": 1.0,
   "surfaceBlockName": "Grass",
   "subSurfaceBlockName": "Dirt",
   "stoneBlockName": "Stone",
   "underwaterBlockName": null,
-  "subSurfaceDepth": 4,
+  "subSurfaceDepth": 2,
   "vegetation": [],
   "ores": [],
   "structures": [],
@@ -25,9 +25,9 @@
     "sky_color": "#78A7FF",
     "fog_color": "#C0D8FF",
     "water_color": "#3F76E4",
-    "grass_color": "#7CBD6B",
-    "foliage_color": "#59AE30",
-    "fog_density": 0.0005
+    "grass_color": "#83BB6D",
+    "foliage_color": "#63A948",
+    "fog_density": 0.0003
   },
   "gameplay": {
     "mob_spawn_table": [],
@@ -35,8 +35,8 @@
     "loot_table_overrides": []
   },
   "heightSplinePoints": [
-    { "inputValue": -1.0, "outputY": -1.0 },
+    { "inputValue": -1.0, "outputY": -3.0 },
     { "inputValue": 0.0, "outputY": 0.0 },
-    { "inputValue": 1.0, "outputY": 1.0 }
+    { "inputValue": 1.0, "outputY": 6.0 }
   ]
 }

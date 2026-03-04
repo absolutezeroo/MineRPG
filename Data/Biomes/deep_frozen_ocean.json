@@ -1,0 +1,42 @@
+{
+  "id": "deep_frozen_ocean",
+  "displayName": "Deep Frozen Ocean",
+  "category": 0,
+  "climateTarget": {
+    "continentalness": { "min": -1.0, "max": -0.55 },
+    "erosion": { "min": -1.0, "max": 1.0 },
+    "peaks_and_valleys": { "min": -1.0, "max": 1.0 },
+    "temperature": { "min": -1.0, "max": -0.45 },
+    "humidity": { "min": -1.0, "max": 1.0 },
+    "depth": { "min": 0.0, "max": 0.2 }
+  },
+  "baseHeight": 30,
+  "heightVariation": 4.0,
+  "terrainScale": 0.8,
+  "surfaceBlockName": "Sand",
+  "subSurfaceBlockName": "Sand",
+  "stoneBlockName": "Stone",
+  "underwaterBlockName": null,
+  "subSurfaceDepth": 4,
+  "vegetation": [],
+  "ores": [],
+  "structures": [],
+  "ambiance": {
+    "sky_color": "#6B8FC7",
+    "fog_color": "#A0B8D8",
+    "water_color": "#2C4A7A",
+    "grass_color": "#6BA85B",
+    "foliage_color": "#4A9A28",
+    "fog_density": 0.0008
+  },
+  "gameplay": {
+    "mob_spawn_table": [],
+    "difficulty_modifier": 1.2,
+    "loot_table_overrides": []
+  },
+  "heightSplinePoints": [
+    { "inputValue": -1.0, "outputY": -6.0 },
+    { "inputValue": 0.0, "outputY": -4.0 },
+    { "inputValue": 1.0, "outputY": -2.0 }
+  ]
+}

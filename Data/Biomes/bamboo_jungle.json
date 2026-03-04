@@ -1,13 +1,13 @@
 {
-  "id": "forest",
-  "displayName": "Forest",
+  "id": "bamboo_jungle",
+  "displayName": "Bamboo Jungle",
   "category": 2,
   "climateTarget": {
     "continentalness": { "min": -0.11, "max": 0.55 },
-    "erosion": { "min": -0.3, "max": 0.8 },
-    "peaks_and_valleys": { "min": -0.5, "max": 0.5 },
-    "temperature": { "min": -0.15, "max": 0.2 },
-    "humidity": { "min": 0.1, "max": 0.3 },
+    "erosion": { "min": -0.3, "max": 0.5 },
+    "peaks_and_valleys": { "min": -0.5, "max": 0.3 },
+    "temperature": { "min": 0.55, "max": 1.0 },
+    "humidity": { "min": 0.3, "max": 1.0 },
     "depth": { "min": 0.0, "max": 0.2 }
   },
   "baseHeight": 70,
@@ -22,16 +22,16 @@
   "ores": [],
   "structures": [],
   "ambiance": {
-    "sky_color": "#6B9FE8",
-    "fog_color": "#A8C8A8",
-    "water_color": "#3B6EA0",
-    "grass_color": "#59A830",
-    "foliage_color": "#4E9A2E",
-    "fog_density": 0.0008
+    "sky_color": "#68A068",
+    "fog_color": "#78A878",
+    "water_color": "#2A6840",
+    "grass_color": "#3CB030",
+    "foliage_color": "#34A028",
+    "fog_density": 0.0018
   },
   "gameplay": {
     "mob_spawn_table": [],
-    "difficulty_modifier": 1.0,
+    "difficulty_modifier": 1.2,
     "loot_table_overrides": []
   },
   "heightSplinePoints": [
