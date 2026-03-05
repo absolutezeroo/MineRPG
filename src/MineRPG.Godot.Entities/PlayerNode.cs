@@ -25,10 +25,10 @@ public sealed partial class PlayerNode : CharacterBody3D
     private const float PositionPublishThresholdSquared = 0.0001f;
 
     /// <summary>
-    /// Increased safe margin prevents physics tunneling when collision shapes
-    /// are rebuilt asynchronously after block edits.
+    /// Safe margin for collision detection. Prevents minor penetration
+    /// and tunneling when collision shapes are rebuilt asynchronously.
     /// </summary>
-    private const float PhysicsSafeMargin = 0.08f;
+    private const float PhysicsSafeMargin = 0.01f;
 
     [Export] private Camera3D _camera = null!;
 
@@ -48,8 +48,11 @@ public sealed partial class PlayerNode : CharacterBody3D
         _eventBus = ServiceLocator.Instance.Get<IEventBus>();
         _logger = ServiceLocator.Instance.Get<ILogger>();
 
-        // Prevent physics tunneling when chunk collision shapes change
+        // CharacterBody3D physics tuning for voxel terrain
         SafeMargin = PhysicsSafeMargin;
+        FloorConstantSpeed = true;
+        FloorSnapLength = 0.1f;
+        FloorStopOnSlope = true;
 
         // Resolve camera -- [Export] NodePath may not auto-resolve on private fields
         _camera ??= GetNode<Camera3D>("Camera3D");
