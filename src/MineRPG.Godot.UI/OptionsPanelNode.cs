@@ -48,12 +48,12 @@ public sealed partial class OptionsPanelNode : Control
         _options = ServiceLocator.Instance.Get<IOptionsProvider>();
         _logger = ServiceLocator.Instance.Get<ILogger>();
 
-        SetAnchorsPreset(LayoutPreset.FullRect);
+        SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
         MouseFilter = MouseFilterEnum.Ignore;
 
         // Center panel via CenterContainer
         CenterContainer panelCenter = new();
-        panelCenter.SetAnchorsPreset(LayoutPreset.FullRect);
+        panelCenter.SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
         panelCenter.MouseFilter = MouseFilterEnum.Ignore;
         AddChild(panelCenter);
 

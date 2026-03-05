@@ -38,19 +38,19 @@ public sealed partial class PauseMenuNode : Control
         // Must process when paused so the menu stays interactive
         ProcessMode = ProcessModeEnum.WhenPaused;
 
-        SetAnchorsPreset(LayoutPreset.FullRect);
+        SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
         Visible = false;
 
         // Semi-transparent overlay (ignore mouse so panel buttons receive clicks)
         ColorRect overlay = new();
-        overlay.SetAnchorsPreset(LayoutPreset.FullRect);
+        overlay.SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
         overlay.Color = OverlayColor;
-        overlay.MouseFilter = MouseFilterEnum.Ignore;
+        overlay.MouseFilter = MouseFilterEnum.Stop;
         AddChild(overlay);
 
         // Center panel via CenterContainer
         CenterContainer panelCenter = new();
-        panelCenter.SetAnchorsPreset(LayoutPreset.FullRect);
+        panelCenter.SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
         panelCenter.MouseFilter = MouseFilterEnum.Ignore;
         AddChild(panelCenter);
 
@@ -115,12 +115,6 @@ public sealed partial class PauseMenuNode : Control
         if (!Visible)
         {
             return;
-        }
-
-        // Consume all input while pause menu is visible to prevent click-through
-        if (@event is InputEventMouseButton or InputEventMouseMotion)
-        {
-            GetViewport().SetInputAsHandled();
         }
 
         // ESC while pause menu is open -> resume

@@ -64,7 +64,7 @@ public sealed partial class MainMenuNode : Control
 
         // Button container (centered via CenterContainer)
         CenterContainer buttonCenter = new();
-        buttonCenter.SetAnchorsPreset(LayoutPreset.FullRect);
+        buttonCenter.SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
         buttonCenter.MouseFilter = MouseFilterEnum.Ignore;
         AddChild(buttonCenter);
 

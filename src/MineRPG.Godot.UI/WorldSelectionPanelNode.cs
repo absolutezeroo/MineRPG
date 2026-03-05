@@ -56,12 +56,12 @@ public sealed partial class WorldSelectionPanelNode : Control
         _savesRoot = Path.Combine(
             Path.GetDirectoryName(dataRoot) ?? dataRoot, "Saves");
 
-        SetAnchorsPreset(LayoutPreset.FullRect);
+        SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
         MouseFilter = MouseFilterEnum.Ignore;
 
         // Center panel via CenterContainer
         CenterContainer panelCenter = new();
-        panelCenter.SetAnchorsPreset(LayoutPreset.FullRect);
+        panelCenter.SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
         panelCenter.MouseFilter = MouseFilterEnum.Ignore;
         AddChild(panelCenter);
 
