@@ -28,6 +28,7 @@ public sealed partial class PlayerNode : CharacterBody3D
     private ILogger _logger = null!;
     private IBlockInteractionService? _blockInteraction;
     private bool _isMouseCaptured;
+    private bool _worldReady;
     private float _lastPublishedX;
     private float _lastPublishedY;
     private float _lastPublishedZ;
@@ -66,7 +67,14 @@ public sealed partial class PlayerNode : CharacterBody3D
     }
 
     /// <inheritdoc />
-    public override void _ExitTree() => _eventBus?.Unsubscribe<WorldReadyEvent>(OnWorldReady);
+    public override void _ExitTree()
+    {
+        // Only unsubscribe if OnWorldReady hasn't already done so
+        if (!_worldReady)
+        {
+            _eventBus?.Unsubscribe<WorldReadyEvent>(OnWorldReady);
+        }
+    }
 
     /// <inheritdoc />
     public override void _Input(InputEvent @event)
@@ -180,6 +188,7 @@ public sealed partial class PlayerNode : CharacterBody3D
     private void OnWorldReady(WorldReadyEvent evt)
     {
         _eventBus.Unsubscribe<WorldReadyEvent>(OnWorldReady);
+        _worldReady = true;
         ProcessMode = ProcessModeEnum.Inherit;
         CaptureMouse();
 
@@ -283,11 +292,5 @@ public sealed partial class PlayerNode : CharacterBody3D
     {
         Input.MouseMode = Input.MouseModeEnum.Captured;
         _isMouseCaptured = true;
-    }
-
-    private void ReleaseMouse()
-    {
-        Input.MouseMode = Input.MouseModeEnum.Visible;
-        _isMouseCaptured = false;
     }
 }

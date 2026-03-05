@@ -24,8 +24,6 @@ public sealed partial class HotbarNode : Control
     private static readonly Color SlotBorderColor = new(0.5f, 0.5f, 0.5f, 0.85f);
     private static readonly Color SlotSelectedBorderColor = new(1f, 1f, 1f, 0.95f);
 
-    private readonly Rect2[] _slotRects = new Rect2[SlotCount];
-
     private int _selectedIndex;
     private IHotbarController _hotbar = null!;
     private ILogger _logger = null!;
@@ -90,8 +88,6 @@ public sealed partial class HotbarNode : Control
                 startY,
                 SlotSize,
                 SlotSize);
-
-            _slotRects[i] = rect;
 
             DrawRect(rect, SlotBackgroundColor);
 

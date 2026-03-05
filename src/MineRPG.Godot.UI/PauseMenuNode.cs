@@ -165,7 +165,7 @@ public sealed partial class PauseMenuNode : Control
             _optionsPanel = new OptionsPanelNode();
             _optionsPanel.Name = "OptionsPanel";
             _optionsPanel.BackRequested += OnBackFromOptions;
-            GetParent().AddChild(_optionsPanel);
+            AddChild(_optionsPanel);
             _optionsPanel.ProcessMode = ProcessModeEnum.WhenPaused;
         }
         else

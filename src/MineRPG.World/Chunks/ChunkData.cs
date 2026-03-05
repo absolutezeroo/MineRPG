@@ -10,7 +10,7 @@ namespace MineRPG.World.Chunks;
 /// Stores block IDs for one 16x256x16 chunk as a cache-friendly flat ushort array.
 /// Index formula: x + z*SizeX + y*SizeX*SizeZ (matches VoxelMath.GetIndex).
 /// </summary>
-public sealed class ChunkData
+public sealed class ChunkData : IDisposable
 {
     /// <summary>Chunk width in blocks (X axis).</summary>
     public const int SizeX = 16;
@@ -206,4 +206,10 @@ public sealed class ChunkData
             _lock.ExitReadLock();
         }
     }
+
+    /// <summary>
+    /// Disposes the internal <see cref="ReaderWriterLockSlim"/>.
+    /// Call when the chunk is permanently unloaded.
+    /// </summary>
+    public void Dispose() => _lock.Dispose();
 }

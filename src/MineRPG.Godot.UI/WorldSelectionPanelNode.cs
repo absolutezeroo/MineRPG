@@ -241,8 +241,8 @@ public sealed partial class WorldSelectionPanelNode : Control
         }
         else if (!int.TryParse(_seedField.Text.Trim(), out seed))
         {
-            // Use string hash as seed for non-numeric input
-            seed = _seedField.Text.Trim().GetHashCode(StringComparison.Ordinal);
+            // Use deterministic hash — string.GetHashCode is non-deterministic in .NET 6+
+            seed = DeterministicStringHash(_seedField.Text.Trim());
         }
 
         WorldMeta meta = new()
@@ -260,4 +260,23 @@ public sealed partial class WorldSelectionPanelNode : Control
     }
 
     private void OnBackPressed() => EmitSignal(SignalName.BackRequested);
+
+    /// <summary>
+    /// FNV-1a hash — deterministic across .NET versions and platforms.
+    /// </summary>
+    private static int DeterministicStringHash(string text)
+    {
+        unchecked
+        {
+            uint hash = 2166136261;
+
+            foreach (char c in text)
+            {
+                hash ^= c;
+                hash *= 16777619;
+            }
+
+            return (int)hash;
+        }
+    }
 }

@@ -33,6 +33,7 @@ public sealed class OptionsProvider : IOptionsProvider
     private readonly ISettingsRepository _settingsRepo;
     private readonly ILogger _logger;
     private Dictionary<string, KeybindData> _cachedKeybinds;
+    private bool _suppressSave;
 
     /// <summary>
     /// Initializes a new instance and applies all settings from the provided snapshot.
@@ -362,32 +363,48 @@ public sealed class OptionsProvider : IOptionsProvider
 
     private void ApplyAllSettings(SettingsData settings)
     {
-        // Apply engine settings first (order matters for some)
-        VSyncEnabled = settings.VSyncEnabled;
-        WindowMode = settings.WindowMode;
-        MsaaQuality = settings.MsaaQuality;
-        ShadowQuality = settings.ShadowQuality;
-        SsaoEnabled = settings.SsaoEnabled;
-        AnisotropicFiltering = settings.AnisotropicFiltering;
-        Brightness = settings.Brightness;
+        // Suppress per-property saves — one save at the end is sufficient
+        _suppressSave = true;
 
-        // Audio
-        MasterVolume = settings.MasterVolume;
+        try
+        {
+            // Apply engine settings first (order matters for some)
+            VSyncEnabled = settings.VSyncEnabled;
+            WindowMode = settings.WindowMode;
+            MsaaQuality = settings.MsaaQuality;
+            ShadowQuality = settings.ShadowQuality;
+            SsaoEnabled = settings.SsaoEnabled;
+            AnisotropicFiltering = settings.AnisotropicFiltering;
+            Brightness = settings.Brightness;
 
-        // Player-dependent
-        MouseSensitivity = settings.MouseSensitivity;
+            // Audio
+            MasterVolume = settings.MasterVolume;
 
-        // Chunk scheduler may not be ready yet; will use default as fallback
-        RenderDistance = settings.RenderDistance;
+            // Player-dependent
+            MouseSensitivity = settings.MouseSensitivity;
 
-        // Camera3D may not be registered yet; stored in file, applied when slider is used
-        FieldOfView = settings.FieldOfView;
+            // Chunk scheduler may not be ready yet; will use default as fallback
+            RenderDistance = settings.RenderDistance;
 
+            // Camera3D may not be registered yet; stored in file, applied when slider is used
+            FieldOfView = settings.FieldOfView;
+        }
+        finally
+        {
+            _suppressSave = false;
+        }
+
+        SaveSnapshot();
         _logger.Info("OptionsProvider: Applied all settings from snapshot.");
     }
 
     private void SaveSnapshot()
     {
+        if (_suppressSave)
+        {
+            return;
+        }
+
         SettingsData snapshot = BuildSnapshot();
         _settingsRepo.Save(snapshot);
     }
@@ -440,6 +457,13 @@ public sealed class OptionsProvider : IOptionsProvider
             return null;
         }
 
-        return tree.Root.World3D?.Environment;
+        World3D? world = tree.Root.World3D;
+
+        if (world is null)
+        {
+            return null;
+        }
+
+        return world.Environment;
     }
 }

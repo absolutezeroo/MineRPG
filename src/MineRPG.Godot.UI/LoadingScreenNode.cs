@@ -58,6 +58,15 @@ public sealed partial class LoadingScreenNode : CanvasLayer
 
         _eventBus.Subscribe<WorldReadyEvent>(OnWorldReady);
 
+        // Guard against race: if preload completed before this node was added to the tree,
+        // the WorldReadyEvent was already published and we missed it. Self-dismiss immediately.
+        if (_progress is not null && _progress.IsComplete)
+        {
+            _logger.Info("LoadingScreenNode: Preload already complete on creation — dismissing.");
+            QueueFree();
+            return;
+        }
+
         _logger.Info("LoadingScreenNode ready.");
     }
 

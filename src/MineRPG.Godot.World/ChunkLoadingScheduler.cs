@@ -183,8 +183,13 @@ public sealed partial class ChunkLoadingScheduler : Node
             pendingCts.Dispose();
         }
 
-        // Wait up to 10 seconds for workers to flush saves
-        Task.WaitAll(_workers, TimeSpan.FromSeconds(10));
+        // Wait briefly for workers to flush saves — avoid blocking the main thread for 10s
+        bool completed = Task.WaitAll(_workers, TimeSpan.FromSeconds(2));
+
+        if (!completed)
+        {
+            _logger.Warning("ChunkLoadingScheduler: Workers did not finish within 2s shutdown window.");
+        }
 
         // Drain any saves workers did not reach (safety net)
         while (_saveQueue.TryDequeue(out SaveWork leftover))
@@ -422,8 +427,8 @@ public sealed partial class ChunkLoadingScheduler : Node
 
     private void ProcessGenerationWork(ChunkEntry entry)
     {
-        // Retrieve the CTS for cooperative cancellation
-        _pendingCts.TryGetValue(entry.Coord, out CancellationTokenSource? cts);
+        // TryRemove takes ownership — prevents UnloadChunk from disposing under us
+        _pendingCts.TryRemove(entry.Coord, out CancellationTokenSource? cts);
         CancellationToken token = cts?.Token ?? CancellationToken.None;
 
         try
@@ -477,7 +482,7 @@ public sealed partial class ChunkLoadingScheduler : Node
         }
         finally
         {
-            _pendingCts.TryRemove(entry.Coord, out _);
+            cts?.Dispose();
         }
     }
 

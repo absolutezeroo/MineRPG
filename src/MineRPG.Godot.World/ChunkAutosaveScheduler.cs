@@ -73,9 +73,12 @@ public sealed partial class ChunkAutosaveScheduler : Node
                 continue;
             }
 
+            // Clear flag before snapshot: if a concurrent write sets it back to true
+            // between these two lines, the next autosave cycle will catch it.
+            // The alternative (flag after snapshot) loses the modification entirely.
+            entry.IsModified = false;
             ushort[] snapshot = new ushort[ChunkData.TotalBlocks];
             entry.Data.CopyBlocksUnderReadLock(snapshot);
-            entry.IsModified = false;
 
             _scheduler.EnqueueSave(entry.Coord, snapshot);
             enqueued++;

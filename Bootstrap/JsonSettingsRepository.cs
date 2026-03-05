@@ -44,7 +44,11 @@ public sealed class JsonSettingsRepository : ISettingsRepository
         try
         {
             string json = JsonConvert.SerializeObject(settings, SerializerSettings);
-            File.WriteAllText(_filePath, json);
+
+            // Atomic write: write to temp file then move, preventing truncated files on crash
+            string tempPath = _filePath + ".tmp";
+            File.WriteAllText(tempPath, json);
+            File.Move(tempPath, _filePath, overwrite: true);
             _logger.Debug("JsonSettingsRepository: Settings saved to '{0}'.", _filePath);
         }
         catch (Exception ex)
