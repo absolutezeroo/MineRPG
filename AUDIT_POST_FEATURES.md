@@ -55,6 +55,25 @@ return tree.Root.World3D.Environment;
 - **Risque:** If the scene structure changes and the Camera3D child is renamed, this silently crashes.
 - The `[Export]` on line 24 should be sufficient. The fallback should log a warning instead of silently using a hardcoded path.
 
+**#21 — `ChunkLoadingScheduler.ProcessGenerationWork` — CTS disposed while worker still using it**
+- `ProcessGenerationWork` calls `_pendingCts.TryGetValue(entry.Coord, out cts)` to get the CancellationTokenSource.
+- `UnloadChunk` (main thread) can concurrently call `_pendingCts.TryRemove(coord, out cts)` followed by `cts.Cancel(); cts.Dispose()`.
+- **Risque:** Worker reads `cts?.Token` after the main thread has already disposed the CTS → `ObjectDisposedException`.
+- **Scenario:** Player moves rapidly → chunk queued for generation → worker starts → player moves again → `UnloadChunk` called → CTS disposed → worker accesses disposed token.
+- **Fix:** Workers should copy `cts.Token` immediately and never access the CTS again. Or use a separate per-entry cancellation flag.
+
+**#22 — `GameStateOrchestrator.OnWorldLoadRequested` — Loading screen can miss WorldReadyEvent**
+- `ChangeSceneToFile(GameplayScenePath)` is followed by `Callable.From(AddLoadingScreen).CallDeferred()`.
+- Scene change triggers `ChunkLoadingScheduler._Ready()` which starts workers and `ForceLoadAround`.
+- `AddLoadingScreen` is deferred → runs after `_Ready()` of all new scene nodes.
+- **Risque:** If all 49 preload chunks are already cached on disk and workers are fast, `WorldReadyEvent` could fire BEFORE `LoadingScreenNode` is added to the tree. The loading screen subscribes in its `_Ready()`, which hasn't been called yet → it never receives the event → **loading screen stays visible forever** covering the playable game.
+- **Fix:** Add `LoadingScreenNode` BEFORE calling `ChangeSceneToFile`, or have the loading screen check `PreloadProgress.IsComplete` in its `_Ready()`.
+
+**#23 — `ChunkLoadingScheduler._ExitTree` — `Task.WaitAll` blocks main thread up to 10 seconds**
+- Line 187: `Task.WaitAll(_workers, TimeSpan.FromSeconds(10))` synchronously blocks the main thread.
+- **Risque:** During shutdown, the game freezes for up to 10 seconds if workers are slow to drain saves. The user sees an unresponsive window.
+- **Fix:** Use a non-blocking approach: fire-and-forget remaining saves, or show a "Saving..." overlay.
+
 ---
 
 ### BUGS LOGIQUES (mauvais comportement, edge case non gere)
@@ -294,13 +313,15 @@ scheduler.ForceLoadAround(currentPlayerChunk); // triggers unload of excess
 - Clean: sealed partial, all constants named, Allman, explicit types, XML docs
 
 **`ChunkLoadingScheduler.cs`**
-- Clean: sealed partial, all constants named, comprehensive XML docs, Allman, explicit types
+- [R20-FileLength] **651 lines** — more than double the 300-line hard limit. This class should be split (e.g., extract `ChunkUnloader`, `WorkerPool`, or `PreloadTracker`).
+- Otherwise clean: sealed partial, all constants named, comprehensive XML docs, Allman, explicit types
 
 **`ChunkAutosaveScheduler.cs`**
 - Clean: sealed partial, Allman, explicit types, XML docs
 
 **`CompositionRoot.cs`**
-- Clean: static class, Allman, explicit types, XML docs
+- [R20-MethodLength] `Wire()` method is ~110 lines — exceeds the 40-line method limit. Should be split into sub-methods (e.g., `WireBlockRegistry`, `WireTerrain`, `WirePlayer`).
+- Otherwise clean: static class, Allman, explicit types, XML docs
 
 **`LoadingState.cs`**
 - Clean: sealed class, Allman, explicit types, XML docs
@@ -339,6 +360,8 @@ scheduler.ForceLoadAround(currentPlayerChunk); // triggers unload of excess
 | R14 (?.chaining) | 1 | OptionsProvider.cs |
 | R17 (magic numbers) | 2 | OptionsProvider.cs, OptionsPanelNode.cs |
 | R20 (duplicate constants) | 1 | GraphicsTabPanel.cs + OptionsProvider.cs |
+| R20 (file length >300) | 1 | ChunkLoadingScheduler.cs (651 lines) |
+| R20 (method length >40) | 1 | CompositionRoot.Wire() (~110 lines) |
 | Dead code | 1 | PlayerNode.cs |
 | Missing IDisposable | 1 | ChunkData.cs |
 
@@ -352,10 +375,10 @@ scheduler.ForceLoadAround(currentPlayerChunk); // triggers unload of excess
 
 | Severity | Count | Action |
 |---|---|---|
-| CRASH potentiel | 6 (#1-#6) | Corriger immediatement |
+| CRASH potentiel | 9 (#1-#6, #21-#23) | Corriger immediatement |
 | BUG logique | 8 (#7-#14) | Corriger avant prochain test |
 | OUBLI / dette | 6 (#15-#20) | Planifier |
-| STYLE guide | ~6 violations | Corriger en batch |
+| STYLE guide | ~8 violations | Corriger en batch |
 
 ### Top 5 urgences
 
@@ -373,8 +396,9 @@ scheduler.ForceLoadAround(currentPlayerChunk); // triggers unload of excess
 | `ChunkData.cs` | 2 (#2, #3) | 2 CRASH |
 | `OptionsProvider.cs` | 4 (#5, #9, #10, #20) | 1 CRASH, 3 BUG |
 | `PlayerNode.cs` | 3 (#6, #15, #16) | 1 CRASH, 2 OUBLI |
-| `ChunkLoadingScheduler.cs` | 1 (preload failure) | 1 BUG |
+| `ChunkLoadingScheduler.cs` | 3 (#21, #23, preload failure) | 2 CRASH, 1 BUG |
 | `ChunkAutosaveScheduler.cs` | 1 (#11) | 1 BUG |
+| `GameStateOrchestrator.cs` | 1 (#22) | 1 CRASH |
 
 ### Ce qui est bien fait
 
