@@ -151,6 +151,22 @@ scheduler.ForceLoadAround(currentPlayerChunk); // triggers unload of excess
 - **Scenario:** If any enum adds a new value or reorders, the cast silently produces wrong values.
 - **Fix:** Use a mapping array or dictionary instead of blind casting.
 
+**#24 — `PauseMenuNode.cs:168` — OptionsPanelNode added as sibling, never freed**
+- `GetParent().AddChild(_optionsPanel)` adds the options panel as a sibling of PauseMenuNode, not a child.
+- When PauseMenuNode is freed, the options panel remains in the tree — **node leak**.
+- **Scenario:** Player opens pause menu → opens options → closes options → returns to main menu (PauseMenuNode freed) → OptionsPanelNode stays in the tree forever.
+- **Fix:** Add as child of PauseMenuNode, or explicitly `QueueFree()` it in `_ExitTree`.
+
+**#25 — `BlockInteractionService.cs:49` — `blockRegistry.Get(result.BlockId)` can throw**
+- Uses `Get()` instead of `TryGet()`. If the block ID from the raycast result is not in the registry (e.g., data corruption, mod unloaded), this throws `KeyNotFoundException` with an unhelpful message.
+- **Fix:** Use `TryGet` with a null check and warning log.
+
+**#26 — `WorldSelectionPanelNode.cs:245` — `string.GetHashCode()` is not deterministic across processes**
+- `seedText.GetHashCode(StringComparison.Ordinal)` is used to generate the world seed from user input.
+- In .NET 6+, `string.GetHashCode()` is randomized per-process. The same seed text produces different world seeds on different launches.
+- **Impact:** The seed is saved in `WorldMeta` after creation, so existing worlds are unaffected. But two players typing the same seed text will get different worlds. This violates the expected "same seed = same world" contract.
+- **Fix:** Use a deterministic hash (e.g., FNV-1a or a simple custom hash function).
+
 ---
 
 ### OUBLIS (code mort, event leak, ressource non liberee)
@@ -184,6 +200,26 @@ scheduler.ForceLoadAround(currentPlayerChunk); // triggers unload of excess
 - `MinRenderDistance`, `MaxRenderDistance`, `MinFov`, `MaxFov`, `MinBrightness`, `MaxBrightness` are defined in both files.
 - **Impact:** If one changes and the other doesn't, clamping behavior diverges between UI and engine.
 - **Fix:** Define shared constants in a single location (e.g., `SettingsConstants` in `MineRPG.Core`).
+
+**#27 — `HotbarNode.cs:94` — `_slotRects` array is written but never read**
+- `_slotRects[i] = new Rect2(...)` is assigned in the draw loop but the array is never read anywhere else.
+- **Impact:** Dead allocation every frame when hotbar is drawn.
+- **Fix:** Remove `_slotRects` field and the assignment, or use it for hit-testing.
+
+**#28 — `HUDNode.cs:24` — `[Export] private Camera3D _camera = null!` does nothing in Godot 4**
+- In Godot 4 C#, `[Export]` on a `private` field does not expose it in the inspector.
+- The fallback on line 54 (`GetViewport().GetCamera3D()`) is what actually works.
+- **Fix:** Either make the field `public`/`internal`, or remove the `[Export]` and rely solely on the deferred lookup.
+
+**#29 — All menus lack keyboard/gamepad navigation**
+- `MainMenuNode`, `PauseMenuNode`, `WorldSelectionPanelNode`: no `FocusMode` set on buttons, no `GrabFocus()` call.
+- `HotbarNode`: only handles mouse scroll wheel, no keyboard number keys (1-9) for direct slot selection.
+- **Impact:** Keyboard and gamepad users cannot navigate the UI at all.
+- **Fix:** Set `FocusMode = FocusModeEnum.All` on buttons, call `GrabFocus()` on the first button when menus open.
+
+**#30 — `MainMenuNode` / `WorldSelectionPanelNode` — No `_ExitTree` cleanup**
+- Button Pressed handlers and signal connections are never disconnected.
+- For child nodes this is technically safe (freed together), but inconsistent with `PauseMenuNode` which does implement `_ExitTree`.
 
 ---
 
@@ -309,6 +345,32 @@ scheduler.ForceLoadAround(currentPlayerChunk); // triggers unload of excess
 - Line 116: `_tabContents = new Control[3]` — magic number, should use `tabNames.Length`
 - Otherwise clean: sealed partial, Allman, XML docs
 
+**`DebugOverlayNode.cs`**
+- [R20-FileLength] **326 lines** — exceeds the 300-line hard limit
+- [R17] Lines 167-168: `180f / MathF.PI` — should be a named constant `RadToDeg`
+- Otherwise clean: sealed partial, Allman, explicit types
+
+**`HotbarNode.cs`**
+- Dead code: `_slotRects` array written but never read
+- Missing keyboard number keys (1-9) input handling
+- Otherwise clean
+
+**`HUDNode.cs`**
+- `[Export]` on private field does nothing in Godot 4 C#
+- Otherwise clean
+
+**`MainMenuNode.cs` / `WorldSelectionPanelNode.cs`**
+- [R17] Multiple inline magic numbers (colors, sizes) not extracted to named constants
+- No `_ExitTree` override (inconsistent with `PauseMenuNode`)
+- Otherwise clean
+
+**`PauseMenuNode.cs`**
+- Node leak: `OptionsPanelNode` added as sibling, not freed on exit
+- Otherwise clean
+
+**`BlockInteractionService.cs` / `DebugDataProvider.cs` / `HotbarController.cs`**
+- Primary constructor parameters use `camelCase` instead of `_camelCase` — inherent to C# primary constructors, but inconsistent with style guide field naming convention
+
 **`LoadingScreenNode.cs`**
 - Clean: sealed partial, all constants named, Allman, explicit types, XML docs
 
@@ -358,12 +420,13 @@ scheduler.ForceLoadAround(currentPlayerChunk); // triggers unload of excess
 |---|---|---|
 | R10 (hardcoded GetNode) | 1 | PlayerNode.cs |
 | R14 (?.chaining) | 1 | OptionsProvider.cs |
-| R17 (magic numbers) | 2 | OptionsProvider.cs, OptionsPanelNode.cs |
+| R17 (magic numbers) | 5 | OptionsProvider.cs, OptionsPanelNode.cs, MainMenuNode.cs, WorldSelectionPanelNode.cs, DebugOverlayNode.cs |
 | R20 (duplicate constants) | 1 | GraphicsTabPanel.cs + OptionsProvider.cs |
-| R20 (file length >300) | 1 | ChunkLoadingScheduler.cs (651 lines) |
+| R20 (file length >300) | 2 | ChunkLoadingScheduler.cs (651), DebugOverlayNode.cs (326) |
 | R20 (method length >40) | 1 | CompositionRoot.Wire() (~110 lines) |
-| Dead code | 1 | PlayerNode.cs |
+| Dead code | 3 | PlayerNode.cs, HotbarNode.cs, HUDNode.cs |
 | Missing IDisposable | 1 | ChunkData.cs |
+| Primary ctor naming | 3 | DebugDataProvider.cs, BlockInteractionService.cs, HotbarController.cs |
 
 **Overall style compliance: GOOD.** No `var` usage found anywhere. No `GD.Print()`. No `Console.WriteLine()`. All classes properly sealed/partial. Allman braces everywhere. Explicit types everywhere. XML docs on all public members. No regions. No TODO/FIXME/HACK. The codebase is remarkably clean for rapid development.
 
@@ -375,10 +438,10 @@ scheduler.ForceLoadAround(currentPlayerChunk); // triggers unload of excess
 
 | Severity | Count | Action |
 |---|---|---|
-| CRASH potentiel | 9 (#1-#6, #21-#23) | Corriger immediatement |
+| CRASH potentiel | 12 (#1-#6, #21-#26) | Corriger immediatement |
 | BUG logique | 8 (#7-#14) | Corriger avant prochain test |
-| OUBLI / dette | 6 (#15-#20) | Planifier |
-| STYLE guide | ~8 violations | Corriger en batch |
+| OUBLI / dette | 10 (#15-#20, #27-#30) | Planifier |
+| STYLE guide | ~18 violations | Corriger en batch |
 
 ### Top 5 urgences
 
@@ -399,6 +462,9 @@ scheduler.ForceLoadAround(currentPlayerChunk); // triggers unload of excess
 | `ChunkLoadingScheduler.cs` | 3 (#21, #23, preload failure) | 2 CRASH, 1 BUG |
 | `ChunkAutosaveScheduler.cs` | 1 (#11) | 1 BUG |
 | `GameStateOrchestrator.cs` | 1 (#22) | 1 CRASH |
+| `PauseMenuNode.cs` | 1 (#24) | 1 CRASH (node leak) |
+| `BlockInteractionService.cs` | 1 (#25) | 1 CRASH |
+| `WorldSelectionPanelNode.cs` | 1 (#26) | 1 BUG (non-deterministic seeds) |
 
 ### Ce qui est bien fait
 
