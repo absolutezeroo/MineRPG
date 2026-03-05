@@ -25,4 +25,7 @@ public enum ChunkState
 
     /// <summary>Chunk has been modified and needs re-meshing.</summary>
     Dirty,
+
+    /// <summary>Chunk is being unloaded. Save may be in progress. No further access allowed.</summary>
+    Unloading,
 }

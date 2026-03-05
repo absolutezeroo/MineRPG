@@ -7,9 +7,9 @@ using MineRPG.World.Chunks;
 namespace MineRPG.Godot.World;
 
 /// <summary>
-/// Periodically saves modified chunks to disk.
-/// Extracted from <see cref="ChunkLoadingScheduler"/> to keep file lengths manageable.
-/// Runs autosave every <see cref="AutosaveIntervalSeconds"/> and saves all dirty chunks on exit.
+/// Periodically snapshots modified chunks and enqueues them for async background saving.
+/// File I/O is entirely off the main thread — this node only copies block data and hands
+/// save work items to <see cref="ChunkLoadingScheduler"/>'s worker pool.
 /// </summary>
 public sealed partial class ChunkAutosaveScheduler : Node
 {
@@ -17,7 +17,7 @@ public sealed partial class ChunkAutosaveScheduler : Node
 
     private IChunkManager _chunkManager = null!;
     private ILogger _logger = null!;
-    private ChunkPersistenceService? _persistence;
+    private ChunkLoadingScheduler? _scheduler;
     private float _autosaveTimer;
 
     /// <inheritdoc />
@@ -26,16 +26,18 @@ public sealed partial class ChunkAutosaveScheduler : Node
         _chunkManager = ServiceLocator.Instance.Get<IChunkManager>();
         _logger = ServiceLocator.Instance.Get<ILogger>();
 
-        if (ServiceLocator.Instance.TryGet<ChunkPersistenceService>(out ChunkPersistenceService? persistence))
+        if (ServiceLocator.Instance.TryGet<ChunkLoadingScheduler>(out ChunkLoadingScheduler? scheduler))
         {
-            _persistence = persistence;
+            _scheduler = scheduler;
         }
     }
 
     /// <inheritdoc />
     public override void _ExitTree()
     {
-        SaveAllDirtyChunks();
+        // Enqueue final saves for all remaining dirty chunks.
+        // ChunkLoadingScheduler._ExitTree will also sweep and flush as a safety net.
+        EnqueueAllDirtyChunks();
     }
 
     /// <inheritdoc />
@@ -46,42 +48,42 @@ public sealed partial class ChunkAutosaveScheduler : Node
         if (_autosaveTimer >= AutosaveIntervalSeconds)
         {
             _autosaveTimer = 0f;
-            SaveAllDirtyChunks();
+            EnqueueAllDirtyChunks();
         }
     }
 
     /// <summary>
-    /// Saves a single chunk if it has been modified. Called during chunk unload.
+    /// Snapshots all modified chunks and enqueues them for async background saving.
+    /// No file I/O occurs on the calling thread.
     /// </summary>
-    /// <param name="entry">The chunk entry to save.</param>
-    public void SaveIfModified(ChunkEntry entry)
+    public void EnqueueAllDirtyChunks()
     {
-        _persistence?.SaveIfModified(entry);
-    }
-
-    /// <summary>
-    /// Saves all modified chunks to disk immediately.
-    /// </summary>
-    public void SaveAllDirtyChunks()
-    {
-        if (_persistence is null)
+        if (_scheduler is null)
         {
             return;
         }
 
-        int saved = 0;
+        int enqueued = 0;
 
         foreach (ChunkEntry entry in _chunkManager.GetAll())
         {
-            if (_persistence.SaveIfModified(entry))
+            // Skip chunks that are not modified or are already being unloaded
+            if (!entry.IsModified || entry.State == ChunkState.Unloading)
             {
-                saved++;
+                continue;
             }
+
+            ushort[] snapshot = new ushort[ChunkData.TotalBlocks];
+            entry.Data.CopyBlocksUnderReadLock(snapshot);
+            entry.IsModified = false;
+
+            _scheduler.EnqueueSave(entry.Coord, snapshot);
+            enqueued++;
         }
 
-        if (saved > 0)
+        if (enqueued > 0)
         {
-            _logger.Info("Autosave: Saved {0} modified chunks.", saved);
+            _logger.Info("Autosave: Enqueued {0} chunks for async save.", enqueued);
         }
     }
 }

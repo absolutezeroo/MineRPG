@@ -130,7 +130,8 @@ public sealed partial class GameStateOrchestrator : Node, IGameStateController
         SubscribeEvents();
 
         // Transition state machine
-        PlayingState playingState = new(meta, GetTree(), _eventBus, _logger);
+        string worldSaveDirectory = WorldRepository.GetSavePath(_savesRoot, meta.WorldId);
+        PlayingState playingState = new(meta, worldSaveDirectory, GetTree(), _eventBus, _logger);
         _stateMachine.ChangeState(playingState);
 
         // Load the gameplay scene

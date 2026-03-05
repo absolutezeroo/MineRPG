@@ -94,4 +94,20 @@ public sealed class ChunkPersistenceService
         entry.IsModified = false;
         _logger.Debug("Saved chunk {0} to storage ({1} bytes)", entry.Coord, data.Length);
     }
+
+    /// <summary>
+    /// Serializes and saves a pre-snapshotted block buffer for the given coordinate.
+    /// Safe to call from background threads — no ChunkEntry or ChunkData access.
+    /// </summary>
+    /// <param name="coord">The chunk coordinate.</param>
+    /// <param name="blockSnapshot">A pre-copied block array of length ChunkData.TotalBlocks.</param>
+    public void SaveSnapshot(ChunkCoord coord, ushort[] blockSnapshot)
+    {
+        ChunkData temporary = new(coord);
+        temporary.LoadFromSpan(blockSnapshot);
+
+        byte[] data = _serializer.Serialize(temporary);
+        _storage.Save(coord, data);
+        _logger.Debug("Saved chunk {0} snapshot to storage ({1} bytes)", coord, data.Length);
+    }
 }

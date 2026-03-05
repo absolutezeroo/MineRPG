@@ -109,6 +109,11 @@ public static class CompositionRoot
         PlayerData playerData = new(movementSettings);
         locator.Register<PlayerData>(playerData);
 
+        PlayerRepository playerRepository = new(logger);
+        locator.Register<PlayerRepository>(playerRepository);
+
+        TryRestorePlayerSave(playerData, saveRoot, playerRepository, logger);
+
         PerformanceMonitor performanceMonitor = new();
         locator.Register<PerformanceMonitor>(performanceMonitor);
 
@@ -137,5 +142,35 @@ public static class CompositionRoot
             logger.Warning("Could not load movement_settings.json — using defaults. {0}", ex.Message);
             return new PlayerMovementSettings();
         }
+    }
+
+    private static void TryRestorePlayerSave(
+        PlayerData playerData,
+        string saveRoot,
+        PlayerRepository playerRepository,
+        ILogger logger)
+    {
+        if (!playerRepository.TryLoad(saveRoot, out PlayerSaveData? save) || save is null)
+        {
+            logger.Info("CompositionRoot: No player save found — using spawn defaults.");
+            return;
+        }
+
+        playerData.PositionX = save.PositionX;
+        playerData.PositionY = save.PositionY;
+        playerData.PositionZ = save.PositionZ;
+        playerData.VelocityX = save.VelocityX;
+        playerData.VelocityY = save.VelocityY;
+        playerData.VelocityZ = save.VelocityZ;
+        playerData.CameraYaw = save.CameraYaw;
+        playerData.CameraPitch = save.CameraPitch;
+        playerData.IsSprinting = save.IsSprinting;
+        playerData.SelectedBlockId = save.SelectedBlockId;
+        playerData.MovementSettings.MouseSensitivity = save.MouseSensitivity;
+        playerData.SavedRenderDistance = save.RenderDistance;
+
+        logger.Info(
+            "CompositionRoot: Restored player save — position ({0:F1}, {1:F1}, {2:F1}), renderDistance={3}.",
+            save.PositionX, save.PositionY, save.PositionZ, save.RenderDistance);
     }
 }

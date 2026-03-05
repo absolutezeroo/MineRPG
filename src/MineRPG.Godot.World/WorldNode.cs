@@ -151,6 +151,35 @@ public sealed partial class WorldNode : Node3D
     }
 
     /// <summary>
+    /// Extracts the chunk node for the given coordinate from the active dictionary
+    /// without returning it to the pool. The caller is responsible for deferred pool return.
+    /// Used by ChunkLoadingScheduler to defer scene tree cleanup to the frame budget.
+    /// </summary>
+    /// <param name="coord">The chunk coordinate.</param>
+    /// <param name="node">The extracted node, or null if not found.</param>
+    /// <returns>True if a node was found and extracted.</returns>
+    public bool TryExtractChunkNode(ChunkCoord coord, out ChunkNode? node)
+    {
+        if (!_chunkNodes.TryGetValue(coord, out node))
+        {
+            return false;
+        }
+
+        _chunkNodes.Remove(coord);
+        return true;
+    }
+
+    /// <summary>
+    /// Returns a previously extracted chunk node to the pool.
+    /// Called by ChunkLoadingScheduler during frame-budgeted node cleanup.
+    /// </summary>
+    /// <param name="node">The node to return.</param>
+    public void ReturnChunkNodeToPool(ChunkNode node)
+    {
+        _chunkNodePool.Return(node);
+    }
+
+    /// <summary>
     /// Breaks (removes) the block at the given world position.
     /// </summary>
     /// <param name="position">The world position of the block to break.</param>
