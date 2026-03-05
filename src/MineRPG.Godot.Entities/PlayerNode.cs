@@ -108,11 +108,6 @@ public sealed partial class PlayerNode : CharacterBody3D
             }
         }
 
-        if (@event.IsActionPressed(InputActions.Attack))
-        {
-            TryBreakBlock();
-        }
-
         if (@event.IsActionPressed(InputActions.Interact))
         {
             TryPlaceBlock();
@@ -187,6 +182,7 @@ public sealed partial class PlayerNode : CharacterBody3D
         _playerData.PositionZ = Position.Z;
 
         PublishPositionIfMoved();
+        TickMiningInput(deltaTime);
     }
 
     private void OnWorldReady(WorldReadyEvent evt)
@@ -235,21 +231,28 @@ public sealed partial class PlayerNode : CharacterBody3D
         });
     }
 
-    private void TryBreakBlock()
+    private void TickMiningInput(float deltaTime)
     {
         if (!ResolveBlockInteraction())
         {
             return;
         }
 
-        Vector3 origin = _camera.GlobalPosition;
-        Vector3 forward = -_camera.GlobalTransform.Basis.Z;
-        float range = _playerData.MovementSettings.InteractionRange;
+        if (Input.IsActionPressed(InputActions.Attack))
+        {
+            Vector3 origin = _camera.GlobalPosition;
+            Vector3 forward = -_camera.GlobalTransform.Basis.Z;
+            float range = _playerData.MovementSettings.InteractionRange;
 
-        _blockInteraction!.TryBreakBlock(
-            origin.X, origin.Y, origin.Z,
-            forward.X, forward.Y, forward.Z,
-            range);
+            _blockInteraction!.TickMining(
+                origin.X, origin.Y, origin.Z,
+                forward.X, forward.Y, forward.Z,
+                range, deltaTime);
+        }
+        else
+        {
+            _blockInteraction!.CancelMining();
+        }
     }
 
     private void TryPlaceBlock()

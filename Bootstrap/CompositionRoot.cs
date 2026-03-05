@@ -128,6 +128,9 @@ public static class CompositionRoot
         PlayerData playerData = new(movementSettings);
         locator.Register<PlayerData>(playerData);
 
+        MiningState miningState = new();
+        locator.Register<MiningState>(miningState);
+
         PlayerRepository playerRepository = new(logger);
         locator.Register<PlayerRepository>(playerRepository);
 

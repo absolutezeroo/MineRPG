@@ -3,7 +3,6 @@ using Godot;
 using MineRPG.Core.DI;
 using MineRPG.Core.Events;
 using MineRPG.Core.Events.Definitions;
-using MineRPG.Core.Interfaces;
 using MineRPG.Core.Interfaces.Gameplay;
 using MineRPG.Core.Logging;
 using MineRPG.Entities.Player;
@@ -40,12 +39,15 @@ public sealed partial class GameplayBootstrap : Node
         IVoxelRaycaster raycaster = ServiceLocator.Instance.Get<IVoxelRaycaster>();
         BlockRegistry blockRegistry = ServiceLocator.Instance.Get<BlockRegistry>();
         PlayerData playerData = ServiceLocator.Instance.Get<PlayerData>();
+        MiningState miningState = ServiceLocator.Instance.Get<MiningState>();
+        IEventBus eventBus = ServiceLocator.Instance.Get<IEventBus>();
 
-        BlockInteractionService blockInteraction = new(raycaster, worldNode, blockRegistry, playerData, logger);
+        BlockInteractionService blockInteraction = new(
+            raycaster, worldNode, blockRegistry, playerData,
+            miningState, eventBus, equippedTool: null, logger);
 
         ServiceLocator.Instance.Register<IBlockInteractionService>(blockInteraction);
 
-        IEventBus eventBus = ServiceLocator.Instance.Get<IEventBus>();
         eventBus.Publish(new GameInitializedEvent());
 
         logger.Info("GameplayBootstrap: Scene references registered.");

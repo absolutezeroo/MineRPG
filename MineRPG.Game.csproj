@@ -39,4 +39,8 @@
     <EmbeddedResource Remove="docs\**" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Todos\" />
+  </ItemGroup>
+
 </Project>

@@ -59,6 +59,9 @@ public sealed partial class WorldNode : Node3D
         }
 
         _eventBus.Subscribe<PlayerPositionUpdatedEvent>(OnPlayerPositionUpdated);
+
+        MiningOverlayNode miningOverlay = new();
+        AddChild(miningOverlay);
     }
 
     /// <inheritdoc />

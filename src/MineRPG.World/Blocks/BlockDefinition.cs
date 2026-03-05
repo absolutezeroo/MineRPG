@@ -22,9 +22,23 @@ public sealed class BlockDefinition
     [JsonProperty("flags")]
     public BlockFlags Flags { get; init; }
 
-    /// <summary>Mining hardness value.</summary>
+    /// <summary>Mining hardness value. Negative means indestructible.</summary>
     [JsonProperty("hardness")]
     public float Hardness { get; init; }
+
+    /// <summary>
+    /// Tool type required for efficient mining and loot drops.
+    /// Examples: "pickaxe", "axe", "shovel". Null means any tool or bare hands.
+    /// </summary>
+    [JsonProperty("requiredToolType")]
+    public string? RequiredToolType { get; init; }
+
+    /// <summary>
+    /// Minimum tool tier needed for the correct-tool bonus.
+    /// 0 = hand, 1 = wood, 2 = stone, 3 = iron, 4 = diamond.
+    /// </summary>
+    [JsonProperty("minimumToolTier")]
+    public int MinimumToolTier { get; init; }
 
     /// <summary>Per-face texture configuration.</summary>
     [JsonProperty("textures")]

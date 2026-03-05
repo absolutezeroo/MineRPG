@@ -3,6 +3,8 @@
   "name": "Grass",
   "flags": 1,
   "hardness": 0.6,
+  "requiredToolType": "shovel",
+  "minimumToolTier": 0,
   "textures": {
     "top": "grass_top",
     "bottom": "dirt",

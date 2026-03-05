@@ -3,6 +3,8 @@
   "name": "Diamond Ore",
   "flags": 1,
   "hardness": 3.0,
+  "requiredToolType": "pickaxe",
+  "minimumToolTier": 3,
   "textures": {
     "all": "diamond_ore"
   }
