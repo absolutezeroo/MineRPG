@@ -25,6 +25,7 @@ public sealed class BiomeCoverageTests
             new()
             {
                 Id = "ocean",
+                HasClimateTarget = true,
                 ClimateTarget = new BiomeClimateTarget
                 {
                     Continentalness = new ParameterRange(-1.0f, -0.4f),
@@ -38,6 +39,7 @@ public sealed class BiomeCoverageTests
             new()
             {
                 Id = "plains",
+                HasClimateTarget = true,
                 ClimateTarget = new BiomeClimateTarget
                 {
                     Continentalness = new ParameterRange(-0.11f, 0.55f),
@@ -51,6 +53,7 @@ public sealed class BiomeCoverageTests
             new()
             {
                 Id = "desert",
+                HasClimateTarget = true,
                 ClimateTarget = new BiomeClimateTarget
                 {
                     Continentalness = new ParameterRange(0.0f, 1.0f),
@@ -64,6 +67,7 @@ public sealed class BiomeCoverageTests
             new()
             {
                 Id = "snowy_tundra",
+                HasClimateTarget = true,
                 ClimateTarget = new BiomeClimateTarget
                 {
                     Continentalness = new ParameterRange(-0.2f, 0.8f),
@@ -77,6 +81,7 @@ public sealed class BiomeCoverageTests
             new()
             {
                 Id = "jungle",
+                HasClimateTarget = true,
                 ClimateTarget = new BiomeClimateTarget
                 {
                     Continentalness = new ParameterRange(-0.1f, 0.7f),
@@ -90,6 +95,7 @@ public sealed class BiomeCoverageTests
             new()
             {
                 Id = "mountains",
+                HasClimateTarget = true,
                 ClimateTarget = new BiomeClimateTarget
                 {
                     Continentalness = new ParameterRange(0.2f, 1.0f),
@@ -103,6 +109,7 @@ public sealed class BiomeCoverageTests
             new()
             {
                 Id = "swamp",
+                HasClimateTarget = true,
                 ClimateTarget = new BiomeClimateTarget
                 {
                     Continentalness = new ParameterRange(-0.3f, 0.3f),
@@ -116,6 +123,7 @@ public sealed class BiomeCoverageTests
             new()
             {
                 Id = "taiga",
+                HasClimateTarget = true,
                 ClimateTarget = new BiomeClimateTarget
                 {
                     Continentalness = new ParameterRange(0.0f, 0.8f),
@@ -129,6 +137,7 @@ public sealed class BiomeCoverageTests
             new()
             {
                 Id = "deep_caves",
+                HasClimateTarget = true,
                 ClimateTarget = new BiomeClimateTarget
                 {
                     Continentalness = ParameterRange.Full,
@@ -142,6 +151,7 @@ public sealed class BiomeCoverageTests
             new()
             {
                 Id = "forest",
+                HasClimateTarget = true,
                 ClimateTarget = new BiomeClimateTarget
                 {
                     Continentalness = new ParameterRange(-0.1f, 0.6f),

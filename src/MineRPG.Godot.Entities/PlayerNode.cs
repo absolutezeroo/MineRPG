@@ -24,6 +24,12 @@ public sealed partial class PlayerNode : CharacterBody3D
     private const float MaxPitchRadians = 89f * MathF.PI / 180f;
     private const float PositionPublishThresholdSquared = 0.0001f;
 
+    /// <summary>
+    /// Increased safe margin prevents physics tunneling when collision shapes
+    /// are rebuilt asynchronously after block edits.
+    /// </summary>
+    private const float PhysicsSafeMargin = 0.08f;
+
     [Export] private Camera3D _camera = null!;
 
     private PlayerData _playerData = null!;
@@ -41,6 +47,9 @@ public sealed partial class PlayerNode : CharacterBody3D
         _playerData = ServiceLocator.Instance.Get<PlayerData>();
         _eventBus = ServiceLocator.Instance.Get<IEventBus>();
         _logger = ServiceLocator.Instance.Get<ILogger>();
+
+        // Prevent physics tunneling when chunk collision shapes change
+        SafeMargin = PhysicsSafeMargin;
 
         // Resolve camera -- [Export] NodePath may not auto-resolve on private fields
         _camera ??= GetNode<Camera3D>("Camera3D");

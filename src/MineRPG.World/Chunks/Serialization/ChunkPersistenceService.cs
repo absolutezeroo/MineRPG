@@ -101,7 +101,8 @@ public sealed class ChunkPersistenceService
     /// </summary>
     /// <param name="coord">The chunk coordinate.</param>
     /// <param name="blockSnapshot">A pre-copied block array of length ChunkData.TotalBlocks.</param>
-    public void SaveSnapshot(ChunkCoord coord, ushort[] blockSnapshot)
+    /// <returns>The serialized size in bytes.</returns>
+    public int SaveSnapshot(ChunkCoord coord, ushort[] blockSnapshot)
     {
         ChunkData temporary = new(coord);
         temporary.LoadFromSpan(blockSnapshot);
@@ -109,5 +110,6 @@ public sealed class ChunkPersistenceService
         byte[] data = _serializer.Serialize(temporary);
         _storage.Save(coord, data);
         _logger.Debug("Saved chunk {0} snapshot to storage ({1} bytes)", coord, data.Length);
+        return data.Length;
     }
 }

@@ -6,10 +6,12 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using MineRPG.Core.Diagnostics;
+using MineRPG.Core.Events;
 using MineRPG.Core.Logging;
 using MineRPG.Core.Math;
 using MineRPG.World.Chunks;
 using MineRPG.World.Chunks.Serialization;
+using MineRPG.World.Events;
 using MineRPG.World.Generation;
 using MineRPG.World.Meshing;
 
@@ -37,6 +39,7 @@ internal sealed class ChunkWorkerPool : IDisposable
     private readonly IChunkManager _chunkManager;
     private readonly IWorldGenerator _generator;
     private readonly IChunkMeshBuilder _meshBuilder;
+    private readonly IEventBus _eventBus;
     private readonly ILogger _logger;
     private readonly ChunkPersistenceService? _persistence;
     private readonly PerformanceMonitor? _performanceMonitor;
@@ -62,6 +65,12 @@ internal sealed class ChunkWorkerPool : IDisposable
     public ConcurrentDictionary<ChunkCoord, byte> BlockEditRemeshes { get; } = new();
 
     /// <summary>
+    /// Tracks chunks that had additional block edits while a remesh was already in flight.
+    /// The drainer checks this after applying a mesh and re-enqueues if stale.
+    /// </summary>
+    public ConcurrentDictionary<ChunkCoord, byte> StaleEdits { get; } = new();
+
+    /// <summary>
     /// Gets the save queue for enqueueing chunk saves.
     /// </summary>
     public ConcurrentQueue<SaveWork> SaveQueue { get; } = new();
@@ -79,6 +88,7 @@ internal sealed class ChunkWorkerPool : IDisposable
     /// <param name="chunkManager">Chunk manager for neighbor lookups.</param>
     /// <param name="generator">World generator for terrain creation.</param>
     /// <param name="meshBuilder">Mesh builder for chunk meshing.</param>
+    /// <param name="eventBus">Event bus for publishing save events (queued for main-thread flush).</param>
     /// <param name="logger">Logger for error reporting.</param>
     /// <param name="persistence">Optional persistence service for saves.</param>
     /// <param name="performanceMonitor">Optional performance metrics recorder.</param>
@@ -86,6 +96,7 @@ internal sealed class ChunkWorkerPool : IDisposable
         IChunkManager chunkManager,
         IWorldGenerator generator,
         IChunkMeshBuilder meshBuilder,
+        IEventBus eventBus,
         ILogger logger,
         ChunkPersistenceService? persistence,
         PerformanceMonitor? performanceMonitor)
@@ -93,6 +104,7 @@ internal sealed class ChunkWorkerPool : IDisposable
         _chunkManager = chunkManager;
         _generator = generator;
         _meshBuilder = meshBuilder;
+        _eventBus = eventBus;
         _logger = logger;
         _persistence = persistence;
         _performanceMonitor = performanceMonitor;
@@ -177,6 +189,7 @@ internal sealed class ChunkWorkerPool : IDisposable
 
         PendingRemeshes.TryRemove(coord, out _);
         BlockEditRemeshes.TryRemove(coord, out _);
+        StaleEdits.TryRemove(coord, out _);
     }
 
     /// <summary>
@@ -355,7 +368,13 @@ internal sealed class ChunkWorkerPool : IDisposable
     {
         try
         {
-            _persistence?.SaveSnapshot(work.Coord, work.BlockSnapshot);
+            int byteSize = _persistence?.SaveSnapshot(work.Coord, work.BlockSnapshot) ?? 0;
+
+            _eventBus.PublishQueued(new ChunkSavedEvent
+            {
+                Coord = work.Coord,
+                ByteSize = byteSize,
+            });
         }
         catch (Exception exception)
         {

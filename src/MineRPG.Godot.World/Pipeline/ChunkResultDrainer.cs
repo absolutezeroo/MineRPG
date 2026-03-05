@@ -124,6 +124,21 @@ internal sealed class ChunkResultDrainer
         {
             ScheduleNeighborRemeshes(entry.Coord, isBlockEdit);
         }
+
+        // Another block edit happened while this remesh was in flight.
+        // PendingRemeshes was just cleared, so re-enqueue to capture the latest data.
+        if (_workerPool.StaleEdits.TryRemove(entry.Coord, out _))
+        {
+            if (_chunkManager.TryGet(entry.Coord, out ChunkEntry? staleEntry)
+                && staleEntry is not null
+                && staleEntry.State >= ChunkState.Ready
+                && staleEntry.State != ChunkState.Unloading
+                && _workerPool.PendingRemeshes.TryAdd(entry.Coord, 0))
+            {
+                _workerPool.BlockEditRemeshes.TryAdd(entry.Coord, 0);
+                _workerPool.EnqueueBlockEditRemesh(staleEntry, entry.Coord);
+            }
+        }
     }
 
     private void ScheduleNeighborRemeshes(ChunkCoord coord, bool isFromBlockEdit)

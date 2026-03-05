@@ -84,7 +84,7 @@ public sealed partial class ChunkLoadingScheduler : Node
         }
 
         _workerPool = new ChunkWorkerPool(
-            _chunkManager, generator, meshBuilder, _logger, _persistence, _performanceMonitor);
+            _chunkManager, generator, meshBuilder, _eventBus, _logger, _persistence, _performanceMonitor);
         _resultDrainer = new ChunkResultDrainer(
             _workerPool, _chunkManager, _eventBus, _logger, _worldNode, preloadProgress);
         _nodeCleaner = new ChunkNodeCleaner(_worldNode);
@@ -118,6 +118,7 @@ public sealed partial class ChunkLoadingScheduler : Node
     /// <inheritdoc />
     public override void _Process(double delta)
     {
+        _eventBus.FlushQueued();
         _resultDrainer.DrainResults(FrameBudgetMs);
         _nodeCleaner.CleanNodes(UnloadFrameBudgetMs);
         UpdatePerformanceMetrics();
@@ -125,6 +126,8 @@ public sealed partial class ChunkLoadingScheduler : Node
 
     /// <summary>
     /// Schedule an async remesh for a chunk after a block edit.
+    /// If a remesh is already in flight, marks the chunk as stale so the drainer
+    /// re-enqueues another remesh after the current one completes.
     /// </summary>
     /// <param name="coord">The coordinate of the chunk to remesh.</param>
     public void ScheduleBlockEditRemesh(ChunkCoord coord)
@@ -141,6 +144,9 @@ public sealed partial class ChunkLoadingScheduler : Node
 
         if (!_workerPool.PendingRemeshes.TryAdd(coord, 0))
         {
+            // A remesh is already in flight — mark as stale so the drainer
+            // re-enqueues after the current mesh is applied.
+            _workerPool.StaleEdits.TryAdd(coord, 0);
             return;
         }
 

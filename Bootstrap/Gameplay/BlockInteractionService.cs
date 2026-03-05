@@ -23,8 +23,8 @@ public sealed class BlockInteractionService(
     /// <summary>Half-width of the player capsule on X/Z axes.</summary>
     private const float PlayerHalfWidth = 0.3f;
 
-    /// <summary>Full height of the player capsule on Y axis.</summary>
-    private const float PlayerHeight = 1.8f;
+    /// <summary>Half-height of the player capsule on Y axis.</summary>
+    private const float PlayerHalfHeight = 0.9f;
 
     /// <summary>
     /// Attempts to break the block at the given ray origin and direction.
@@ -95,7 +95,7 @@ public sealed class BlockInteractionService(
     /// <summary>
     /// Checks whether a block at the given world position would overlap the player's body.
     /// Uses an AABB approximation of the player capsule (radius 0.3, height 1.8).
-    /// PositionY is assumed to be the player's feet (Godot CharacterBody3D convention).
+    /// PositionY is the capsule center (Godot CharacterBody3D with centered CollisionShape3D).
     /// </summary>
     private bool BlockOverlapsPlayer(WorldPosition blockPos)
     {
@@ -104,13 +104,13 @@ public sealed class BlockInteractionService(
         float pz = playerData.PositionZ;
 
         // Block occupies [bx, bx+1) x [by, by+1) x [bz, bz+1)
-        // Player AABB: [px-hw, px+hw) x [py, py+height) x [pz-hw, pz+hw)
+        // Player AABB: [px-hw, px+hw) x [py-hh, py+hh) x [pz-hw, pz+hw)
         int bx = blockPos.X;
         int by = blockPos.Y;
         int bz = blockPos.Z;
 
         return bx < px + PlayerHalfWidth && px - PlayerHalfWidth < bx + 1
-            && by < py + PlayerHeight && py < by + 1
+            && by < py + PlayerHalfHeight && py - PlayerHalfHeight < by + 1
             && bz < pz + PlayerHalfWidth && pz - PlayerHalfWidth < bz + 1;
     }
 }
