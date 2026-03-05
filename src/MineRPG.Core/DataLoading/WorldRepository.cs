@@ -28,13 +28,13 @@ public sealed class WorldRepository
     }
 
     /// <summary>
-    /// Returns the save folder path for the given seed.
+    /// Returns the save folder path for the given world ID.
     /// </summary>
     /// <param name="savesRoot">Root directory containing all world saves.</param>
-    /// <param name="seed">The world generation seed.</param>
+    /// <param name="worldId">The unique world identifier.</param>
     /// <returns>The absolute path to the world's save directory.</returns>
-    public static string GetSavePath(string savesRoot, int seed)
-        => Path.Combine(savesRoot, $"world_{seed}");
+    public static string GetSavePath(string savesRoot, string worldId)
+        => Path.Combine(savesRoot, $"world_{worldId}");
 
     /// <summary>
     /// Lists all worlds found under the saves root directory.
@@ -77,7 +77,7 @@ public sealed class WorldRepository
     /// <param name="meta">The world metadata to persist.</param>
     public void SaveMeta(string savesRoot, WorldMeta meta)
     {
-        string saveDirectory = GetSavePath(savesRoot, meta.Seed);
+        string saveDirectory = GetSavePath(savesRoot, meta.WorldId);
         Directory.CreateDirectory(saveDirectory);
 
         string metaPath = Path.Combine(saveDirectory, MetaFileName);
@@ -88,15 +88,15 @@ public sealed class WorldRepository
     }
 
     /// <summary>
-    /// Attempts to load the metadata for a specific world by seed.
+    /// Attempts to load the metadata for a specific world by its unique ID.
     /// </summary>
     /// <param name="savesRoot">Root directory containing all world saves.</param>
-    /// <param name="seed">The world generation seed.</param>
+    /// <param name="worldId">The unique world identifier.</param>
     /// <param name="meta">The loaded metadata, or null on failure.</param>
     /// <returns>True if the metadata was loaded successfully.</returns>
-    public bool TryLoad(string savesRoot, int seed, out WorldMeta? meta)
+    public bool TryLoad(string savesRoot, string worldId, out WorldMeta? meta)
     {
-        string metaPath = Path.Combine(GetSavePath(savesRoot, seed), MetaFileName);
+        string metaPath = Path.Combine(GetSavePath(savesRoot, worldId), MetaFileName);
         return TryLoadFromPath(metaPath, out meta);
     }
 

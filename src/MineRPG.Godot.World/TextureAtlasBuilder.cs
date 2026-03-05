@@ -52,6 +52,7 @@ public static class TextureAtlasBuilder
                 if (texture is not null)
                 {
                     tileImage = texture.GetImage();
+                    tileImage.Convert(Image.Format.Rgba8);
 
                     if (tileImage.GetWidth() != TileSize || tileImage.GetHeight() != TileSize)
                     {

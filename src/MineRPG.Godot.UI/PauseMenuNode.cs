@@ -41,21 +41,21 @@ public sealed partial class PauseMenuNode : Control
         SetAnchorsPreset(LayoutPreset.FullRect);
         Visible = false;
 
-        // Semi-transparent overlay
+        // Semi-transparent overlay (ignore mouse so panel buttons receive clicks)
         ColorRect overlay = new();
         overlay.SetAnchorsPreset(LayoutPreset.FullRect);
         overlay.Color = OverlayColor;
+        overlay.MouseFilter = MouseFilterEnum.Ignore;
         AddChild(overlay);
 
-        // Center panel
+        // Center panel via CenterContainer
+        CenterContainer panelCenter = new();
+        panelCenter.SetAnchorsPreset(LayoutPreset.FullRect);
+        panelCenter.MouseFilter = MouseFilterEnum.Ignore;
+        AddChild(panelCenter);
+
         PanelContainer panel = new();
-        panel.SetAnchorsPreset(LayoutPreset.Center);
-        panel.GrowHorizontal = GrowDirection.Both;
-        panel.GrowVertical = GrowDirection.Both;
-        panel.OffsetLeft = -(PanelWidth / 2f);
-        panel.OffsetRight = PanelWidth / 2f;
-        panel.OffsetTop = -160f;
-        panel.OffsetBottom = 160f;
+        panel.CustomMinimumSize = new Vector2(PanelWidth, 320f);
 
         StyleBoxFlat panelStyle = new();
         panelStyle.BgColor = PanelBgColor;
@@ -63,7 +63,7 @@ public sealed partial class PauseMenuNode : Control
         panelStyle.BorderColor = new Color(0.3f, 0.25f, 0.2f, 1f);
         panelStyle.SetContentMarginAll(16);
         panel.AddThemeStyleboxOverride("panel", panelStyle);
-        AddChild(panel);
+        panelCenter.AddChild(panel);
 
         VBoxContainer layout = new();
         layout.AddThemeConstantOverride("separation", 10);
@@ -107,10 +107,7 @@ public sealed partial class PauseMenuNode : Control
     }
 
     /// <inheritdoc />
-    public override void _ExitTree()
-    {
-        _eventBus.Unsubscribe<GamePausedEvent>(OnGamePaused);
-    }
+    public override void _ExitTree() => _eventBus?.Unsubscribe<GamePausedEvent>(OnGamePaused);
 
     /// <inheritdoc />
     public override void _Input(InputEvent @event)

@@ -49,16 +49,16 @@ public sealed partial class OptionsPanelNode : Control
         _logger = ServiceLocator.Instance.Get<ILogger>();
 
         SetAnchorsPreset(LayoutPreset.FullRect);
+        MouseFilter = MouseFilterEnum.Ignore;
 
-        // Center panel
+        // Center panel via CenterContainer
+        CenterContainer panelCenter = new();
+        panelCenter.SetAnchorsPreset(LayoutPreset.FullRect);
+        panelCenter.MouseFilter = MouseFilterEnum.Ignore;
+        AddChild(panelCenter);
+
         PanelContainer panel = new();
-        panel.SetAnchorsPreset(LayoutPreset.Center);
-        panel.GrowHorizontal = GrowDirection.Both;
-        panel.GrowVertical = GrowDirection.Both;
-        panel.OffsetLeft = -(PanelWidth / 2f);
-        panel.OffsetRight = PanelWidth / 2f;
-        panel.OffsetTop = -180f;
-        panel.OffsetBottom = 180f;
+        panel.CustomMinimumSize = new Vector2(PanelWidth, 360f);
 
         StyleBoxFlat panelStyle = new();
         panelStyle.BgColor = PanelBgColor;
@@ -66,7 +66,7 @@ public sealed partial class OptionsPanelNode : Control
         panelStyle.BorderColor = new Color(0.3f, 0.25f, 0.2f, 1f);
         panelStyle.SetContentMarginAll(16);
         panel.AddThemeStyleboxOverride("panel", panelStyle);
-        AddChild(panel);
+        panelCenter.AddChild(panel);
 
         VBoxContainer layout = new();
         layout.AddThemeConstantOverride("separation", 14);
@@ -103,7 +103,7 @@ public sealed partial class OptionsPanelNode : Control
             0.01f,
             out HSlider volumeSlider,
             out _volumeValue);
-        _volumeValue.Text = ((int)(_options.MasterVolume * 100)).ToString() + "%";
+        _volumeValue.Text = $"{(int)(_options.MasterVolume * 100)}%";
         volumeSlider.ValueChanged += OnVolumeChanged;
         layout.AddChild(volumeRow);
 
@@ -173,7 +173,7 @@ public sealed partial class OptionsPanelNode : Control
     private void OnVolumeChanged(double value)
     {
         _options.MasterVolume = (float)value;
-        _volumeValue.Text = ((int)(value * 100)).ToString() + "%";
+        _volumeValue.Text = $"{(int)(value * 100)}%";
     }
 
     private void OnRenderDistanceChanged(double value)
@@ -182,8 +182,5 @@ public sealed partial class OptionsPanelNode : Control
         _distanceValue.Text = ((int)value).ToString();
     }
 
-    private void OnBackPressed()
-    {
-        EmitSignal(SignalName.BackRequested);
-    }
+    private void OnBackPressed() => EmitSignal(SignalName.BackRequested);
 }

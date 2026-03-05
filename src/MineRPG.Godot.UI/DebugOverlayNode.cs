@@ -40,11 +40,8 @@ public sealed partial class DebugOverlayNode : Control
     private readonly StringBuilder _performanceBuilder = new(StringBuilderCapacity);
 
     private VBoxContainer _leftColumn = null!;
-    private Label _positionHeader = null!;
     private Label _positionLabel = null!;
-    private Label _worldHeader = null!;
     private Label _worldLabel = null!;
-    private Label _performanceHeader = null!;
     private Label _performanceLabel = null!;
 
     private IDebugDataProvider _debugData = null!;
@@ -118,8 +115,8 @@ public sealed partial class DebugOverlayNode : Control
         positionContent.MouseFilter = MouseFilterEnum.Ignore;
         positionPanel.AddChild(positionContent);
 
-        _positionHeader = CreateHeaderLabel("--- Position ---");
-        positionContent.AddChild(_positionHeader);
+        Label positionHeader = CreateHeaderLabel("--- Position ---");
+        positionContent.AddChild(positionHeader);
 
         _positionLabel = CreateDataLabel();
         positionContent.AddChild(_positionLabel);
@@ -134,8 +131,8 @@ public sealed partial class DebugOverlayNode : Control
         worldContent.MouseFilter = MouseFilterEnum.Ignore;
         worldPanel.AddChild(worldContent);
 
-        _worldHeader = CreateHeaderLabel("--- World ---");
-        worldContent.AddChild(_worldHeader);
+        Label worldHeader = CreateHeaderLabel("--- World ---");
+        worldContent.AddChild(worldHeader);
 
         _worldLabel = CreateDataLabel();
         worldContent.AddChild(_worldLabel);
@@ -150,8 +147,8 @@ public sealed partial class DebugOverlayNode : Control
         performanceContent.MouseFilter = MouseFilterEnum.Ignore;
         performancePanel.AddChild(performanceContent);
 
-        _performanceHeader = CreateHeaderLabel("--- Performance ---");
-        performanceContent.AddChild(_performanceHeader);
+        Label performanceHeader = CreateHeaderLabel("--- Performance ---");
+        performanceContent.AddChild(performanceHeader);
 
         _performanceLabel = CreateDataLabel();
         performanceContent.AddChild(_performanceLabel);

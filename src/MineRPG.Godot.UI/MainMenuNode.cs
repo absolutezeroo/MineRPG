@@ -41,10 +41,11 @@ public sealed partial class MainMenuNode : Control
 
         SetAnchorsPreset(LayoutPreset.FullRect);
 
-        // Dark background
+        // Dark background (ignore mouse so buttons receive clicks)
         ColorRect background = new();
         background.SetAnchorsPreset(LayoutPreset.FullRect);
         background.Color = BackgroundColor;
+        background.MouseFilter = MouseFilterEnum.Ignore;
         AddChild(background);
 
         // Title
@@ -58,18 +59,18 @@ public sealed partial class MainMenuNode : Control
         title.AddThemeFontSizeOverride("font_size", TitleFontSize);
         title.SetAnchorsPreset(LayoutPreset.TopWide);
         title.OffsetTop = TitleTopMargin;
-        title.Size = new Vector2(0f, 80f);
+        title.OffsetBottom = TitleTopMargin + 80f;
         AddChild(title);
 
-        // Button container
+        // Button container (centered via CenterContainer)
+        CenterContainer buttonCenter = new();
+        buttonCenter.SetAnchorsPreset(LayoutPreset.FullRect);
+        buttonCenter.MouseFilter = MouseFilterEnum.Ignore;
+        AddChild(buttonCenter);
+
         _buttonStack = new VBoxContainer();
-        _buttonStack.SetAnchorsPreset(LayoutPreset.Center);
-        _buttonStack.GrowHorizontal = GrowDirection.Both;
-        _buttonStack.GrowVertical = GrowDirection.Both;
-        _buttonStack.OffsetLeft = -(ButtonWidth / 2f);
-        _buttonStack.OffsetTop = -50f;
         _buttonStack.AddThemeConstantOverride("separation", (int)ButtonSpacing);
-        AddChild(_buttonStack);
+        buttonCenter.AddChild(_buttonStack);
 
         Button singleplayerButton = CreateMenuButton("Singleplayer");
         singleplayerButton.Pressed += OnSingleplayerPressed;

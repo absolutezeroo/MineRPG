@@ -45,12 +45,8 @@ public sealed partial class GameStateOrchestrator : Node, IGameStateController
 
         SubscribeEvents();
 
-        // Start in the main menu
+        // Start in the main menu (project.godot main_scene is already MainMenu.tscn)
         _stateMachine.ChangeState(new MainMenuState());
-
-        // Change scene to main menu (the autoload main scene is already loaded,
-        // but we switch to the MainMenu scene via deferred call)
-        CallDeferred(MethodName.LoadMainMenuScene);
 
         _logger.Info("GameStateOrchestrator ready. Starting in MainMenuState.");
     }
@@ -105,6 +101,9 @@ public sealed partial class GameStateOrchestrator : Node, IGameStateController
         // Persist updated LastPlayedAt
         WorldRepository repository = ServiceLocator.Instance.Get<WorldRepository>();
         repository.SaveMeta(_savesRoot, meta);
+
+        // Unsubscribe from the old bus before replacing it
+        UnsubscribeEvents();
 
         // Create a fresh ServiceLocator for the new world
         ServiceLocator freshLocator = new();

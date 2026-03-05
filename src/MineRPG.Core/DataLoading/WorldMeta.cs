@@ -8,6 +8,9 @@ namespace MineRPG.Core.DataLoading;
 /// </summary>
 public sealed class WorldMeta
 {
+    /// <summary>Gets or sets the unique identifier for the world's save directory.</summary>
+    public string WorldId { get; set; } = Guid.NewGuid().ToString("N");
+
     /// <summary>Gets or sets the display name of the world.</summary>
     public string Name { get; set; } = "New World";
 

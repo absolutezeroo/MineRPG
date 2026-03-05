@@ -40,14 +40,7 @@ public sealed partial class GameplayBootstrap : Node
 
         BlockInteractionService blockInteraction = new(raycaster, worldNode, playerData, logger);
 
-        if (ServiceLocator.Instance.TryGet<IBlockInteractionService>(out _))
-        {
-            ((ServiceLocator)ServiceLocator.Instance).Replace<IBlockInteractionService>(blockInteraction);
-        }
-        else
-        {
-            ServiceLocator.Instance.Register<IBlockInteractionService>(blockInteraction);
-        }
+        ServiceLocator.Instance.Register<IBlockInteractionService>(blockInteraction);
 
         IEventBus eventBus = ServiceLocator.Instance.Get<IEventBus>();
         eventBus.Publish(new GameInitializedEvent());

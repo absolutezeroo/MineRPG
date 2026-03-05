@@ -57,16 +57,16 @@ public sealed partial class WorldSelectionPanelNode : Control
             Path.GetDirectoryName(dataRoot) ?? dataRoot, "Saves");
 
         SetAnchorsPreset(LayoutPreset.FullRect);
+        MouseFilter = MouseFilterEnum.Ignore;
 
-        // Center panel
+        // Center panel via CenterContainer
+        CenterContainer panelCenter = new();
+        panelCenter.SetAnchorsPreset(LayoutPreset.FullRect);
+        panelCenter.MouseFilter = MouseFilterEnum.Ignore;
+        AddChild(panelCenter);
+
         PanelContainer panelContainer = new();
-        panelContainer.SetAnchorsPreset(LayoutPreset.Center);
-        panelContainer.GrowHorizontal = GrowDirection.Both;
-        panelContainer.GrowVertical = GrowDirection.Both;
-        panelContainer.OffsetLeft = -(PanelWidth / 2f);
-        panelContainer.OffsetRight = PanelWidth / 2f;
-        panelContainer.OffsetTop = -250f;
-        panelContainer.OffsetBottom = 250f;
+        panelContainer.CustomMinimumSize = new Vector2(PanelWidth, 500f);
 
         StyleBoxFlat panelStyle = new();
         panelStyle.BgColor = PanelBgColor;
@@ -74,7 +74,7 @@ public sealed partial class WorldSelectionPanelNode : Control
         panelStyle.BorderColor = new Color(0.3f, 0.25f, 0.2f, 1f);
         panelStyle.SetContentMarginAll(16);
         panelContainer.AddThemeStyleboxOverride("panel", panelStyle);
-        AddChild(panelContainer);
+        panelCenter.AddChild(panelContainer);
 
         VBoxContainer mainLayout = new();
         mainLayout.AddThemeConstantOverride("separation", 12);
@@ -228,7 +228,7 @@ public sealed partial class WorldSelectionPanelNode : Control
     {
         string worldName = _nameField.Text.Trim();
 
-        if (string.IsNullOrEmpty(worldName))
+        if (string.IsNullOrWhiteSpace(worldName))
         {
             worldName = "New World";
         }

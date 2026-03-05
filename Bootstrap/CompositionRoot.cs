@@ -98,7 +98,7 @@ public static class CompositionRoot
         ChunkSerializer chunkSerializer = new();
         locator.Register<IChunkSerializer>(chunkSerializer);
 
-        string saveRoot = WorldRepository.GetSavePath(savesRoot, worldSeed);
+        string saveRoot = WorldRepository.GetSavePath(savesRoot, worldMeta.WorldId);
         FileChunkStorage chunkStorage = new(saveRoot);
         locator.Register<IChunkStorage>(chunkStorage);
 
