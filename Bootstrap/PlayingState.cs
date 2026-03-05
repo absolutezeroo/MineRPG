@@ -3,7 +3,6 @@ using Godot;
 using MineRPG.Core.DataLoading;
 using MineRPG.Core.DI;
 using MineRPG.Core.Events;
-using MineRPG.Core.Interfaces;
 using MineRPG.Core.Logging;
 using MineRPG.Core.StateMachine;
 using MineRPG.Entities.Player;
@@ -101,13 +100,6 @@ public sealed class PlayingState : IState
             return;
         }
 
-        if (!ServiceLocator.Instance.TryGet<IOptionsProvider>(out IOptionsProvider? options)
-            || options is null)
-        {
-            _logger.Warning("PlayingState: Cannot save player — IOptionsProvider not found.");
-            return;
-        }
-
         PlayerSaveData saveData = new()
         {
             PositionX = playerData.PositionX,
@@ -120,8 +112,6 @@ public sealed class PlayingState : IState
             CameraPitch = playerData.CameraPitch,
             IsSprinting = playerData.IsSprinting,
             SelectedBlockId = playerData.SelectedBlockId,
-            MouseSensitivity = options.MouseSensitivity,
-            RenderDistance = options.RenderDistance,
         };
 
         repository.Save(_worldSaveDirectory, saveData);

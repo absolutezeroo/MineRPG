@@ -3,6 +3,7 @@ using Godot;
 using MineRPG.Core.DataLoading;
 using MineRPG.Core.DI;
 using MineRPG.Core.Events;
+using MineRPG.Core.Interfaces;
 using MineRPG.Core.Logging;
 
 namespace MineRPG.Game.Bootstrap;
@@ -34,6 +35,14 @@ public sealed partial class GameBootstrapper : Node
 
         WorldRepository worldRepository = new(logger);
         locator.Register(worldRepository);
+
+        JsonSettingsRepository settingsRepo = new(logger);
+        locator.Register<ISettingsRepository>(settingsRepo);
+
+        SettingsData settingsData = settingsRepo.Load();
+        locator.Register(settingsData);
+
+        KeybindApplicator.Apply(settingsData, logger);
 
         logger.Info("GameBootstrapper: Bootstrap initialization complete.");
     }

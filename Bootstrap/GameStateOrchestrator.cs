@@ -105,6 +105,10 @@ public sealed partial class GameStateOrchestrator : Node, IGameStateController
         // Unsubscribe from the old bus before replacing it
         UnsubscribeEvents();
 
+        // Capture global settings from the old locator before replacing it
+        ISettingsRepository settingsRepo = ServiceLocator.Instance.Get<ISettingsRepository>();
+        SettingsData settingsData = ServiceLocator.Instance.Get<SettingsData>();
+
         // Create a fresh ServiceLocator for the new world
         ServiceLocator freshLocator = new();
         ServiceLocator.SetInstance(freshLocator);
@@ -119,6 +123,10 @@ public sealed partial class GameStateOrchestrator : Node, IGameStateController
         // Re-register orchestrator, state machine, and repository
         freshLocator.Register<IGameStateController>(this);
         freshLocator.Register<IStateMachine>(_stateMachine);
+
+        // Carry over global settings (registered at bootstrap, survive world reloads)
+        freshLocator.Register<ISettingsRepository>(settingsRepo);
+        freshLocator.Register(settingsData);
 
         WorldRepository freshRepository = new(_logger);
         freshLocator.Register(freshRepository);

@@ -12,7 +12,6 @@ using MineRPG.Core.Diagnostics;
 using MineRPG.Core.Events;
 using MineRPG.Core.Logging;
 using MineRPG.Core.Math;
-using MineRPG.Entities.Player;
 using MineRPG.World.Chunks;
 using MineRPG.World.Events;
 using MineRPG.World.Generation;
@@ -108,14 +107,6 @@ public sealed partial class ChunkLoadingScheduler : Node
         {
             _performanceMonitor = monitor;
             _performanceMonitor.SetRenderDistance(_renderDistance);
-        }
-
-        // Apply saved render distance from previous session
-        if (ServiceLocator.Instance.TryGet<PlayerData>(out PlayerData? playerData)
-            && playerData is not null
-            && playerData.SavedRenderDistance > 0)
-        {
-            SetRenderDistance(playerData.SavedRenderDistance);
         }
 
         // Start worker pool
@@ -473,6 +464,16 @@ public sealed partial class ChunkLoadingScheduler : Node
     {
         if (entry.PendingMesh is null)
         {
+            return;
+        }
+
+        // The chunk may have been unloaded between when the worker enqueued this
+        // result and when ApplyChunkMesh runs on the main thread. Drop stale results.
+        if (!_chunkManager.TryGet(entry.Coord, out _))
+        {
+            entry.PendingMesh = null;
+            _pendingRemeshes.TryRemove(entry.Coord, out _);
+            _blockEditRemeshes.TryRemove(entry.Coord, out _);
             return;
         }
 

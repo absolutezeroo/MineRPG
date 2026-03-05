@@ -47,11 +47,13 @@ public sealed partial class PlayerNode : CharacterBody3D
             _blockInteraction = blockInteraction;
         }
 
-        // Restore saved position, velocity, and camera orientation from PlayerData.
+        // Restore saved position and camera orientation from PlayerData.
         // CompositionRoot.Wire() populates PlayerData from the save file before
         // ChangeSceneToFile() is called, so these values are ready.
+        // Velocity is zeroed — restoring mid-air velocity before terrain is meshed
+        // would cause the player to fall through the world.
         Position = new Vector3(_playerData.PositionX, _playerData.PositionY, _playerData.PositionZ);
-        Velocity = new Vector3(_playerData.VelocityX, _playerData.VelocityY, _playerData.VelocityZ);
+        Velocity = Vector3.Zero;
         Rotation = new Vector3(0f, _playerData.CameraYaw, 0f);
         _camera.Rotation = new Vector3(_playerData.CameraPitch, 0f, 0f);
 

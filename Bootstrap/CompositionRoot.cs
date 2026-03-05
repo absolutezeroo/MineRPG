@@ -123,7 +123,9 @@ public static class CompositionRoot
         HotbarController hotbarController = new(playerData);
         locator.Register<IHotbarController>(hotbarController);
 
-        OptionsProvider optionsProvider = new(playerData, logger);
+        ISettingsRepository settingsRepo = locator.Get<ISettingsRepository>();
+        SettingsData settingsData = locator.Get<SettingsData>();
+        OptionsProvider optionsProvider = new(playerData, settingsRepo, settingsData, logger);
         locator.Register<IOptionsProvider>(optionsProvider);
 
         logger.Info(
@@ -166,11 +168,9 @@ public static class CompositionRoot
         playerData.CameraPitch = save.CameraPitch;
         playerData.IsSprinting = save.IsSprinting;
         playerData.SelectedBlockId = save.SelectedBlockId;
-        playerData.MovementSettings.MouseSensitivity = save.MouseSensitivity;
-        playerData.SavedRenderDistance = save.RenderDistance;
 
         logger.Info(
-            "CompositionRoot: Restored player save — position ({0:F1}, {1:F1}, {2:F1}), renderDistance={3}.",
-            save.PositionX, save.PositionY, save.PositionZ, save.RenderDistance);
+            "CompositionRoot: Restored player save — position ({0:F1}, {1:F1}, {2:F1}).",
+            save.PositionX, save.PositionY, save.PositionZ);
     }
 }

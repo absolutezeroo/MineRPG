@@ -3,6 +3,7 @@
 /android/
 /export_presets.cfg
 export.cfg
+addons/
 
 # .NET / C# build output
 bin/

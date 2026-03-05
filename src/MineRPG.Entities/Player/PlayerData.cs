@@ -52,10 +52,4 @@ public sealed class PlayerData
 
     /// <summary>Block ID currently selected in the hotbar.</summary>
     public ushort SelectedBlockId { get; set; } = DefaultSelectedBlockId;
-
-    /// <summary>
-    /// Render distance loaded from the player save file.
-    /// Zero means no saved value — use the scheduler's default.
-    /// </summary>
-    public int SavedRenderDistance { get; set; }
 }
