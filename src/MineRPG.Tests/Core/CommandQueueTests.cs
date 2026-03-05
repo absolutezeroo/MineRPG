@@ -112,10 +112,7 @@ public sealed class CommandQueueTests
     }
 
     [Fact]
-    public void Undo_WhenEmpty_ReturnsFalse()
-    {
-        _queue.Undo().Should().BeFalse();
-    }
+    public void Undo_WhenEmpty_ReturnsFalse() => _queue.Undo().Should().BeFalse();
 
     [Fact]
     public void NonUndoableCommand_IsNotAddedToUndoStack()

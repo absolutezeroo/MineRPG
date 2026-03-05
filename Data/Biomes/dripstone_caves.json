@@ -2,6 +2,7 @@
   "id": "dripstone_caves",
   "displayName": "Dripstone Caves",
   "category": 5,
+  "hasClimateTarget": true,
   "climateTarget": {
     "continentalness": {
       "min": -1.0,

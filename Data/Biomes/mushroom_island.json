@@ -2,6 +2,7 @@
   "id": "mushroom_island",
   "displayName": "Mushroom Island",
   "category": 7,
+  "hasClimateTarget": true,
   "climateTarget": {
     "continentalness": {
       "min": -0.55,

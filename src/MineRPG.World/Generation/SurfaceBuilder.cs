@@ -150,7 +150,8 @@ public sealed class SurfaceBuilder
         }
 
         ushort primaryStone = primaryBiome.StoneBlock != 0 ? primaryBiome.StoneBlock : _defaultStoneId;
-        return primaryStone;
+        ushort secondaryStone = secondaryBiome.StoneBlock != 0 ? secondaryBiome.StoneBlock : _defaultStoneId;
+        return BlendBlock(primaryStone, secondaryStone, blendWeight);
     }
 
     private const float BlendThreshold = 0.5f;

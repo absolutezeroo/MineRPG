@@ -9,7 +9,12 @@ namespace MineRPG.Core.DataLoading;
 public sealed class WorldMeta
 {
     /// <summary>Gets or sets the unique identifier for the world's save directory.</summary>
-    public string WorldId { get; set; } = Guid.NewGuid().ToString("N");
+    /// <remarks>
+    /// Defaults to a new GUID. When deserialized from JSON, Newtonsoft.Json
+    /// overwrites this default. If the JSON field is missing, the world will
+    /// receive a stable empty-string sentinel that callers must handle.
+    /// </remarks>
+    public string WorldId { get; set; } = string.Empty;
 
     /// <summary>Gets or sets the display name of the world.</summary>
     public string Name { get; set; } = "New World";

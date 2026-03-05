@@ -2,6 +2,7 @@
   "id": "snowy_slopes",
   "displayName": "Snowy Slopes",
   "category": 4,
+  "hasClimateTarget": true,
   "climateTarget": {
     "continentalness": {
       "min": 0.55,

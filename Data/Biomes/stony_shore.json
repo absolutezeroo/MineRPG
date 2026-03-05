@@ -2,6 +2,7 @@
   "id": "stony_shore",
   "displayName": "Stony Shore",
   "category": 1,
+  "hasClimateTarget": true,
   "climateTarget": {
     "continentalness": {
       "min": -0.19,

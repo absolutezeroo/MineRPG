@@ -2,6 +2,7 @@
   "id": "badlands",
   "displayName": "Badlands",
   "category": 3,
+  "hasClimateTarget": true,
   "climateTarget": {
     "continentalness": {
       "min": 0.55,

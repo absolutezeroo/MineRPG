@@ -15,10 +15,7 @@ public sealed class VoxelMathTests
     [InlineData(0, 0, 1, 16)]
     [InlineData(0, 1, 0, 256)]
     [InlineData(15, 0, 15, 255)]
-    public void GetIndex_ReturnsCorrectFlatIndex(int x, int y, int z, int expected)
-    {
-        VoxelMath.GetIndex(x, y, z, SizeX, SizeZ).Should().Be(expected);
-    }
+    public void GetIndex_ReturnsCorrectFlatIndex(int x, int y, int z, int expected) => VoxelMath.GetIndex(x, y, z, SizeX, SizeZ).Should().Be(expected);
 
     [Theory]
     [InlineData(0, 0, 0, 0)]
@@ -81,26 +78,17 @@ public sealed class VoxelMathTests
     }
 
     [Fact]
-    public void FaceDirections_HasSixEntries()
-    {
-        VoxelMath.FaceDirections.Should().HaveCount(6);
-    }
+    public void FaceDirections_HasSixEntries() => VoxelMath.FaceDirections.Should().HaveCount(6);
 
     [Theory]
     [InlineData(0f, 10f, 0.5f, 5f)]
     [InlineData(0f, 10f, 0f, 0f)]
     [InlineData(0f, 10f, 1f, 10f)]
-    public void Lerp_InterpolatesCorrectly(float a, float b, float t, float expected)
-    {
-        VoxelMath.Lerp(a, b, t).Should().BeApproximately(expected, 0.001f);
-    }
+    public void Lerp_InterpolatesCorrectly(float a, float b, float t, float expected) => VoxelMath.Lerp(a, b, t).Should().BeApproximately(expected, 0.001f);
 
     [Theory]
     [InlineData(5f, 0f, 10f, 5f)]
     [InlineData(-5f, 0f, 10f, 0f)]
     [InlineData(15f, 0f, 10f, 10f)]
-    public void Clamp_ClampsCorrectly(float value, float min, float max, float expected)
-    {
-        VoxelMath.Clamp(value, min, max).Should().BeApproximately(expected, 0.001f);
-    }
+    public void Clamp_ClampsCorrectly(float value, float min, float max, float expected) => VoxelMath.Clamp(value, min, max).Should().BeApproximately(expected, 0.001f);
 }

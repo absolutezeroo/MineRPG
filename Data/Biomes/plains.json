@@ -2,6 +2,7 @@
   "id": "plains",
   "displayName": "Plains",
   "category": 2,
+  "hasClimateTarget": true,
   "climateTarget": {
     "continentalness": {
       "min": -0.11,

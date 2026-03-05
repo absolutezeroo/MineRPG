@@ -76,10 +76,7 @@ public sealed class DecoratorPipelineTests
             int[] heightMap,
             int chunkWorldX,
             int chunkWorldZ,
-            Random random)
-        {
-            _onDecorate();
-        }
+            Random random) => _onDecorate();
     }
 
     private sealed class SeedCapturingDecorator : IDecorator
@@ -97,9 +94,6 @@ public sealed class DecoratorPipelineTests
             int[] heightMap,
             int chunkWorldX,
             int chunkWorldZ,
-            Random random)
-        {
-            _capturedValues.Add(random.Next());
-        }
+            Random random) => _capturedValues.Add(random.Next());
     }
 }

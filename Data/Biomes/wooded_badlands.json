@@ -2,6 +2,7 @@
   "id": "wooded_badlands",
   "displayName": "Wooded Badlands",
   "category": 3,
+  "hasClimateTarget": true,
   "climateTarget": {
     "continentalness": {
       "min": 0.55,

@@ -40,14 +40,14 @@ public static class KeybindApplicator
 
             InputMap.ActionEraseEvents(actionName);
 
-            if (bindData.PhysicalKeycode >= 0)
+            if (bindData.PhysicalKeycode > 0)
             {
                 InputEventKey keyEvent = new();
                 keyEvent.PhysicalKeycode = (Key)bindData.PhysicalKeycode;
                 InputMap.ActionAddEvent(actionName, keyEvent);
                 logger.Debug("KeybindApplicator: '{0}' -> Key {1}", actionName, (Key)bindData.PhysicalKeycode);
             }
-            else if (bindData.MouseButton >= 0)
+            else if (bindData.MouseButton > 0)
             {
                 InputEventMouseButton mouseEvent = new();
                 mouseEvent.ButtonIndex = (MouseButton)bindData.MouseButton;

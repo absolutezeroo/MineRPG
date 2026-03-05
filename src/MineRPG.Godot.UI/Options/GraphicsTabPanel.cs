@@ -114,15 +114,9 @@ public sealed partial class GraphicsTabPanel : OptionsTabPanel
         layout.AddChild(afRow);
     }
 
-    private void OnWindowModeChanged(long index)
-    {
-        Options.WindowMode = (WindowModeOption)(int)index;
-    }
+    private void OnWindowModeChanged(long index) => Options.WindowMode = (WindowModeOption)(int)index;
 
-    private void OnVSyncToggled(bool pressed)
-    {
-        Options.VSyncEnabled = pressed;
-    }
+    private void OnVSyncToggled(bool pressed) => Options.VSyncEnabled = pressed;
 
     private void OnRenderDistanceChanged(double value)
     {
@@ -142,23 +136,11 @@ public sealed partial class GraphicsTabPanel : OptionsTabPanel
         _brightnessValue.Text = ((float)value).ToString("F2");
     }
 
-    private void OnMsaaChanged(long index)
-    {
-        Options.MsaaQuality = (MsaaQuality)(int)index;
-    }
+    private void OnMsaaChanged(long index) => Options.MsaaQuality = (MsaaQuality)(int)index;
 
-    private void OnShadowQualityChanged(long index)
-    {
-        Options.ShadowQuality = (ShadowQuality)(int)index;
-    }
+    private void OnShadowQualityChanged(long index) => Options.ShadowQuality = (ShadowQuality)(int)index;
 
-    private void OnSsaoToggled(bool pressed)
-    {
-        Options.SsaoEnabled = pressed;
-    }
+    private void OnSsaoToggled(bool pressed) => Options.SsaoEnabled = pressed;
 
-    private void OnAfChanged(long index)
-    {
-        Options.AnisotropicFiltering = (AnisotropicFilteringLevel)(int)index;
-    }
+    private void OnAfChanged(long index) => Options.AnisotropicFiltering = (AnisotropicFilteringLevel)(int)index;
 }

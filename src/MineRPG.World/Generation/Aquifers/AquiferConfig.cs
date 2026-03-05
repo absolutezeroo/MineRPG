@@ -52,8 +52,5 @@ public sealed class AquiferConfig
     /// Creates a default aquifer configuration.
     /// </summary>
     /// <returns>A new default configuration.</returns>
-    public static AquiferConfig CreateDefault()
-    {
-        return new AquiferConfig();
-    }
+    public static AquiferConfig CreateDefault() => new();
 }

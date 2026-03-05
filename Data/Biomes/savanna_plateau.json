@@ -2,6 +2,7 @@
   "id": "savanna_plateau",
   "displayName": "Savanna Plateau",
   "category": 3,
+  "hasClimateTarget": true,
   "climateTarget": {
     "continentalness": {
       "min": 0.55,

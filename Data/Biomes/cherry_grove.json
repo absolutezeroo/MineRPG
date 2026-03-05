@@ -2,6 +2,7 @@
   "id": "cherry_grove",
   "displayName": "Cherry Grove",
   "category": 3,
+  "hasClimateTarget": true,
   "climateTarget": {
     "continentalness": {
       "min": 0.55,

@@ -33,10 +33,7 @@ public sealed class EventBus : IEventBus
     /// Subscribe a handler for events of type <typeparamref name="T"/>.
     /// </summary>
     /// <param name="handler">The handler to invoke when the event is published.</param>
-    public void Subscribe<T>(Action<T> handler) where T : struct
-    {
-        GetOrCreateSlot<T>().Add(handler);
-    }
+    public void Subscribe<T>(Action<T> handler) where T : struct => GetOrCreateSlot<T>().Add(handler);
 
     /// <summary>
     /// Unsubscribe a previously registered handler for events of type <typeparamref name="T"/>.
@@ -74,10 +71,7 @@ public sealed class EventBus : IEventBus
     }
 
     /// <inheritdoc />
-    public void PublishQueued<T>(T eventData) where T : struct
-    {
-        _deferredQueue.Enqueue(() => Publish(eventData));
-    }
+    public void PublishQueued<T>(T eventData) where T : struct => _deferredQueue.Enqueue(() => Publish(eventData));
 
     /// <inheritdoc />
     public int FlushQueued()
@@ -104,8 +98,5 @@ public sealed class EventBus : IEventBus
         }
     }
 
-    private EventBusSlot<T> GetOrCreateSlot<T>() where T : struct
-    {
-        return (EventBusSlot<T>)_slots.GetOrAdd(typeof(T), _ => new EventBusSlot<T>());
-    }
+    private EventBusSlot<T> GetOrCreateSlot<T>() where T : struct => (EventBusSlot<T>)_slots.GetOrAdd(typeof(T), _ => new EventBusSlot<T>());
 }

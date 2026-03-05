@@ -2,6 +2,7 @@
   "id": "frozen_peaks",
   "displayName": "Frozen Peaks",
   "category": 4,
+  "hasClimateTarget": true,
   "climateTarget": {
     "continentalness": {
       "min": 0.55,

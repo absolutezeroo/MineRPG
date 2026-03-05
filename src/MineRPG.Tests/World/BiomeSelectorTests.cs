@@ -124,6 +124,7 @@ public sealed class BiomeSelectorTests
             new BiomeDefinition
             {
                 Id = "only_biome",
+                HasClimateTarget = true,
                 ClimateTarget = new BiomeClimateTarget
                 {
                     Continentalness = ParameterRange.Full,
@@ -212,6 +213,7 @@ public sealed class BiomeSelectorTests
         BiomeDefinition plains = new BiomeDefinition
         {
             Id = "plains",
+            HasClimateTarget = true,
             ClimateTarget = new BiomeClimateTarget
             {
                 Continentalness = new ParameterRange(0.0f, 0.5f),
@@ -226,6 +228,7 @@ public sealed class BiomeSelectorTests
         BiomeDefinition desert = new BiomeDefinition
         {
             Id = "desert",
+            HasClimateTarget = true,
             ClimateTarget = new BiomeClimateTarget
             {
                 Continentalness = new ParameterRange(0.1f, 0.8f),
@@ -240,6 +243,7 @@ public sealed class BiomeSelectorTests
         BiomeDefinition tundra = new BiomeDefinition
         {
             Id = "tundra",
+            HasClimateTarget = true,
             ClimateTarget = new BiomeClimateTarget
             {
                 Continentalness = new ParameterRange(0.0f, 0.7f),

@@ -26,18 +26,12 @@ public sealed class ServiceLocator : IServiceLocator
     /// Subsequent calls replace the instance (useful for test setup).
     /// </summary>
     /// <param name="locator">The service locator instance to use globally.</param>
-    public static void SetInstance(IServiceLocator locator)
-    {
-        _instance = locator ?? throw new ArgumentNullException(nameof(locator));
-    }
+    public static void SetInstance(IServiceLocator locator) => _instance = locator ?? throw new ArgumentNullException(nameof(locator));
 
     /// <summary>
     /// Reset the global instance to null. For test teardown only.
     /// </summary>
-    public static void ResetInstance()
-    {
-        _instance = null;
-    }
+    public static void ResetInstance() => _instance = null;
 
     /// <inheritdoc />
     public void Register<T>(T instance) where T : class
@@ -55,10 +49,7 @@ public sealed class ServiceLocator : IServiceLocator
     }
 
     /// <inheritdoc />
-    public void Replace<T>(T instance) where T : class
-    {
-        _services[typeof(T)] = instance ?? throw new ArgumentNullException(nameof(instance));
-    }
+    public void Replace<T>(T instance) where T : class => _services[typeof(T)] = instance ?? throw new ArgumentNullException(nameof(instance));
 
     /// <inheritdoc />
     public T Get<T>() where T : class

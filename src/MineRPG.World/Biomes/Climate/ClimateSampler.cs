@@ -99,10 +99,7 @@ public sealed class ClimateSampler
     /// <param name="worldX">World X coordinate.</param>
     /// <param name="worldZ">World Z coordinate.</param>
     /// <returns>Raw continentalness noise value in [-1, 1].</returns>
-    public float SampleContinentalness(int worldX, int worldZ)
-    {
-        return _continentalnessNoise.Sample2D(worldX, worldZ);
-    }
+    public float SampleContinentalness(int worldX, int worldZ) => _continentalnessNoise.Sample2D(worldX, worldZ);
 
     /// <summary>
     /// Transforms weirdness noise to peaks-and-valleys using the Minecraft 1.18+ formula.
@@ -119,6 +116,8 @@ public sealed class ClimateSampler
         return 1f - MathF.Abs(folded);
     }
 
+    private const float MaxDepthForNormalization = 128f;
+
     private static float ComputeDepth(int worldY, int surfaceY)
     {
         if (worldY >= surfaceY)
@@ -126,8 +125,9 @@ public sealed class ClimateSampler
             return 0f;
         }
 
-        // Normalize depth: 0 at surface, 1 at Y=0 or below
-        float rawDepth = (float)(surfaceY - worldY) / surfaceY;
+        // Normalize depth: 0 at surface, 1 at MaxDepthForNormalization blocks below.
+        // Uses a fixed denominator to avoid division by zero when surfaceY == 0.
+        float rawDepth = (float)(surfaceY - worldY) / MaxDepthForNormalization;
         return Math.Clamp(rawDepth, 0f, 1f);
     }
 }

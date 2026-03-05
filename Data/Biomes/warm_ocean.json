@@ -2,6 +2,7 @@
   "id": "warm_ocean",
   "displayName": "Warm Ocean",
   "category": 0,
+  "hasClimateTarget": true,
   "climateTarget": {
     "continentalness": {
       "min": -1.0,

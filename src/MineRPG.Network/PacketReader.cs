@@ -71,10 +71,7 @@ public sealed class PacketReader
     /// Reads a 32-bit floating-point value from the buffer.
     /// </summary>
     /// <returns>The float value read.</returns>
-    public float ReadFloat()
-    {
-        return BitConverter.Int32BitsToSingle(ReadInt32());
-    }
+    public float ReadFloat() => BitConverter.Int32BitsToSingle(ReadInt32());
 
     /// <summary>
     /// Reads a length-prefixed UTF-8 string from the buffer.

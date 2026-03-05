@@ -54,10 +54,7 @@ public sealed partial class GameStateOrchestrator : Node, IGameStateController
     }
 
     /// <inheritdoc />
-    public override void _ExitTree()
-    {
-        UnsubscribeEvents();
-    }
+    public override void _ExitTree() => UnsubscribeEvents();
 
     /// <summary>
     /// Called by PlayerNode when ESC is pressed during gameplay.
@@ -195,8 +192,8 @@ public sealed partial class GameStateOrchestrator : Node, IGameStateController
                 _stateMachine.PopState();
             }
 
-            // Exit PlayingState to save chunks
-            _stateMachine.CurrentState?.Exit();
+            // Transition through the state machine so PlayingState.Exit() fires properly
+            _stateMachine.ChangeState(new MainMenuState());
         }
 
         _logger.Info("GameStateOrchestrator: Quit requested.");

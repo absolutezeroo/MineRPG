@@ -122,7 +122,9 @@ public sealed class WorldGenerator : IWorldGenerator
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private ushort SelectSurfaceBlock(int y, in TerrainColumn column)
     {
-        if (y <= BeachMaxY && _sandBlockId != 0)
+        // Only apply beach sand near sea level for non-desert/non-snow biomes
+        // where water is adjacent (surface at or below sea level)
+        if (y <= BeachMaxY && _sandBlockId != 0 && column.SurfaceY <= SeaLevel)
         {
             return _sandBlockId;
         }

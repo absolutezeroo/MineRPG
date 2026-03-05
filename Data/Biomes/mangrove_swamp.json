@@ -2,6 +2,7 @@
   "id": "mangrove_swamp",
   "displayName": "Mangrove Swamp",
   "category": 2,
+  "hasClimateTarget": true,
   "climateTarget": {
     "continentalness": {
       "min": -0.11,

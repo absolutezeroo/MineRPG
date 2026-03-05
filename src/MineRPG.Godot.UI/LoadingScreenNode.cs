@@ -17,6 +17,7 @@ namespace MineRPG.Godot.UI;
 public sealed partial class LoadingScreenNode : CanvasLayer
 {
     private const int CanvasLayerOrder = 128;
+    private const int DefaultPreloadChunkCount = 49;
     private const int TitleFontSize = 36;
     private const int StatusFontSize = 18;
     private const float BarWidth = 420f;
@@ -61,10 +62,7 @@ public sealed partial class LoadingScreenNode : CanvasLayer
     }
 
     /// <inheritdoc />
-    public override void _ExitTree()
-    {
-        _eventBus?.Unsubscribe<WorldReadyEvent>(OnWorldReady);
-    }
+    public override void _ExitTree() => _eventBus?.Unsubscribe<WorldReadyEvent>(OnWorldReady);
 
     /// <inheritdoc />
     public override void _Process(double delta)
@@ -146,7 +144,7 @@ public sealed partial class LoadingScreenNode : CanvasLayer
         layout.AddChild(_progressBar);
 
         // Status label
-        int required = _progress?.Required ?? 49;
+        int required = _progress?.Required ?? DefaultPreloadChunkCount;
         _statusLabel = new Label();
         _statusLabel.Text = $"Loading terrain... 0/{required} chunks";
         _statusLabel.HorizontalAlignment = HorizontalAlignment.Center;

@@ -50,10 +50,7 @@ public sealed class CommandQueue
     /// Enqueue a command for deferred execution.
     /// </summary>
     /// <param name="command">The command to enqueue.</param>
-    public void Enqueue(ICommand command)
-    {
-        _pending.Enqueue(command);
-    }
+    public void Enqueue(ICommand command) => _pending.Enqueue(command);
 
     /// <summary>
     /// Execute all pending commands in FIFO order.

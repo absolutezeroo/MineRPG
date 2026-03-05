@@ -2,6 +2,7 @@
   "id": "dark_forest",
   "displayName": "Dark Forest",
   "category": 2,
+  "hasClimateTarget": true,
   "climateTarget": {
     "continentalness": {
       "min": -0.11,

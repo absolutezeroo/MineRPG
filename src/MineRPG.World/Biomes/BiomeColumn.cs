@@ -50,10 +50,7 @@ public sealed class BiomeColumn
     /// <param name="cellY">Cell Y in [0, CellsY).</param>
     /// <param name="cellZ">Cell Z in [0, CellsZ).</param>
     /// <returns>The biome ID at the cell.</returns>
-    public string GetBiomeId(int cellX, int cellY, int cellZ)
-    {
-        return _biomeIds[GetIndex(cellX, cellY, cellZ)];
-    }
+    public string GetBiomeId(int cellX, int cellY, int cellZ) => _biomeIds[GetIndex(cellX, cellY, cellZ)];
 
     /// <summary>
     /// Gets the biome ID at a block position (converts to cell coordinates).
@@ -77,10 +74,7 @@ public sealed class BiomeColumn
     /// <param name="cellY">Cell Y in [0, CellsY).</param>
     /// <param name="cellZ">Cell Z in [0, CellsZ).</param>
     /// <param name="biomeId">The biome ID to set.</param>
-    public void SetBiomeId(int cellX, int cellY, int cellZ, string biomeId)
-    {
-        _biomeIds[GetIndex(cellX, cellY, cellZ)] = biomeId;
-    }
+    public void SetBiomeId(int cellX, int cellY, int cellZ, string biomeId) => _biomeIds[GetIndex(cellX, cellY, cellZ)] = biomeId;
 
     /// <summary>
     /// Sets all cells in a vertical column (all Y levels) to the given biome.
@@ -115,13 +109,7 @@ public sealed class BiomeColumn
     /// Returns the raw biome ID array for serialization.
     /// </summary>
     /// <returns>A read-only span of all biome IDs.</returns>
-    public ReadOnlySpan<string> GetRawSpan()
-    {
-        return _biomeIds.AsSpan();
-    }
+    public ReadOnlySpan<string> GetRawSpan() => _biomeIds.AsSpan();
 
-    private static int GetIndex(int cellX, int cellY, int cellZ)
-    {
-        return cellX + cellZ * CellsX + cellY * CellsX * CellsZ;
-    }
+    private static int GetIndex(int cellX, int cellY, int cellZ) => cellX + cellZ * CellsX + cellY * CellsX * CellsZ;
 }

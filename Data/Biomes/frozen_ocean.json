@@ -2,6 +2,7 @@
   "id": "frozen_ocean",
   "displayName": "Frozen Ocean",
   "category": 0,
+  "hasClimateTarget": true,
   "climateTarget": {
     "continentalness": {
       "min": -0.55,

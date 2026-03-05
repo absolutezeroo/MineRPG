@@ -2,6 +2,7 @@
   "id": "deep_frozen_ocean",
   "displayName": "Deep Frozen Ocean",
   "category": 0,
+  "hasClimateTarget": true,
   "climateTarget": {
     "continentalness": {
       "min": -1.0,

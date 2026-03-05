@@ -140,10 +140,9 @@ public sealed class BiomeDefinition
         : HeightSpline.CreateDefault(DefaultSplineOffset, DefaultSplineOffset);
 
     /// <summary>
-    /// Returns true if this biome has a valid 6D climate target configured.
+    /// Explicit flag indicating whether this biome uses 6D climate targeting.
+    /// Set to true in JSON for biomes with climate targets. Defaults to false for legacy biomes.
     /// </summary>
-    [JsonIgnore]
-    public bool HasClimateTarget =>
-        ClimateTarget.Continentalness.Min != 0f || ClimateTarget.Continentalness.Max != 0f
-        || ClimateTarget.Temperature.Min != 0f || ClimateTarget.Temperature.Max != 0f;
+    [JsonProperty("hasClimateTarget")]
+    public bool HasClimateTarget { get; init; }
 }

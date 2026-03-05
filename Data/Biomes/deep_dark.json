@@ -2,6 +2,7 @@
   "id": "deep_dark",
   "displayName": "Deep Dark",
   "category": 5,
+  "hasClimateTarget": true,
   "climateTarget": {
     "continentalness": {
       "min": -1.0,

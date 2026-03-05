@@ -45,10 +45,7 @@ public sealed class PlayingState : IState
     }
 
     /// <inheritdoc />
-    public void Enter()
-    {
-        _logger.Info("PlayingState: Entered. World='{0}', Seed={1}", _worldMeta.Name, _worldMeta.Seed);
-    }
+    public void Enter() => _logger.Info("PlayingState: Entered. World='{0}', Seed={1}", _worldMeta.Name, _worldMeta.Seed);
 
     /// <inheritdoc />
     public void Exit()

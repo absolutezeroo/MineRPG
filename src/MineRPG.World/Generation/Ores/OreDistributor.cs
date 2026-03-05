@@ -82,10 +82,10 @@ public sealed class OreDistributor
 
             case OreDistribution.InvertedTriangle:
             {
-                // Inverted: high probability at edges, low at center
+                // Inverted: reflect triangular sample around midpoint of [minY, maxY]
+                // so high probability at edges, low at center
                 int sample = SampleTriangular(random, minY, maxY, ore.PeakHeight);
-                int center = (minY + maxY) / 2;
-                return minY + maxY - sample + center - center;
+                return minY + maxY - sample;
             }
 
             default:

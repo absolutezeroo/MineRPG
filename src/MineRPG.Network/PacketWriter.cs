@@ -71,10 +71,7 @@ public sealed class PacketWriter : IDisposable
     /// Writes a 32-bit floating-point value to the buffer.
     /// </summary>
     /// <param name="value">The float value to write.</param>
-    public void WriteFloat(float value)
-    {
-        WriteInt32(BitConverter.SingleToInt32Bits(value));
-    }
+    public void WriteFloat(float value) => WriteInt32(BitConverter.SingleToInt32Bits(value));
 
     /// <summary>
     /// Writes a length-prefixed UTF-8 string to the buffer.
@@ -104,10 +101,7 @@ public sealed class PacketWriter : IDisposable
     /// <summary>
     /// Returns the rented buffer to the array pool.
     /// </summary>
-    public void Dispose()
-    {
-        ArrayPool<byte>.Shared.Return(_buffer);
-    }
+    public void Dispose() => ArrayPool<byte>.Shared.Return(_buffer);
 
     private void EnsureCapacity(int additional)
     {

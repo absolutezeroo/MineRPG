@@ -176,10 +176,11 @@ public sealed partial class ChunkLoadingScheduler : Node
             _workSignal.Release();
         }
 
-        // Cancel any pending generation CTS
+        // Cancel and dispose any pending generation CTS
         foreach (CancellationTokenSource pendingCts in _pendingCts.Values)
         {
             pendingCts.Cancel();
+            pendingCts.Dispose();
         }
 
         // Wait up to 10 seconds for workers to flush saves
@@ -325,6 +326,14 @@ public sealed partial class ChunkLoadingScheduler : Node
     private void ScheduleChunk(ChunkEntry entry)
     {
         entry.SetState(ChunkState.Generating);
+
+        // Dispose any existing CTS for this coord before replacing
+        if (_pendingCts.TryRemove(entry.Coord, out CancellationTokenSource? oldCts))
+        {
+            oldCts.Cancel();
+            oldCts.Dispose();
+        }
+
         CancellationTokenSource cts = new();
         _pendingCts[entry.Coord] = cts;
 
@@ -510,8 +519,9 @@ public sealed partial class ChunkLoadingScheduler : Node
 
         _eventBus.Publish(new ChunkMeshedEvent { Coord = entry.Coord });
 
-        // Track preload progress — fires WorldReadyEvent exactly once when complete
-        if (_preloadProgress is not null && !_preloadProgress.IsComplete)
+        // Track preload progress — only count initial loads, not neighbor remeshes.
+        // Fires WorldReadyEvent exactly once when the preload target is reached.
+        if (!isRemesh && _preloadProgress is not null && !_preloadProgress.IsComplete)
         {
             int newCount = _preloadProgress.Increment();
 

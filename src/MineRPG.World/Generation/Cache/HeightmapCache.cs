@@ -41,10 +41,7 @@ public sealed class HeightmapCache
     /// <param name="localX">Local X in [0, 16).</param>
     /// <param name="localZ">Local Z in [0, 16).</param>
     /// <returns>The cached terrain column.</returns>
-    public TerrainColumn Get(int localX, int localZ)
-    {
-        return _columns[localX + localZ * ChunkData.SizeX];
-    }
+    public TerrainColumn Get(int localX, int localZ) => _columns[localX + localZ * ChunkData.SizeX];
 
     /// <summary>
     /// Gets the surface heights as a flat array for decorator use.

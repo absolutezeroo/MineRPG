@@ -2,6 +2,7 @@
   "id": "lush_caves",
   "displayName": "Lush Caves",
   "category": 5,
+  "hasClimateTarget": true,
   "climateTarget": {
     "continentalness": {
       "min": -1.0,

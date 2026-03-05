@@ -61,6 +61,12 @@ public sealed partial class WorldNode : Node3D
     /// <inheritdoc />
     public override void _ExitTree()
     {
+        // Guard against _Ready never completing (e.g. ServiceLocator miss)
+        if (_eventBus is null)
+        {
+            return;
+        }
+
         _eventBus.Unsubscribe<PlayerPositionUpdatedEvent>(OnPlayerPositionUpdated);
 
         // Free all active chunk nodes to prevent Godot resource leaks
@@ -174,10 +180,7 @@ public sealed partial class WorldNode : Node3D
     /// Called by ChunkLoadingScheduler during frame-budgeted node cleanup.
     /// </summary>
     /// <param name="node">The node to return.</param>
-    public void ReturnChunkNodeToPool(ChunkNode node)
-    {
-        _chunkNodePool.Return(node);
-    }
+    public void ReturnChunkNodeToPool(ChunkNode node) => _chunkNodePool.Return(node);
 
     /// <summary>
     /// Breaks (removes) the block at the given world position.
@@ -185,6 +188,11 @@ public sealed partial class WorldNode : Node3D
     /// <param name="position">The world position of the block to break.</param>
     public void BreakBlock(WorldPosition position)
     {
+        if (position.Y < 0 || position.Y >= ChunkData.SizeY)
+        {
+            return;
+        }
+
         ChunkCoord2D chunkCoord2D = VoxelMath.WorldToChunk(position.X, position.Z, ChunkData.SizeX, ChunkData.SizeZ);
         ChunkCoord coord = new(chunkCoord2D.ChunkX, chunkCoord2D.ChunkZ);
 
@@ -239,6 +247,11 @@ public sealed partial class WorldNode : Node3D
     public void PlaceBlock(WorldPosition position, ushort blockId)
     {
         if (blockId == 0)
+        {
+            return;
+        }
+
+        if (position.Y < 0 || position.Y >= ChunkData.SizeY)
         {
             return;
         }

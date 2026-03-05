@@ -49,8 +49,5 @@ public sealed class CaveFeatureConfig
     /// Creates a default configuration.
     /// </summary>
     /// <returns>A new default config.</returns>
-    public static CaveFeatureConfig CreateDefault()
-    {
-        return new CaveFeatureConfig();
-    }
+    public static CaveFeatureConfig CreateDefault() => new();
 }

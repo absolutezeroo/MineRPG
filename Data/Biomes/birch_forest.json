@@ -2,6 +2,7 @@
   "id": "birch_forest",
   "displayName": "Birch Forest",
   "category": 2,
+  "hasClimateTarget": true,
   "climateTarget": {
     "continentalness": {
       "min": -0.11,

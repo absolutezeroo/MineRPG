@@ -2,6 +2,7 @@
   "id": "grove",
   "displayName": "Grove",
   "category": 4,
+  "hasClimateTarget": true,
   "climateTarget": {
     "continentalness": {
       "min": 0.55,

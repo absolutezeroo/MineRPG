@@ -54,8 +54,5 @@ public sealed class ClimateCache
     /// <param name="localX">Local X in [0, 16).</param>
     /// <param name="localZ">Local Z in [0, 16).</param>
     /// <returns>The cached climate parameters.</returns>
-    public ClimateParameters Get(int localX, int localZ)
-    {
-        return _climateData[localX + localZ * ChunkData.SizeX];
-    }
+    public ClimateParameters Get(int localX, int localZ) => _climateData[localX + localZ * ChunkData.SizeX];
 }

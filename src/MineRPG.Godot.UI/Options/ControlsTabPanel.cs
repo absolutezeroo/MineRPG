@@ -196,13 +196,7 @@ public sealed partial class ControlsTabPanel : OptionsTabPanel
         }
 
         // Clear keybind overrides from settings
-        if (ServiceLocator.Instance.TryGet<ISettingsRepository>(
-            out ISettingsRepository? settingsRepo))
-        {
-            SettingsData snapshot = settingsRepo.Load();
-            snapshot.Keybinds.Clear();
-            settingsRepo.Save(snapshot);
-        }
+        Options.UpdateKeybindsAndSave(new System.Collections.Generic.Dictionary<string, KeybindData>());
 
         Logger.Info("ControlsTabPanel: Input bindings reset to project defaults.");
     }
@@ -234,14 +228,8 @@ public sealed partial class ControlsTabPanel : OptionsTabPanel
             isListening ? ListeningColor : LabelColor);
     }
 
-    private static void SaveKeybinds()
+    private void SaveKeybinds()
     {
-        if (!ServiceLocator.Instance.TryGet<ISettingsRepository>(
-            out ISettingsRepository? settingsRepo))
-        {
-            return;
-        }
-
         System.Collections.Generic.Dictionary<string, KeybindData> keybinds = new();
 
         foreach (RebindRowData row in RebindableActions)
@@ -273,8 +261,6 @@ public sealed partial class ControlsTabPanel : OptionsTabPanel
             }
         }
 
-        SettingsData snapshot = settingsRepo.Load();
-        snapshot.Keybinds = keybinds;
-        settingsRepo.Save(snapshot);
+        Options.UpdateKeybindsAndSave(keybinds);
     }
 }

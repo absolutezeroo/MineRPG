@@ -2,6 +2,7 @@
   "id": "stony_peaks",
   "displayName": "Stony Peaks",
   "category": 4,
+  "hasClimateTarget": true,
   "climateTarget": {
     "continentalness": {
       "min": 0.55,

@@ -31,8 +31,5 @@ public sealed class TreeRegistry
     /// <param name="typeId">The tree type identifier.</param>
     /// <param name="generator">The found generator, or null.</param>
     /// <returns>True if found.</returns>
-    public bool TryGet(string typeId, out ITreeGenerator? generator)
-    {
-        return _generators.TryGetValue(typeId, out generator);
-    }
+    public bool TryGet(string typeId, out ITreeGenerator? generator) => _generators.TryGetValue(typeId, out generator);
 }

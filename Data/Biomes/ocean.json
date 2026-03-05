@@ -2,6 +2,7 @@
   "id": "ocean",
   "displayName": "Ocean",
   "category": 0,
+  "hasClimateTarget": true,
   "climateTarget": {
     "continentalness": {
       "min": -0.55,

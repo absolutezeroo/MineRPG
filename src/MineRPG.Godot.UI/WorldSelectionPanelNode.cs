@@ -247,6 +247,7 @@ public sealed partial class WorldSelectionPanelNode : Control
 
         WorldMeta meta = new()
         {
+            WorldId = Guid.NewGuid().ToString("N"),
             Name = worldName,
             Seed = seed,
             CreatedAt = DateTime.UtcNow,
@@ -258,8 +259,5 @@ public sealed partial class WorldSelectionPanelNode : Control
         _eventBus.Publish(new WorldLoadRequestedEvent { Meta = meta });
     }
 
-    private void OnBackPressed()
-    {
-        EmitSignal(SignalName.BackRequested);
-    }
+    private void OnBackPressed() => EmitSignal(SignalName.BackRequested);
 }

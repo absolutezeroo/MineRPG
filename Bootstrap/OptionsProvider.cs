@@ -32,6 +32,7 @@ public sealed class OptionsProvider : IOptionsProvider
     private readonly PlayerData _playerData;
     private readonly ISettingsRepository _settingsRepo;
     private readonly ILogger _logger;
+    private Dictionary<string, KeybindData> _cachedKeybinds;
 
     /// <summary>
     /// Initializes a new instance and applies all settings from the provided snapshot.
@@ -49,6 +50,7 @@ public sealed class OptionsProvider : IOptionsProvider
         _playerData = playerData;
         _settingsRepo = settingsRepo;
         _logger = logger;
+        _cachedKeybinds = new Dictionary<string, KeybindData>(initialSettings.Keybinds);
 
         ApplyAllSettings(initialSettings);
     }
@@ -289,7 +291,7 @@ public sealed class OptionsProvider : IOptionsProvider
                 4 => AnisotropicFilteringLevel.AF4x,
                 8 => AnisotropicFilteringLevel.AF8x,
                 16 => AnisotropicFilteringLevel.AF16x,
-                _ => AnisotropicFilteringLevel.AF4x,
+                _ => AnisotropicFilteringLevel.Disabled,
             };
         }
         set
@@ -390,11 +392,19 @@ public sealed class OptionsProvider : IOptionsProvider
         _settingsRepo.Save(snapshot);
     }
 
+    /// <summary>
+    /// Updates the in-memory keybinds cache and persists the full settings snapshot.
+    /// Called by ControlsTabPanel after rebinding a key.
+    /// </summary>
+    /// <param name="keybinds">The updated keybind dictionary.</param>
+    public void UpdateKeybindsAndSave(Dictionary<string, KeybindData> keybinds)
+    {
+        _cachedKeybinds = keybinds;
+        SaveSnapshot();
+    }
+
     private SettingsData BuildSnapshot()
     {
-        // Load current keybinds from disk so they are not discarded
-        SettingsData current = _settingsRepo.Load();
-
         return new SettingsData
         {
             MouseSensitivity = MouseSensitivity,
@@ -408,7 +418,7 @@ public sealed class OptionsProvider : IOptionsProvider
             AnisotropicFiltering = AnisotropicFiltering,
             FieldOfView = FieldOfView,
             Brightness = Brightness,
-            Keybinds = current.Keybinds,
+            Keybinds = _cachedKeybinds,
         };
     }
 

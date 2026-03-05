@@ -42,4 +42,11 @@ public interface IOptionsProvider
 
     /// <summary>Gets or sets the display brightness/gamma multiplier (0.5 to 2.0).</summary>
     float Brightness { get; set; }
+
+    /// <summary>
+    /// Updates the in-memory keybinds cache and persists the full settings snapshot.
+    /// Called by ControlsTabPanel after rebinding a key.
+    /// </summary>
+    /// <param name="keybinds">The updated keybind dictionary.</param>
+    void UpdateKeybindsAndSave(System.Collections.Generic.Dictionary<string, DataLoading.KeybindData> keybinds);
 }

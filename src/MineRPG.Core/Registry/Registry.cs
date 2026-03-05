@@ -22,10 +22,7 @@ public sealed class Registry<TKey, TValue> : IRegistry<TKey, TValue>
     public bool IsFrozen => _isFrozen;
 
     /// <inheritdoc />
-    public void Freeze()
-    {
-        _isFrozen = true;
-    }
+    public void Freeze() => _isFrozen = true;
 
     /// <inheritdoc />
     public void Register(TKey key, TValue value)

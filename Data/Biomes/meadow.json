@@ -2,6 +2,7 @@
   "id": "meadow",
   "displayName": "Meadow",
   "category": 3,
+  "hasClimateTarget": true,
   "climateTarget": {
     "continentalness": {
       "min": 0.55,

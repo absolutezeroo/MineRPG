@@ -67,6 +67,15 @@ public sealed partial class HotbarNode : Control
     }
 
     /// <inheritdoc />
+    public override void _Notification(int what)
+    {
+        if (what == NotificationResized)
+        {
+            QueueRedraw();
+        }
+    }
+
+    /// <inheritdoc />
     public override void _Draw()
     {
         Vector2 viewportSize = GetViewportRect().Size;

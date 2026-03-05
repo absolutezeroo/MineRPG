@@ -2,6 +2,7 @@
   "id": "bamboo_jungle",
   "displayName": "Bamboo Jungle",
   "category": 2,
+  "hasClimateTarget": true,
   "climateTarget": {
     "continentalness": {
       "min": -0.11,

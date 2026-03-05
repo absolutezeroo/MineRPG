@@ -19,8 +19,11 @@ public sealed class ChunkEntry
     /// <summary>Current lifecycle state of the chunk.</summary>
     public ChunkState State => _state;
 
-    /// <summary>Pending mesh result waiting to be applied on the main thread.</summary>
-    public ChunkMeshResult? PendingMesh { get; set; }
+    /// <summary>
+    /// Pending mesh result waiting to be applied on the main thread.
+    /// Written by background workers, read by main thread — volatile for cross-thread visibility.
+    /// </summary>
+    public volatile ChunkMeshResult? PendingMesh;
 
     /// <summary>Whether collision shapes have been built for this chunk.</summary>
     public bool HasCollision { get; set; }

@@ -66,10 +66,7 @@ public sealed partial class PlayerNode : CharacterBody3D
     }
 
     /// <inheritdoc />
-    public override void _ExitTree()
-    {
-        _eventBus?.Unsubscribe<WorldReadyEvent>(OnWorldReady);
-    }
+    public override void _ExitTree() => _eventBus?.Unsubscribe<WorldReadyEvent>(OnWorldReady);
 
     /// <inheritdoc />
     public override void _Input(InputEvent @event)

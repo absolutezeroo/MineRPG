@@ -6,6 +6,7 @@ using MineRPG.Core.Interfaces;
 using MineRPG.Core.Logging;
 using MineRPG.Entities.Player;
 using MineRPG.Godot.World;
+using MineRPG.World.Blocks;
 using MineRPG.World.Spatial;
 
 namespace MineRPG.Game.Bootstrap;
@@ -18,10 +19,7 @@ namespace MineRPG.Game.Bootstrap;
 public sealed partial class GameplayBootstrap : Node
 {
     /// <inheritdoc />
-    public override void _Ready()
-    {
-        CallDeferred(MethodName.RegisterSceneReferences);
-    }
+    public override void _Ready() => CallDeferred(MethodName.RegisterSceneReferences);
 
     private void RegisterSceneReferences()
     {
@@ -36,9 +34,10 @@ public sealed partial class GameplayBootstrap : Node
         }
 
         IVoxelRaycaster raycaster = ServiceLocator.Instance.Get<IVoxelRaycaster>();
+        BlockRegistry blockRegistry = ServiceLocator.Instance.Get<BlockRegistry>();
         PlayerData playerData = ServiceLocator.Instance.Get<PlayerData>();
 
-        BlockInteractionService blockInteraction = new(raycaster, worldNode, playerData, logger);
+        BlockInteractionService blockInteraction = new(raycaster, worldNode, blockRegistry, playerData, logger);
 
         ServiceLocator.Instance.Register<IBlockInteractionService>(blockInteraction);
 

@@ -2,6 +2,7 @@
   "id": "frozen_river",
   "displayName": "Frozen River",
   "category": 6,
+  "hasClimateTarget": true,
   "climateTarget": {
     "continentalness": {
       "min": -0.11,

@@ -77,14 +77,23 @@ public sealed class WorldRepository
     /// <param name="meta">The world metadata to persist.</param>
     public void SaveMeta(string savesRoot, WorldMeta meta)
     {
-        string saveDirectory = GetSavePath(savesRoot, meta.WorldId);
-        Directory.CreateDirectory(saveDirectory);
+        try
+        {
+            string saveDirectory = GetSavePath(savesRoot, meta.WorldId);
+            Directory.CreateDirectory(saveDirectory);
 
-        string metaPath = Path.Combine(saveDirectory, MetaFileName);
-        string json = JsonConvert.SerializeObject(meta, Formatting.Indented);
-        File.WriteAllText(metaPath, json);
+            string metaPath = Path.Combine(saveDirectory, MetaFileName);
+            string json = JsonConvert.SerializeObject(meta, Formatting.Indented);
+            File.WriteAllText(metaPath, json);
 
-        _logger.Info("WorldRepository: Saved meta for world '{0}' (seed={1}).", meta.Name, meta.Seed);
+            _logger.Info("WorldRepository: Saved meta for world '{0}' (seed={1}).", meta.Name, meta.Seed);
+        }
+        catch (Exception exception)
+        {
+            _logger.Error(
+                "WorldRepository: Failed to save meta for world '{0}': {1}",
+                exception, meta.Name, exception.Message);
+        }
     }
 
     /// <summary>
@@ -113,6 +122,14 @@ public sealed class WorldRepository
         {
             string json = File.ReadAllText(metaPath);
             meta = JsonConvert.DeserializeObject<WorldMeta>(json);
+
+            // Guard: ensure WorldId is populated (old saves may lack this field)
+            if (meta is not null && string.IsNullOrEmpty(meta.WorldId))
+            {
+                meta.WorldId = Guid.NewGuid().ToString("N");
+                _logger.Warning("WorldRepository: Generated missing WorldId for '{0}'.", metaPath);
+            }
+
             return meta is not null;
         }
         catch (Exception exception)

@@ -42,15 +42,24 @@ public sealed class PlayerRepository
     /// <param name="data">The player save data to persist.</param>
     public void Save(string worldSaveDirectory, PlayerSaveData data)
     {
-        Directory.CreateDirectory(worldSaveDirectory);
+        try
+        {
+            Directory.CreateDirectory(worldSaveDirectory);
 
-        string savePath = GetSavePath(worldSaveDirectory);
-        string json = JsonConvert.SerializeObject(data, Formatting.Indented);
-        File.WriteAllText(savePath, json);
+            string savePath = GetSavePath(worldSaveDirectory);
+            string json = JsonConvert.SerializeObject(data, Formatting.Indented);
+            File.WriteAllText(savePath, json);
 
-        _logger.Info(
-            "PlayerRepository: Saved player at ({0:F1}, {1:F1}, {2:F1}).",
-            data.PositionX, data.PositionY, data.PositionZ);
+            _logger.Info(
+                "PlayerRepository: Saved player at ({0:F1}, {1:F1}, {2:F1}).",
+                data.PositionX, data.PositionY, data.PositionZ);
+        }
+        catch (Exception exception)
+        {
+            _logger.Error(
+                "PlayerRepository: Failed to save player data: {0}",
+                exception, exception.Message);
+        }
     }
 
     /// <summary>

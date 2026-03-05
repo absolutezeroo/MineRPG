@@ -2,6 +2,7 @@
   "id": "beach",
   "displayName": "Beach",
   "category": 1,
+  "hasClimateTarget": true,
   "climateTarget": {
     "continentalness": {
       "min": -0.19,
