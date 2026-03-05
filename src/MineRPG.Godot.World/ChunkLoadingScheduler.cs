@@ -41,9 +41,17 @@ namespace MineRPG.Godot.World;
 /// </summary>
 public sealed partial class ChunkLoadingScheduler : Node
 {
-    // TODO: move to GameConfig for runtime tuning
+    /// <summary>The default render distance in chunks.</summary>
+    public const int DefaultRenderDistance = 32;
+
     private const int FrameBudgetMs = 4;
-    private const int RenderDistance = 32;
+
+    private int _renderDistance = DefaultRenderDistance;
+
+    /// <summary>
+    /// Gets the current render distance in chunks.
+    /// </summary>
+    public int CurrentRenderDistance => _renderDistance;
 
     // --- Work queues (fed by main thread, consumed by workers) ---
     private readonly ConcurrentQueue<ChunkEntry> _generationQueue = new();
@@ -96,7 +104,7 @@ public sealed partial class ChunkLoadingScheduler : Node
         if (ServiceLocator.Instance.TryGet<PerformanceMonitor>(out PerformanceMonitor? monitor))
         {
             _performanceMonitor = monitor;
-            _performanceMonitor.SetRenderDistance(RenderDistance);
+            _performanceMonitor.SetRenderDistance(_renderDistance);
         }
 
         // Start worker pool
@@ -203,11 +211,21 @@ public sealed partial class ChunkLoadingScheduler : Node
     /// <param name="center">The center chunk coordinate.</param>
     public void ForceLoadAround(ChunkCoord center) => UpdateLoadedChunks(center);
 
+    /// <summary>
+    /// Sets the render distance in chunks. Clamped to [4, 64].
+    /// </summary>
+    /// <param name="distance">The new render distance.</param>
+    public void SetRenderDistance(int distance)
+    {
+        _renderDistance = Math.Clamp(distance, 4, 64);
+        _performanceMonitor?.SetRenderDistance(_renderDistance);
+    }
+
     private void OnPlayerChunkChanged(PlayerChunkChangedEvent evt) => UpdateLoadedChunks(evt.NewChunk);
 
     private void UpdateLoadedChunks(ChunkCoord center)
     {
-        IReadOnlyList<ChunkCoord> needed = _chunkManager.GetCoordsInRange(center, RenderDistance);
+        IReadOnlyList<ChunkCoord> needed = _chunkManager.GetCoordsInRange(center, _renderDistance);
         HashSet<ChunkCoord> neededSet = new(needed);
 
         // Snapshot to safely modify the collection during iteration

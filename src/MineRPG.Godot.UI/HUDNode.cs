@@ -23,6 +23,9 @@ public sealed partial class HUDNode : CanvasLayer
     {
         _logger = ServiceLocator.Instance.Get<ILogger>();
 
+        // HUD must always process (even when paused) so pause menu works
+        ProcessMode = ProcessModeEnum.Always;
+
         CrosshairNode crosshair = new();
         crosshair.Name = "Crosshair";
         AddChild(crosshair);
@@ -34,6 +37,10 @@ public sealed partial class HUDNode : CanvasLayer
         HotbarNode hotbar = new();
         hotbar.Name = "Hotbar";
         AddChild(hotbar);
+
+        PauseMenuNode pauseMenu = new();
+        pauseMenu.Name = "PauseMenu";
+        AddChild(pauseMenu);
 
         Callable.From(InjectCamera).CallDeferred();
 

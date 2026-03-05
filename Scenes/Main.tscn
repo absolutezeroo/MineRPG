@@ -4,6 +4,7 @@
 [ext_resource type="Script" path="res://src/MineRPG.Godot.World/ChunkLoadingScheduler.cs" id="2_scheduler"]
 [ext_resource type="Script" uid="uid://byr08nqpakop6" path="res://src/MineRPG.Godot.Entities/PlayerNode.cs" id="2_kln2b"]
 [ext_resource type="Script" path="res://src/MineRPG.Godot.UI/HUDNode.cs" id="4_hud"]
+[ext_resource type="Script" path="res://Bootstrap/GameplayBootstrap.cs" id="5_gameplay_boot"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
 sky_top_color = Color(0.35, 0.55, 0.85, 1)
@@ -84,6 +85,9 @@ shape = SubResource("CapsuleShape3D_player")
 
 [node name="Camera3D" type="Camera3D" parent="PlayerNode" unique_id=354217861]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, 0)
+
+[node name="GameplayBootstrap" type="Node" parent="."]
+script = ExtResource("5_gameplay_boot")
 
 [node name="HUD" type="CanvasLayer" parent="." unique_id=1744035269]
 script = ExtResource("4_hud")

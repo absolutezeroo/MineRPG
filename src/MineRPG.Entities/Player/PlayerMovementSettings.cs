@@ -40,7 +40,7 @@ public sealed class PlayerMovementSettings
     public float Gravity { get; init; } = DefaultGravity;
 
     /// <summary>Mouse sensitivity in radians per pixel.</summary>
-    public float MouseSensitivity { get; init; } = DefaultMouseSensitivity;
+    public float MouseSensitivity { get; set; } = DefaultMouseSensitivity;
 
     /// <summary>Maximum distance the player can interact with blocks, in blocks.</summary>
     public float InteractionRange { get; init; } = DefaultInteractionRange;

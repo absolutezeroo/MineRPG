@@ -72,13 +72,10 @@ public sealed partial class PlayerNode : CharacterBody3D
 
         if (@event.IsActionPressed(InputActions.Pause))
         {
-            if (_isMouseCaptured)
+            if (ServiceLocator.Instance.TryGet<IGameStateController>(
+                out IGameStateController? controller))
             {
-                ReleaseMouse();
-            }
-            else
-            {
-                CaptureMouse();
+                controller.RequestPause();
             }
         }
 
