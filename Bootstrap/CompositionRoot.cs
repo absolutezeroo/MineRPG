@@ -26,6 +26,10 @@ namespace MineRPG.Game.Bootstrap;
 /// </summary>
 public static class CompositionRoot
 {
+    private const int PreloadRadius = 3;
+    private const int PreloadDiameter = PreloadRadius * 2 + 1;
+    private const int PreloadChunkCount = PreloadDiameter * PreloadDiameter;
+
     /// <summary>
     /// Wires all world-specific services into the service locator.
     /// </summary>
@@ -84,6 +88,11 @@ public static class CompositionRoot
         locator.Register<BiomeSelector>(biomeSelector);
 
         TerrainSampler terrainSampler = new(biomeSelector, worldSeed);
+        locator.Register<TerrainSampler>(terrainSampler);
+
+        SpawnPositionResolver spawnResolver = new(terrainSampler);
+        locator.Register<SpawnPositionResolver>(spawnResolver);
+
         CaveCarver caveCarver = new(terrainSampler);
 
         WorldGenerator worldGenerator = new(blockRegistry, terrainSampler, caveCarver);
@@ -112,7 +121,19 @@ public static class CompositionRoot
         PlayerRepository playerRepository = new(logger);
         locator.Register<PlayerRepository>(playerRepository);
 
-        TryRestorePlayerSave(playerData, saveRoot, playerRepository, logger);
+        bool playerSaveExists = TryRestorePlayerSave(playerData, saveRoot, playerRepository, logger);
+
+        if (!playerSaveExists)
+        {
+            int spawnY = spawnResolver.ComputeSpawnY();
+            playerData.PositionX = SpawnPositionResolver.SpawnWorldX;
+            playerData.PositionY = spawnY;
+            playerData.PositionZ = SpawnPositionResolver.SpawnWorldZ;
+            logger.Info("CompositionRoot: New world — spawn Y computed as {0}.", spawnY);
+        }
+
+        PreloadProgress preloadProgress = new(PreloadChunkCount);
+        locator.Register<PreloadProgress>(preloadProgress);
 
         PerformanceMonitor performanceMonitor = new();
         locator.Register<PerformanceMonitor>(performanceMonitor);
@@ -146,7 +167,7 @@ public static class CompositionRoot
         }
     }
 
-    private static void TryRestorePlayerSave(
+    private static bool TryRestorePlayerSave(
         PlayerData playerData,
         string saveRoot,
         PlayerRepository playerRepository,
@@ -155,7 +176,7 @@ public static class CompositionRoot
         if (!playerRepository.TryLoad(saveRoot, out PlayerSaveData? save) || save is null)
         {
             logger.Info("CompositionRoot: No player save found — using spawn defaults.");
-            return;
+            return false;
         }
 
         playerData.PositionX = save.PositionX;
@@ -172,5 +193,6 @@ public static class CompositionRoot
         logger.Info(
             "CompositionRoot: Restored player save — position ({0:F1}, {1:F1}, {2:F1}).",
             save.PositionX, save.PositionY, save.PositionZ);
+        return true;
     }
 }

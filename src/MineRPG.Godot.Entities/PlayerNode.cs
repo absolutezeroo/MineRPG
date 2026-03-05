@@ -57,8 +57,18 @@ public sealed partial class PlayerNode : CharacterBody3D
         Rotation = new Vector3(0f, _playerData.CameraYaw, 0f);
         _camera.Rotation = new Vector3(_playerData.CameraPitch, 0f, 0f);
 
-        CaptureMouse();
-        _logger.Info("PlayerNode ready at {0}, camera={1}", Position, _camera?.Name ?? "null");
+        // Freeze until terrain is preloaded — prevents physics falling before chunks exist.
+        // Mouse capture is deferred to OnWorldReady so the cursor stays visible during loading.
+        ProcessMode = ProcessModeEnum.Disabled;
+        _eventBus.Subscribe<WorldReadyEvent>(OnWorldReady);
+
+        _logger.Info("PlayerNode ready at {0} (frozen, awaiting WorldReadyEvent).", Position);
+    }
+
+    /// <inheritdoc />
+    public override void _ExitTree()
+    {
+        _eventBus?.Unsubscribe<WorldReadyEvent>(OnWorldReady);
     }
 
     /// <inheritdoc />
@@ -168,6 +178,29 @@ public sealed partial class PlayerNode : CharacterBody3D
         _playerData.PositionZ = Position.Z;
 
         PublishPositionIfMoved();
+    }
+
+    private void OnWorldReady(WorldReadyEvent evt)
+    {
+        _eventBus.Unsubscribe<WorldReadyEvent>(OnWorldReady);
+        ProcessMode = ProcessModeEnum.Inherit;
+        CaptureMouse();
+
+        // Seed the position tracking so PublishPositionIfMoved sends on the first frame
+        _lastPublishedX = Position.X;
+        _lastPublishedY = Position.Y;
+        _lastPublishedZ = Position.Z;
+
+        // Force-publish the initial position so WorldNode triggers
+        // PlayerChunkChangedEvent and ChunkLoadingScheduler starts the full render distance.
+        _eventBus.Publish(new PlayerPositionUpdatedEvent
+        {
+            X = Position.X,
+            Y = Position.Y,
+            Z = Position.Z,
+        });
+
+        _logger.Info("PlayerNode: WorldReady — gameplay started at {0}.", Position);
     }
 
     private void PublishPositionIfMoved()

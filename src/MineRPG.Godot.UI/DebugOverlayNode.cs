@@ -77,7 +77,7 @@ public sealed partial class DebugOverlayNode : Control
 
         Visible = false;
 
-        _logger.Info("DebugOverlayNode ready (Minecraft F3 style).");
+        _logger.Info("DebugOverlayNode ready.");
     }
 
     /// <inheritdoc />

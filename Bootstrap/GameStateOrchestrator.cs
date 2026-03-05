@@ -10,6 +10,8 @@ using MineRPG.Core.Interfaces;
 using MineRPG.Core.Logging;
 using MineRPG.Core.StateMachine;
 
+using MineRPG.Godot.UI;
+
 namespace MineRPG.Game.Bootstrap;
 
 /// <summary>
@@ -137,10 +139,11 @@ public sealed partial class GameStateOrchestrator : Node, IGameStateController
         // Re-subscribe on fresh bus
         SubscribeEvents();
 
-        // Transition state machine
+        // Transition to LoadingState — it will switch to PlayingState once chunks are preloaded
         string worldSaveDirectory = WorldRepository.GetSavePath(_savesRoot, meta.WorldId);
-        PlayingState playingState = new(meta, worldSaveDirectory, GetTree(), _eventBus, _logger);
-        _stateMachine.ChangeState(playingState);
+        LoadingState loadingState = new(
+            meta, worldSaveDirectory, GetTree(), _eventBus, _logger, _stateMachine);
+        _stateMachine.ChangeState(loadingState);
 
         // Load the gameplay scene
         Error error = GetTree().ChangeSceneToFile(GameplayScenePath);
@@ -150,7 +153,11 @@ public sealed partial class GameStateOrchestrator : Node, IGameStateController
             _logger.Error(
                 "GameStateOrchestrator: Failed to load gameplay scene — {0}",
                 error.ToString());
+            return;
         }
+
+        // Defer adding the loading screen until after the scene is in the tree
+        Callable.From(AddLoadingScreen).CallDeferred();
     }
 
     private void OnReturnToMainMenu(ReturnToMainMenuEvent evt)
@@ -180,7 +187,7 @@ public sealed partial class GameStateOrchestrator : Node, IGameStateController
 
     private void OnGameQuitRequested(GameQuitRequestedEvent evt)
     {
-        if (_stateMachine.CurrentState is PlayingState or PausedState)
+        if (_stateMachine.CurrentState is PlayingState or PausedState or LoadingState)
         {
             // Pop PausedState if present
             if (_stateMachine.CurrentState is PausedState)
@@ -194,6 +201,14 @@ public sealed partial class GameStateOrchestrator : Node, IGameStateController
 
         _logger.Info("GameStateOrchestrator: Quit requested.");
         GetTree().Quit();
+    }
+
+    private void AddLoadingScreen()
+    {
+        LoadingScreenNode loadingScreen = new();
+        loadingScreen.Name = "LoadingScreen";
+        GetTree().Root.AddChild(loadingScreen);
+        _logger.Info("GameStateOrchestrator: LoadingScreenNode added to scene tree.");
     }
 
     private void SubscribeEvents()

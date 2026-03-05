@@ -7,11 +7,13 @@ using System.Threading.Tasks;
 
 using Godot;
 
+using MineRPG.Core.DataLoading;
 using MineRPG.Core.DI;
 using MineRPG.Core.Diagnostics;
 using MineRPG.Core.Events;
 using MineRPG.Core.Logging;
 using MineRPG.Core.Math;
+using MineRPG.Entities.Player;
 using MineRPG.World.Chunks;
 using MineRPG.World.Events;
 using MineRPG.World.Generation;
@@ -87,6 +89,7 @@ public sealed partial class ChunkLoadingScheduler : Node
     private WorldNode _worldNode = null!;
     private PerformanceMonitor? _performanceMonitor;
     private ChunkPersistenceService? _persistence;
+    private PreloadProgress? _preloadProgress;
 
     /// <inheritdoc />
     public override void _Ready()
@@ -109,6 +112,11 @@ public sealed partial class ChunkLoadingScheduler : Node
             _performanceMonitor.SetRenderDistance(_renderDistance);
         }
 
+        if (ServiceLocator.Instance.TryGet<PreloadProgress>(out PreloadProgress? preloadProgress))
+        {
+            _preloadProgress = preloadProgress;
+        }
+
         // Start worker pool
         int workerCount = Math.Max(1, System.Environment.ProcessorCount - 1);
         _shutdownCts = new CancellationTokenSource();
@@ -122,6 +130,22 @@ public sealed partial class ChunkLoadingScheduler : Node
 
         ServiceLocator.Instance.Register(this);
         _eventBus.Subscribe<PlayerChunkChangedEvent>(OnPlayerChunkChanged);
+
+        // Kick the initial chunk loading using the player's spawn position.
+        // PlayerNode is frozen (ProcessMode.Disabled) during preload, so no
+        // PlayerChunkChangedEvent fires naturally — we must seed the pipeline here.
+        if (ServiceLocator.Instance.TryGet<PlayerData>(out PlayerData? playerData)
+            && playerData is not null)
+        {
+            ChunkCoord2D chunkCoord = VoxelMath.WorldToChunk(
+                (int)MathF.Floor(playerData.PositionX),
+                (int)MathF.Floor(playerData.PositionZ),
+                ChunkData.SizeX, ChunkData.SizeZ);
+            ChunkCoord spawnChunk = new(chunkCoord.ChunkX, chunkCoord.ChunkZ);
+            ForceLoadAround(spawnChunk);
+            _logger.Info(
+                "ChunkLoadingScheduler: Initial preload started around chunk {0}.", spawnChunk);
+        }
     }
 
     /// <inheritdoc />
@@ -485,6 +509,19 @@ public sealed partial class ChunkLoadingScheduler : Node
         entry.PendingMesh = null;
 
         _eventBus.Publish(new ChunkMeshedEvent { Coord = entry.Coord });
+
+        // Track preload progress — fires WorldReadyEvent exactly once when complete
+        if (_preloadProgress is not null && !_preloadProgress.IsComplete)
+        {
+            int newCount = _preloadProgress.Increment();
+
+            if (_preloadProgress.IsComplete)
+            {
+                _eventBus.Publish(new WorldReadyEvent());
+                _logger.Info(
+                    "ChunkLoadingScheduler: Preload complete ({0} chunks meshed).", newCount);
+            }
+        }
 
         if (!isRemesh || isBlockEdit)
         {
