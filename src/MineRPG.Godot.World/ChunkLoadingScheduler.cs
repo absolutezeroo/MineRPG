@@ -21,19 +21,33 @@ namespace MineRPG.Godot.World;
 
 /// <summary>
 /// Drives the async chunk generation and meshing pipeline.
-/// Runs generate+mesh on Task threads. Applies results on the main thread.
-/// Budget: processes at most <see cref="MaxChunksPerFrame"/> applications per _Process call.
-/// Persistence (load from storage, autosave) is handled by <see cref="ChunkAutosaveScheduler"/>.
+///
+/// Priority model:
+///   Block edit remeshes -> <see cref="_blockEditQueue"/> (drained fully each frame, no budget).
+///   Initial loads and neighbor remeshes -> <see cref="_loadQueue"/> (time-budgeted).
+///
+/// Thread safety:
+///   Block data is snapshotted (ushort[] copy under read lock) before each background
+///   remesh task. The snapshot is loaded into a temporary <see cref="ChunkData"/> instance
+///   owned by the task. Write locks protect <see cref="ChunkData.SetBlock"/> in WorldNode.
+///
+/// Concurrency:
+///   A <see cref="SemaphoreSlim"/> caps concurrent background tasks at ProcessorCount - 1
+///   to prevent thread pool exhaustion during bulk chunk loads.
 /// </summary>
 public sealed partial class ChunkLoadingScheduler : Node
 {
-    private const int MaxChunksPerFrame = 2;
-    private const int RenderDistance = 10;
+    // TODO: move to GameConfig for runtime tuning
+    private const int FrameBudgetMs = 4;
+    private const int RenderDistance = 32;
 
-    private readonly ConcurrentQueue<ChunkEntry> _readyQueue = new();
+    private readonly ConcurrentQueue<ChunkEntry> _blockEditQueue = new();
+    private readonly ConcurrentQueue<ChunkEntry> _loadQueue = new();
     private readonly ConcurrentDictionary<ChunkCoord, CancellationTokenSource> _pendingCts = new();
     private readonly ConcurrentDictionary<ChunkCoord, byte> _pendingRemeshes = new();
     private readonly ConcurrentDictionary<ChunkCoord, byte> _blockEditRemeshes = new();
+
+    private SemaphoreSlim _taskSemaphore = null!;
 
     private IChunkManager _chunkManager = null!;
     private IWorldGenerator _generator = null!;
@@ -48,6 +62,9 @@ public sealed partial class ChunkLoadingScheduler : Node
     /// <inheritdoc />
     public override void _Ready()
     {
+        int maxConcurrent = Math.Max(1, System.Environment.ProcessorCount - 1);
+        _taskSemaphore = new SemaphoreSlim(maxConcurrent, maxConcurrent);
+
         _chunkManager = ServiceLocator.Instance.Get<IChunkManager>();
         _generator = ServiceLocator.Instance.Get<IWorldGenerator>();
         _meshBuilder = ServiceLocator.Instance.Get<IChunkMeshBuilder>();
@@ -84,17 +101,31 @@ public sealed partial class ChunkLoadingScheduler : Node
         {
             cts.Cancel();
         }
+
+        _taskSemaphore.Dispose();
     }
 
     /// <inheritdoc />
     public override void _Process(double delta)
     {
-        int applied = 0;
-
-        while (applied < MaxChunksPerFrame && _readyQueue.TryDequeue(out ChunkEntry? entry))
+        // Phase 1: drain ALL block edit remeshes — no budget, player-facing priority.
+        while (_blockEditQueue.TryDequeue(out ChunkEntry? editEntry))
         {
-            ApplyChunkMesh(entry);
-            applied++;
+            ApplyChunkMesh(editEntry);
+        }
+
+        // Phase 2: drain initial chunk loads within a time budget.
+        long budgetTicks = (long)(FrameBudgetMs * (Stopwatch.Frequency / 1000.0));
+        long startTick = Stopwatch.GetTimestamp();
+
+        while (_loadQueue.TryDequeue(out ChunkEntry? loadEntry))
+        {
+            ApplyChunkMesh(loadEntry);
+
+            if (Stopwatch.GetTimestamp() - startTick >= budgetTicks)
+            {
+                break;
+            }
         }
 
         UpdatePerformanceMetrics();
@@ -102,7 +133,9 @@ public sealed partial class ChunkLoadingScheduler : Node
 
     /// <summary>
     /// Schedule an async remesh for a chunk after a block edit.
-    /// Uses the same dedup + ready-queue pattern as neighbor remeshes.
+    /// The block data is snapshotted under a read lock inside the background task,
+    /// guaranteeing a consistent copy. Result is enqueued to the high-priority
+    /// <see cref="_blockEditQueue"/>.
     /// </summary>
     /// <param name="coord">The coordinate of the chunk to remesh.</param>
     public void ScheduleBlockEditRemesh(ChunkCoord coord)
@@ -124,29 +157,7 @@ public sealed partial class ChunkLoadingScheduler : Node
 
         _blockEditRemeshes.TryAdd(coord, 0);
 
-        ChunkEntry capturedEntry = entry;
-        ChunkCoord capturedCoord = coord;
-
-        Task.Run(() =>
-        {
-            try
-            {
-                long meshStart = Stopwatch.GetTimestamp();
-                ChunkData?[] neighbors = _chunkManager.GetNeighborData(capturedCoord);
-                ChunkMeshResult mesh = _meshBuilder.Build(capturedEntry.Data, neighbors, CancellationToken.None);
-                _performanceMonitor?.RecordMeshTime(Stopwatch.GetTimestamp() - meshStart);
-                _performanceMonitor?.IncrementChunksMeshed();
-                capturedEntry.PendingMesh = mesh;
-                capturedEntry.SetState(ChunkState.Ready);
-                _readyQueue.Enqueue(capturedEntry);
-            }
-            catch (Exception exception)
-            {
-                _pendingRemeshes.TryRemove(capturedCoord, out _);
-                _blockEditRemeshes.TryRemove(capturedCoord, out _);
-                _logger.Error("Block edit remesh failed for {0}: {1}", exception, capturedCoord, exception.Message);
-            }
-        });
+        ScheduleRemeshTask(entry, coord, _blockEditQueue);
     }
 
     /// <summary>
@@ -190,10 +201,18 @@ public sealed partial class ChunkLoadingScheduler : Node
         CancellationTokenSource cts = new();
         _pendingCts[entry.Coord] = cts;
 
-        Task.Run(() =>
+        // Do NOT pass cts.Token to Task.Run — if the token is already cancelled,
+        // the lambda never executes and the finally cleanup (TryRemove) is skipped.
+        // The token is passed to WaitAsync and Generate for cooperative cancellation.
+        Task.Run(async () =>
         {
+            bool semaphoreAcquired = false;
+
             try
             {
+                await _taskSemaphore.WaitAsync(cts.Token).ConfigureAwait(false);
+                semaphoreAcquired = true;
+
                 bool isLoaded = _persistence?.TryLoad(entry.Coord, entry.Data) ?? false;
 
                 if (!isLoaded)
@@ -211,6 +230,8 @@ public sealed partial class ChunkLoadingScheduler : Node
                 entry.RecomputeSubChunkInfo();
                 entry.SetState(ChunkState.Meshing);
 
+                // No lock needed here: this task is the sole accessor of entry.Data
+                // during Generating/Meshing states.
                 long meshStart = Stopwatch.GetTimestamp();
                 ChunkData?[] neighbors = _chunkManager.GetNeighborData(entry.Coord);
                 ChunkMeshResult mesh = _meshBuilder.Build(entry.Data, neighbors, cts.Token);
@@ -224,7 +245,7 @@ public sealed partial class ChunkLoadingScheduler : Node
 
                 entry.PendingMesh = mesh;
                 entry.SetState(ChunkState.Ready);
-                _readyQueue.Enqueue(entry);
+                _loadQueue.Enqueue(entry);
             }
             catch (OperationCanceledException)
             {
@@ -237,8 +258,13 @@ public sealed partial class ChunkLoadingScheduler : Node
             finally
             {
                 _pendingCts.TryRemove(entry.Coord, out _);
+
+                if (semaphoreAcquired)
+                {
+                    _taskSemaphore.Release();
+                }
             }
-        }, cts.Token);
+        });
     }
 
     private void ApplyChunkMesh(ChunkEntry entry)
@@ -259,13 +285,17 @@ public sealed partial class ChunkLoadingScheduler : Node
 
         if (!isRemesh || isBlockEdit)
         {
-            ScheduleNeighborRemeshes(entry.Coord);
+            ScheduleNeighborRemeshes(entry.Coord, isBlockEdit);
         }
     }
 
-    private void ScheduleNeighborRemeshes(ChunkCoord coord)
+    private void ScheduleNeighborRemeshes(ChunkCoord coord, bool isFromBlockEdit)
     {
         ChunkCoord[] neighborCoords = [coord.East, coord.West, coord.South, coord.North];
+
+        // Block-edit neighbor remeshes go to the priority queue so both sides
+        // of a chunk boundary update in the same frame.
+        ConcurrentQueue<ChunkEntry> targetQueue = isFromBlockEdit ? _blockEditQueue : _loadQueue;
 
         foreach (ChunkCoord neighborCoord in neighborCoords)
         {
@@ -289,25 +319,64 @@ public sealed partial class ChunkLoadingScheduler : Node
                 continue;
             }
 
-            ChunkEntry capturedNeighbor = neighbor;
-            ChunkCoord capturedCoord = neighborCoord;
-
-            Task.Run(() =>
-            {
-                try
-                {
-                    ChunkData?[] neighbors = _chunkManager.GetNeighborData(capturedCoord);
-                    ChunkMeshResult mesh = _meshBuilder.Build(capturedNeighbor.Data, neighbors, CancellationToken.None);
-                    capturedNeighbor.PendingMesh = mesh;
-                    _readyQueue.Enqueue(capturedNeighbor);
-                }
-                catch (Exception exception)
-                {
-                    _pendingRemeshes.TryRemove(capturedCoord, out _);
-                    _logger.Error("Neighbor remesh failed for {0}: {1}", exception, capturedCoord, exception.Message);
-                }
-            });
+            ScheduleRemeshTask(neighbor, neighborCoord, targetQueue);
         }
+    }
+
+    /// <summary>
+    /// Common remesh task: snapshots block data under a read lock,
+    /// builds the mesh on a background thread, and enqueues the result
+    /// to the specified target queue.
+    /// </summary>
+    private void ScheduleRemeshTask(
+        ChunkEntry entry,
+        ChunkCoord coord,
+        ConcurrentQueue<ChunkEntry> targetQueue)
+    {
+        ChunkEntry capturedEntry = entry;
+        ChunkCoord capturedCoord = coord;
+
+        Task.Run(async () =>
+        {
+            bool semaphoreAcquired = false;
+
+            try
+            {
+                await _taskSemaphore.WaitAsync().ConfigureAwait(false);
+                semaphoreAcquired = true;
+
+                // Snapshot under read lock — excludes concurrent writes from main thread.
+                ushort[] buffer = new ushort[ChunkData.TotalBlocks];
+                capturedEntry.Data.CopyBlocksUnderReadLock(buffer);
+
+                ChunkData snapshotData = new(capturedCoord);
+                snapshotData.LoadFromSpan(buffer);
+
+                ChunkData?[] neighbors = _chunkManager.GetNeighborData(capturedCoord);
+
+                long meshStart = Stopwatch.GetTimestamp();
+                ChunkMeshResult mesh = _meshBuilder.Build(snapshotData, neighbors, CancellationToken.None);
+                _performanceMonitor?.RecordMeshTime(Stopwatch.GetTimestamp() - meshStart);
+                _performanceMonitor?.IncrementChunksMeshed();
+
+                capturedEntry.PendingMesh = mesh;
+                capturedEntry.SetState(ChunkState.Ready);
+                targetQueue.Enqueue(capturedEntry);
+            }
+            catch (Exception exception)
+            {
+                _pendingRemeshes.TryRemove(capturedCoord, out _);
+                _blockEditRemeshes.TryRemove(capturedCoord, out _);
+                _logger.Error("Remesh failed for {0}: {1}", exception, capturedCoord, exception.Message);
+            }
+            finally
+            {
+                if (semaphoreAcquired)
+                {
+                    _taskSemaphore.Release();
+                }
+            }
+        });
     }
 
     private void UpdatePerformanceMetrics()
@@ -317,7 +386,7 @@ public sealed partial class ChunkLoadingScheduler : Node
             return;
         }
 
-        _performanceMonitor.SetChunksInQueue(_readyQueue.Count + _pendingCts.Count);
+        _performanceMonitor.SetChunksInQueue(_blockEditQueue.Count + _loadQueue.Count + _pendingCts.Count);
         _performanceMonitor.SetActiveChunks(_chunkManager.Count);
         _performanceMonitor.SetVisibleChunks(_worldNode.ChunkNodeCount);
 
@@ -331,6 +400,9 @@ public sealed partial class ChunkLoadingScheduler : Node
         {
             cts.Cancel();
         }
+
+        _pendingRemeshes.TryRemove(coord, out _);
+        _blockEditRemeshes.TryRemove(coord, out _);
 
         // Delegate persistence to autosave scheduler
         if (_chunkManager.TryGet(coord, out ChunkEntry? entry) && entry is not null)

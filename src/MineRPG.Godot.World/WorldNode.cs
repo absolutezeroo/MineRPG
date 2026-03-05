@@ -152,14 +152,27 @@ public sealed partial class WorldNode : Node3D
         LocalCoord2D localCoord = VoxelMath.WorldToLocal(position.X, position.Z, ChunkData.SizeX, ChunkData.SizeZ);
         int localX = localCoord.LocalX;
         int localZ = localCoord.LocalZ;
-        ushort oldBlockId = entry.Data.GetBlock(localX, position.Y, localZ);
 
-        if (oldBlockId == 0)
+        ushort oldBlockId;
+
+        entry.Data.AcquireWriteLock();
+
+        try
         {
-            return;
+            oldBlockId = entry.Data.GetBlock(localX, position.Y, localZ);
+
+            if (oldBlockId == 0)
+            {
+                return;
+            }
+
+            entry.Data.SetBlock(localX, position.Y, localZ, 0);
+        }
+        finally
+        {
+            entry.Data.ReleaseWriteLock();
         }
 
-        entry.Data.SetBlock(localX, position.Y, localZ, 0);
         entry.SetState(ChunkState.Dirty);
         entry.IsModified = true;
 
@@ -198,15 +211,26 @@ public sealed partial class WorldNode : Node3D
         LocalCoord2D localCoord = VoxelMath.WorldToLocal(position.X, position.Z, ChunkData.SizeX, ChunkData.SizeZ);
         int localX = localCoord.LocalX;
         int localZ = localCoord.LocalZ;
-        ushort oldBlockId = entry.Data.GetBlock(localX, position.Y, localZ);
 
-        if (oldBlockId != 0)
+        entry.Data.AcquireWriteLock();
+
+        try
         {
-            _logger.Debug("PlaceBlock: position {0} already occupied (blockId={1})", position, oldBlockId);
-            return;
+            ushort existingBlock = entry.Data.GetBlock(localX, position.Y, localZ);
+
+            if (existingBlock != 0)
+            {
+                _logger.Debug("PlaceBlock: position {0} already occupied (blockId={1})", position, existingBlock);
+                return;
+            }
+
+            entry.Data.SetBlock(localX, position.Y, localZ, blockId);
+        }
+        finally
+        {
+            entry.Data.ReleaseWriteLock();
         }
 
-        entry.Data.SetBlock(localX, position.Y, localZ, blockId);
         entry.SetState(ChunkState.Dirty);
         entry.IsModified = true;
 

@@ -1,5 +1,6 @@
 using System;
 using System.Runtime.CompilerServices;
+using System.Threading;
 
 using MineRPG.Core.Math;
 
@@ -24,6 +25,7 @@ public sealed class ChunkData
     public const int TotalBlocks = SizeX * SizeY * SizeZ;
 
     private readonly ushort[] _blocks = new ushort[TotalBlocks];
+    private readonly ReaderWriterLockSlim _lock = new(LockRecursionPolicy.NoRecursion);
 
     /// <summary>The chunk coordinate in the world grid.</summary>
     public ChunkCoord Coord { get; }
@@ -159,5 +161,49 @@ public sealed class ChunkData
         }
 
         return -1;
+    }
+
+    /// <summary>
+    /// Acquires a read lock for cross-thread access to block data.
+    /// Must be paired with <see cref="ReleaseReadLock"/>.
+    /// Multiple readers can hold the lock concurrently; writers are excluded.
+    /// </summary>
+    public void AcquireReadLock() => _lock.EnterReadLock();
+
+    /// <summary>
+    /// Releases the read lock acquired by <see cref="AcquireReadLock"/>.
+    /// </summary>
+    public void ReleaseReadLock() => _lock.ExitReadLock();
+
+    /// <summary>
+    /// Acquires the write lock for cross-thread block modifications.
+    /// Must be paired with <see cref="ReleaseWriteLock"/>.
+    /// Excludes both readers and other writers.
+    /// </summary>
+    public void AcquireWriteLock() => _lock.EnterWriteLock();
+
+    /// <summary>
+    /// Releases the write lock acquired by <see cref="AcquireWriteLock"/>.
+    /// </summary>
+    public void ReleaseWriteLock() => _lock.ExitWriteLock();
+
+    /// <summary>
+    /// Copies the raw block data into a caller-provided buffer while holding a read lock.
+    /// Use this in background threads to obtain a consistent snapshot for meshing.
+    /// The buffer must be at least <see cref="TotalBlocks"/> elements long.
+    /// </summary>
+    /// <param name="destination">Destination span to copy block data into.</param>
+    public void CopyBlocksUnderReadLock(Span<ushort> destination)
+    {
+        _lock.EnterReadLock();
+
+        try
+        {
+            _blocks.AsSpan().CopyTo(destination);
+        }
+        finally
+        {
+            _lock.ExitReadLock();
+        }
     }
 }
