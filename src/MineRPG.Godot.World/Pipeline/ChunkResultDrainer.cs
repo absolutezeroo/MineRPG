@@ -103,6 +103,11 @@ internal sealed class ChunkResultDrainer
 
         _eventBus.Publish(new ChunkMeshedEvent { Coord = entry.Coord });
 
+        if (!isRemesh && !isBlockEdit)
+        {
+            _eventBus.Publish(new ChunkGeneratedEvent { Coord = entry.Coord });
+        }
+
         if (!isRemesh && _preloadProgress is not null && !_preloadProgress.IsComplete)
         {
             int newCount = _preloadProgress.Increment();
