@@ -2,12 +2,16 @@ using Godot;
 
 using MineRPG.Core.DI;
 using MineRPG.Core.Events;
+using MineRPG.Core.Events.Definitions;
 using MineRPG.Core.Interfaces;
+using MineRPG.Core.Interfaces.Gameplay;
 using MineRPG.Core.Logging;
 using MineRPG.Entities.Player;
 using MineRPG.Godot.World;
 using MineRPG.World.Blocks;
 using MineRPG.World.Spatial;
+
+using MineRPG.Game.Bootstrap.Gameplay;
 
 namespace MineRPG.Game.Bootstrap;
 

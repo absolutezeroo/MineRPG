@@ -13,21 +13,20 @@ public sealed class Registry<TKey, TValue> : IRegistry<TKey, TValue>
 {
     private readonly Dictionary<TKey, TValue> _entries = new();
     private readonly List<TValue> _orderedValues = new();
-    private bool _isFrozen;
 
     /// <inheritdoc />
     public int Count => _entries.Count;
 
     /// <inheritdoc />
-    public bool IsFrozen => _isFrozen;
+    public bool IsFrozen { get; private set; }
 
     /// <inheritdoc />
-    public void Freeze() => _isFrozen = true;
+    public void Freeze() => IsFrozen = true;
 
     /// <inheritdoc />
     public void Register(TKey key, TValue value)
     {
-        if (_isFrozen)
+        if (IsFrozen)
         {
             throw new InvalidOperationException(
                 $"Cannot register key '{key}': the {typeof(TValue).Name} registry is frozen.");

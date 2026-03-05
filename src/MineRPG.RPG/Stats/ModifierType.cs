@@ -12,5 +12,5 @@ public enum ModifierType
     PercentAdd,
 
     /// <summary>Multiplies the result independently, chaining with other PercentMultiply modifiers.</summary>
-    PercentMultiply
+    PercentMultiply,
 }

@@ -15,5 +15,5 @@ public enum QuestState
     Completed,
 
     /// <summary>The quest was failed due to unmet conditions or timeout.</summary>
-    Failed
+    Failed,
 }

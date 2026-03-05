@@ -42,9 +42,9 @@ public sealed class SurfaceRuleChain
     /// <returns>The block ID from the first matching rule, or the default stone.</returns>
     public ushort Evaluate(in SurfaceContext context)
     {
-        for (int i = 0; i < _rules.Length; i++)
+        foreach (ISurfaceRule entry in _rules)
         {
-            ushort? result = _rules[i].TryApply(in context);
+            ushort? result = entry.TryApply(in context);
 
             if (result.HasValue)
             {

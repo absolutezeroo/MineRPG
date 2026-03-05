@@ -3,10 +3,13 @@ using System.Diagnostics;
 
 using MineRPG.Core.DataLoading;
 using MineRPG.Core.Events;
+using MineRPG.Core.Events.Definitions;
 using MineRPG.Core.Logging;
 using MineRPG.Core.Math;
 using MineRPG.World.Chunks;
 using MineRPG.World.Events;
+
+using MineRPG.Godot.World.Chunks;
 
 namespace MineRPG.Godot.World.Pipeline;
 

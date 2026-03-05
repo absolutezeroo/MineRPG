@@ -14,17 +14,18 @@ public sealed class BiomeSurfaceRule : ISurfaceRule
             return null;
         }
 
-        // Underwater surface
-        if (context.IsSurface && context.IsUnderwater)
+        switch (context.IsSurface)
         {
-            ushort underwaterBlock = context.Biome.UnderwaterBlock;
-            return underwaterBlock != 0 ? underwaterBlock : context.Biome.SubSurfaceBlock;
-        }
+            // Underwater surface
+            case true when context.IsUnderwater:
+            {
+                ushort underwaterBlock = context.Biome.UnderwaterBlock;
 
-        // Top surface block
-        if (context.IsSurface)
-        {
-            return context.Biome.SurfaceBlock;
+                return underwaterBlock != 0 ? underwaterBlock : context.Biome.SubSurfaceBlock;
+            }
+            // Top surface block
+            case true:
+                return context.Biome.SurfaceBlock;
         }
 
         // Filler / sub-surface layer

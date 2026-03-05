@@ -12,5 +12,5 @@ public enum DeliveryMode
     ReliableOrdered,
 
     /// <summary>Guaranteed delivery, unordered. Used for events that must arrive but order doesn't matter.</summary>
-    ReliableUnordered
+    ReliableUnordered,
 }

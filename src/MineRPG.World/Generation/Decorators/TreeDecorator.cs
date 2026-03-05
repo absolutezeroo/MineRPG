@@ -50,10 +50,8 @@ public sealed class TreeDecorator : IDecorator
                     continue;
                 }
 
-                for (int v = 0; v < biome.Vegetation.Count; v++)
+                foreach (VegetationEntry entry in biome.Vegetation)
                 {
-                    VegetationEntry entry = biome.Vegetation[v];
-
                     if (!_treeRegistry.TryGet(entry.Type, out ITreeGenerator? generator) || generator == null)
                     {
                         continue;
@@ -77,12 +75,15 @@ public sealed class TreeDecorator : IDecorator
 
                     for (int checkY = treeBaseY; checkY < treeBaseY + MinTreeClearance; checkY++)
                     {
-                        if (ChunkData.IsInBounds(localX, checkY, localZ)
-                            && data.GetBlock(localX, checkY, localZ) != _airBlockId)
+                        if (!ChunkData.IsInBounds(localX, checkY, localZ)
+                            || data.GetBlock(localX, checkY, localZ) == _airBlockId)
                         {
-                            hasClearance = false;
-                            break;
+                            continue;
                         }
+
+                        hasClearance = false;
+
+                        break;
                     }
 
                     if (hasClearance)

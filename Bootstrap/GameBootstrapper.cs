@@ -4,7 +4,10 @@ using MineRPG.Core.DataLoading;
 using MineRPG.Core.DI;
 using MineRPG.Core.Events;
 using MineRPG.Core.Interfaces;
+using MineRPG.Core.Interfaces.Settings;
 using MineRPG.Core.Logging;
+
+using MineRPG.Game.Bootstrap.Settings;
 
 namespace MineRPG.Game.Bootstrap;
 

@@ -32,7 +32,7 @@ public sealed class SpawnRuleTests
             MaxLightLevel = 7,
             Weight = 2.5f,
             MinGroupSize = 2,
-            MaxGroupSize = 4
+            MaxGroupSize = 4,
         };
 
         rule.MobId.Should().Be("skeleton");

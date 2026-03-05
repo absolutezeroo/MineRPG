@@ -55,21 +55,22 @@ public sealed class VegetationDecorator : IDecorator
                     continue;
                 }
 
-                for (int v = 0; v < biome.Vegetation.Count; v++)
+                foreach (VegetationEntry entry in biome.Vegetation)
                 {
-                    VegetationEntry entry = biome.Vegetation[v];
-
                     // Skip tree types (handled by TreeDecorator)
                     if (entry.Type.Contains("tree", StringComparison.OrdinalIgnoreCase))
                     {
                         continue;
                     }
 
-                    if (random.NextDouble() <= entry.Density)
+                    if (!(random.NextDouble() <= entry.Density))
                     {
-                        data.SetBlock(localX, placeY, localZ, _tallGrassBlockId);
-                        break;
+                        continue;
                     }
+
+                    data.SetBlock(localX, placeY, localZ, _tallGrassBlockId);
+
+                    break;
                 }
             }
         }

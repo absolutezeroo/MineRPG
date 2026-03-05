@@ -15,7 +15,6 @@ public sealed class ObjectPool<T> : IObjectPool<T>
     private readonly ConcurrentBag<T> _bag = [];
     private readonly Func<T> _factory;
     private readonly Action<T>? _reset;
-    private readonly int _maxCapacity;
     private int _idleCount;
 
     /// <summary>
@@ -34,7 +33,7 @@ public sealed class ObjectPool<T> : IObjectPool<T>
             throw new ArgumentOutOfRangeException(nameof(maxCapacity), "Max capacity must be greater than zero.");
         }
 
-        _maxCapacity = maxCapacity;
+        MaxCapacity = maxCapacity;
     }
 
     /// <summary>
@@ -45,7 +44,7 @@ public sealed class ObjectPool<T> : IObjectPool<T>
     /// <summary>
     /// Maximum number of idle objects the pool will retain.
     /// </summary>
-    public int MaxCapacity => _maxCapacity;
+    public int MaxCapacity { get; }
 
     /// <inheritdoc />
     public T Rent()
@@ -66,7 +65,7 @@ public sealed class ObjectPool<T> : IObjectPool<T>
 
         // Soft cap: approximate check avoids locking. In highly concurrent
         // scenarios the pool may briefly exceed maxCapacity — acceptable.
-        if (_idleCount >= _maxCapacity)
+        if (_idleCount >= MaxCapacity)
         {
             return;
         }
@@ -82,7 +81,7 @@ public sealed class ObjectPool<T> : IObjectPool<T>
 
         for (int i = 0; i < count; i++)
         {
-            if (_idleCount >= _maxCapacity)
+            if (_idleCount >= MaxCapacity)
             {
                 break;
             }

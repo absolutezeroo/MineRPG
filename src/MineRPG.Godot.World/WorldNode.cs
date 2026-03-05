@@ -5,12 +5,16 @@ using Godot;
 
 using MineRPG.Core.DI;
 using MineRPG.Core.Events;
+using MineRPG.Core.Events.Definitions;
 using MineRPG.Core.Logging;
 using MineRPG.Core.Math;
 using MineRPG.World.Chunks;
 using MineRPG.World.Events;
 using MineRPG.World.Meshing;
 using MineRPG.World.Spatial;
+
+using MineRPG.Godot.World.Chunks;
+using MineRPG.Godot.World.Rendering;
 
 namespace MineRPG.Godot.World;
 
@@ -23,7 +27,6 @@ namespace MineRPG.Godot.World;
 public sealed partial class WorldNode : Node3D
 {
     private readonly Dictionary<ChunkCoord, ChunkNode> _chunkNodes = new();
-    private readonly ChunkNodePool _chunkNodePool = new();
 
     private IChunkManager _chunkManager = null!;
     private IChunkMeshBuilder _meshBuilder = null!;
@@ -35,7 +38,7 @@ public sealed partial class WorldNode : Node3D
     /// <summary>
     /// Gets the chunk node pool used for recycling chunk nodes.
     /// </summary>
-    public ChunkNodePool NodePool => _chunkNodePool;
+    public ChunkNodePool NodePool { get; } = new();
 
     /// <summary>
     /// Gets the number of active chunk nodes in the scene tree.
@@ -79,7 +82,7 @@ public sealed partial class WorldNode : Node3D
         _chunkNodes.Clear();
 
         // Free idle pooled nodes
-        _chunkNodePool.FreeAll();
+        NodePool.FreeAll();
     }
 
     /// <summary>
@@ -120,7 +123,7 @@ public sealed partial class WorldNode : Node3D
             return existing;
         }
 
-        ChunkNode node = _chunkNodePool.Rent();
+        ChunkNode node = NodePool.Rent();
         node.Initialize(coord);
         node.Visible = true;
         AddChild(node);
@@ -152,7 +155,7 @@ public sealed partial class WorldNode : Node3D
             return;
         }
 
-        _chunkNodePool.Return(node);
+        NodePool.Return(node);
         _chunkNodes.Remove(coord);
     }
 
@@ -180,7 +183,7 @@ public sealed partial class WorldNode : Node3D
     /// Called by ChunkLoadingScheduler during frame-budgeted node cleanup.
     /// </summary>
     /// <param name="node">The node to return.</param>
-    public void ReturnChunkNodeToPool(ChunkNode node) => _chunkNodePool.Return(node);
+    public void ReturnChunkNodeToPool(ChunkNode node) => NodePool.Return(node);
 
     /// <summary>
     /// Breaks (removes) the block at the given world position.

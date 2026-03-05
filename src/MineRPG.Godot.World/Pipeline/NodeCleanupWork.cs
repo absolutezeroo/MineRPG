@@ -1,5 +1,7 @@
 using MineRPG.Core.Math;
 
+using MineRPG.Godot.World.Chunks;
+
 namespace MineRPG.Godot.World.Pipeline;
 
 /// <summary>

@@ -35,10 +35,8 @@ public sealed class OreDistributor
     /// <param name="random">Seeded random for placement.</param>
     public void Distribute(ChunkData data, int chunkWorldX, int chunkWorldZ, Random random)
     {
-        for (int i = 0; i < _oreDefinitions.Count; i++)
+        foreach (OreDefinition ore in _oreDefinitions)
         {
-            OreDefinition ore = _oreDefinitions[i];
-
             if (ore.BlockId == 0)
             {
                 continue;

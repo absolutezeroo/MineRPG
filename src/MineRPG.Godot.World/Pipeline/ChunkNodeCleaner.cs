@@ -3,6 +3,8 @@ using System.Diagnostics;
 
 using MineRPG.Core.Math;
 
+using MineRPG.Godot.World.Chunks;
+
 namespace MineRPG.Godot.World.Pipeline;
 
 /// <summary>
@@ -28,10 +30,7 @@ internal sealed class ChunkNodeCleaner
     /// </summary>
     /// <param name="coord">The chunk coordinate.</param>
     /// <param name="node">The extracted chunk node to clean up.</param>
-    public void Enqueue(ChunkCoord coord, ChunkNode node)
-    {
-        _pendingCleanup.Enqueue(new NodeCleanupWork(coord, node));
-    }
+    public void Enqueue(ChunkCoord coord, ChunkNode node) => _pendingCleanup.Enqueue(new NodeCleanupWork(coord, node));
 
     /// <summary>
     /// Drains pending node cleanups within the given time budget.

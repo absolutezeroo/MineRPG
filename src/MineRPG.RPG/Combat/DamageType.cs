@@ -27,5 +27,5 @@ public enum DamageType
     Holy,
 
     /// <summary>Shadow magic damage.</summary>
-    Shadow
+    Shadow,
 }

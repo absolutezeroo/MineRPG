@@ -9,6 +9,7 @@ using MineRPG.Core.Diagnostics;
 using MineRPG.Core.Logging;
 using MineRPG.Core.Math;
 using MineRPG.World.Chunks;
+using MineRPG.World.Chunks.Serialization;
 using MineRPG.World.Generation;
 using MineRPG.World.Meshing;
 
@@ -26,14 +27,8 @@ internal sealed class ChunkWorkerPool : IDisposable
 {
     private readonly ConcurrentQueue<RemeshWork> _remeshQueue = new();
     private readonly ConcurrentQueue<ChunkEntry> _generationQueue = new();
-    private readonly ConcurrentQueue<SaveWork> _saveQueue = new();
-
-    private readonly ConcurrentQueue<ChunkEntry> _blockEditResultQueue = new();
-    private readonly ConcurrentQueue<ChunkEntry> _loadResultQueue = new();
 
     private readonly ConcurrentDictionary<ChunkCoord, CancellationTokenSource> _pendingCts = new();
-    private readonly ConcurrentDictionary<ChunkCoord, byte> _pendingRemeshes = new();
-    private readonly ConcurrentDictionary<ChunkCoord, byte> _blockEditRemeshes = new();
 
     private readonly SemaphoreSlim _workSignal;
     private readonly CancellationTokenSource _shutdownCts;
@@ -49,34 +44,34 @@ internal sealed class ChunkWorkerPool : IDisposable
     /// <summary>
     /// Gets the block-edit result queue (high priority, drained without budget).
     /// </summary>
-    public ConcurrentQueue<ChunkEntry> BlockEditResultQueue => _blockEditResultQueue;
+    public ConcurrentQueue<ChunkEntry> BlockEditResultQueue { get; } = new();
 
     /// <summary>
     /// Gets the initial-load result queue (drained within frame budget).
     /// </summary>
-    public ConcurrentQueue<ChunkEntry> LoadResultQueue => _loadResultQueue;
+    public ConcurrentQueue<ChunkEntry> LoadResultQueue { get; } = new();
 
     /// <summary>
     /// Gets the pending remesh dedup dictionary.
     /// </summary>
-    public ConcurrentDictionary<ChunkCoord, byte> PendingRemeshes => _pendingRemeshes;
+    public ConcurrentDictionary<ChunkCoord, byte> PendingRemeshes { get; } = new();
 
     /// <summary>
     /// Gets the block-edit remesh dedup dictionary.
     /// </summary>
-    public ConcurrentDictionary<ChunkCoord, byte> BlockEditRemeshes => _blockEditRemeshes;
+    public ConcurrentDictionary<ChunkCoord, byte> BlockEditRemeshes { get; } = new();
 
     /// <summary>
     /// Gets the save queue for enqueueing chunk saves.
     /// </summary>
-    public ConcurrentQueue<SaveWork> SaveQueue => _saveQueue;
+    public ConcurrentQueue<SaveWork> SaveQueue { get; } = new();
 
     /// <summary>
     /// Gets the total pending work item count across all queues.
     /// </summary>
     public int PendingWorkCount =>
-        _blockEditResultQueue.Count + _loadResultQueue.Count
-        + _generationQueue.Count + _remeshQueue.Count + _saveQueue.Count;
+        BlockEditResultQueue.Count + LoadResultQueue.Count
+        + _generationQueue.Count + _remeshQueue.Count + SaveQueue.Count;
 
     /// <summary>
     /// Creates and starts the worker pool.
@@ -141,7 +136,7 @@ internal sealed class ChunkWorkerPool : IDisposable
     /// <param name="coord">The chunk coordinate.</param>
     public void EnqueueBlockEditRemesh(ChunkEntry entry, ChunkCoord coord)
     {
-        _remeshQueue.Enqueue(new RemeshWork(entry, coord, _blockEditResultQueue));
+        _remeshQueue.Enqueue(new RemeshWork(entry, coord, BlockEditResultQueue));
         _workSignal.Release();
     }
 
@@ -164,7 +159,7 @@ internal sealed class ChunkWorkerPool : IDisposable
     /// <param name="blockSnapshot">Pre-copied block data (ownership transferred).</param>
     public void EnqueueSave(ChunkCoord coord, ushort[] blockSnapshot)
     {
-        _saveQueue.Enqueue(new SaveWork(coord, blockSnapshot));
+        SaveQueue.Enqueue(new SaveWork(coord, blockSnapshot));
         _workSignal.Release();
     }
 
@@ -180,8 +175,8 @@ internal sealed class ChunkWorkerPool : IDisposable
             cts.Dispose();
         }
 
-        _pendingRemeshes.TryRemove(coord, out _);
-        _blockEditRemeshes.TryRemove(coord, out _);
+        PendingRemeshes.TryRemove(coord, out _);
+        BlockEditRemeshes.TryRemove(coord, out _);
     }
 
     /// <summary>
@@ -198,13 +193,13 @@ internal sealed class ChunkWorkerPool : IDisposable
                 ushort[] snapshot = new ushort[ChunkData.TotalBlocks];
                 remaining.Data.CopyBlocksUnderReadLock(snapshot);
                 remaining.IsModified = false;
-                _saveQueue.Enqueue(new SaveWork(remaining.Coord, snapshot));
+                SaveQueue.Enqueue(new SaveWork(remaining.Coord, snapshot));
             }
         }
 
         _shutdownCts.Cancel();
 
-        int wakeCount = _workers.Length + _saveQueue.Count;
+        int wakeCount = _workers.Length + SaveQueue.Count;
 
         for (int i = 0; i < wakeCount; i++)
         {
@@ -219,7 +214,7 @@ internal sealed class ChunkWorkerPool : IDisposable
 
         Task.WaitAll(_workers, TimeSpan.FromSeconds(10));
 
-        while (_saveQueue.TryDequeue(out SaveWork leftover))
+        while (SaveQueue.TryDequeue(out SaveWork leftover))
         {
             ProcessSaveWork(leftover);
         }
@@ -242,7 +237,7 @@ internal sealed class ChunkWorkerPool : IDisposable
             }
             catch (OperationCanceledException)
             {
-                while (_saveQueue.TryDequeue(out SaveWork finalWork))
+                while (SaveQueue.TryDequeue(out SaveWork finalWork))
                 {
                     ProcessSaveWork(finalWork);
                 }
@@ -262,7 +257,7 @@ internal sealed class ChunkWorkerPool : IDisposable
                 continue;
             }
 
-            if (_saveQueue.TryDequeue(out SaveWork saveWork))
+            if (SaveQueue.TryDequeue(out SaveWork saveWork))
             {
                 ProcessSaveWork(saveWork);
             }
@@ -292,8 +287,8 @@ internal sealed class ChunkWorkerPool : IDisposable
         }
         catch (Exception exception)
         {
-            _pendingRemeshes.TryRemove(work.Coord, out _);
-            _blockEditRemeshes.TryRemove(work.Coord, out _);
+            PendingRemeshes.TryRemove(work.Coord, out _);
+            BlockEditRemeshes.TryRemove(work.Coord, out _);
             _logger.Error("Remesh failed for {0}: {1}", exception, work.Coord, exception.Message);
         }
     }
@@ -340,7 +335,7 @@ internal sealed class ChunkWorkerPool : IDisposable
 
             entry.PendingMesh = mesh;
             entry.SetState(ChunkState.Ready);
-            _loadResultQueue.Enqueue(entry);
+            LoadResultQueue.Enqueue(entry);
         }
         catch (OperationCanceledException)
         {

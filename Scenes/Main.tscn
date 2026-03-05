@@ -1,9 +1,9 @@
 [gd_scene format=3 uid="uid://dtjb28nrm68bw"]
 
 [ext_resource type="Script" uid="uid://yogv330k7ky2" path="res://src/MineRPG.Godot.World/WorldNode.cs" id="1_idj7w"]
-[ext_resource type="Script" path="res://src/MineRPG.Godot.World/ChunkLoadingScheduler.cs" id="2_scheduler"]
+[ext_resource type="Script" path="res://src/MineRPG.Godot.World/Chunks/ChunkLoadingScheduler.cs" id="2_scheduler"]
 [ext_resource type="Script" uid="uid://byr08nqpakop6" path="res://src/MineRPG.Godot.Entities/PlayerNode.cs" id="2_kln2b"]
-[ext_resource type="Script" path="res://src/MineRPG.Godot.UI/HUDNode.cs" id="4_hud"]
+[ext_resource type="Script" path="res://src/MineRPG.Godot.UI/HUD/HUDNode.cs" id="4_hud"]
 [ext_resource type="Script" path="res://Bootstrap/GameplayBootstrap.cs" id="5_gameplay_boot"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]

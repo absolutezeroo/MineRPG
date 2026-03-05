@@ -3,6 +3,7 @@ using System;
 using FluentAssertions;
 
 using MineRPG.World.Chunks;
+using MineRPG.World.Chunks.Serialization;
 
 namespace MineRPG.Tests.World;
 

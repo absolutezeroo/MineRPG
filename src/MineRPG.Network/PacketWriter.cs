@@ -19,7 +19,6 @@ public sealed class PacketWriter : IDisposable
     private const int Int32Size = 4;
 
     private byte[] _buffer;
-    private int _position;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PacketWriter"/> class.
@@ -31,7 +30,7 @@ public sealed class PacketWriter : IDisposable
     }
 
     /// <summary>Number of bytes written so far.</summary>
-    public int Length => _position;
+    public int Length { get; private set; }
 
     /// <summary>
     /// Writes a single byte to the buffer.
@@ -40,7 +39,7 @@ public sealed class PacketWriter : IDisposable
     public void WriteByte(byte value)
     {
         EnsureCapacity(ByteSize);
-        _buffer[_position++] = value;
+        _buffer[Length++] = value;
     }
 
     /// <summary>
@@ -50,8 +49,8 @@ public sealed class PacketWriter : IDisposable
     public void WriteUInt16(ushort value)
     {
         EnsureCapacity(UInt16Size);
-        _buffer[_position++] = (byte)(value & ByteMask);
-        _buffer[_position++] = (byte)((value >> BitsPerByte) & ByteMask);
+        _buffer[Length++] = (byte)(value & ByteMask);
+        _buffer[Length++] = (byte)((value >> BitsPerByte) & ByteMask);
     }
 
     /// <summary>
@@ -61,10 +60,10 @@ public sealed class PacketWriter : IDisposable
     public void WriteInt32(int value)
     {
         EnsureCapacity(Int32Size);
-        _buffer[_position++] = (byte)(value & ByteMask);
-        _buffer[_position++] = (byte)((value >> BitsPerByte) & ByteMask);
-        _buffer[_position++] = (byte)((value >> (BitsPerByte * 2)) & ByteMask);
-        _buffer[_position++] = (byte)((value >> (BitsPerByte * 3)) & ByteMask);
+        _buffer[Length++] = (byte)(value & ByteMask);
+        _buffer[Length++] = (byte)((value >> BitsPerByte) & ByteMask);
+        _buffer[Length++] = (byte)((value >> (BitsPerByte * 2)) & ByteMask);
+        _buffer[Length++] = (byte)((value >> (BitsPerByte * 3)) & ByteMask);
     }
 
     /// <summary>
@@ -82,21 +81,21 @@ public sealed class PacketWriter : IDisposable
         int byteCount = Encoding.UTF8.GetByteCount(value);
         WriteUInt16((ushort)byteCount);
         EnsureCapacity(byteCount);
-        Encoding.UTF8.GetBytes(value, _buffer.AsSpan(_position, byteCount));
-        _position += byteCount;
+        Encoding.UTF8.GetBytes(value, _buffer.AsSpan(Length, byteCount));
+        Length += byteCount;
     }
 
     /// <summary>
     /// Returns the written bytes as a read-only span.
     /// </summary>
     /// <returns>A span over the written portion of the buffer.</returns>
-    public ReadOnlySpan<byte> ToSpan() => _buffer.AsSpan(0, _position);
+    public ReadOnlySpan<byte> ToSpan() => _buffer.AsSpan(0, Length);
 
     /// <summary>
     /// Returns the written bytes as a new byte array.
     /// </summary>
     /// <returns>A copy of the written bytes.</returns>
-    public byte[] ToArray() => _buffer.AsSpan(0, _position).ToArray();
+    public byte[] ToArray() => _buffer.AsSpan(0, Length).ToArray();
 
     /// <summary>
     /// Returns the rented buffer to the array pool.
@@ -105,14 +104,14 @@ public sealed class PacketWriter : IDisposable
 
     private void EnsureCapacity(int additional)
     {
-        if (_position + additional <= _buffer.Length)
+        if (Length + additional <= _buffer.Length)
         {
             return;
         }
 
-        int newSize = Math.Max(_buffer.Length * GrowthFactor, _position + additional);
+        int newSize = Math.Max(_buffer.Length * GrowthFactor, Length + additional);
         byte[] newBuffer = ArrayPool<byte>.Shared.Rent(newSize);
-        _buffer.AsSpan(0, _position).CopyTo(newBuffer);
+        _buffer.AsSpan(0, Length).CopyTo(newBuffer);
         ArrayPool<byte>.Shared.Return(_buffer);
         _buffer = newBuffer;
     }

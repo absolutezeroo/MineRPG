@@ -1,6 +1,7 @@
 using Godot;
 
 using MineRPG.Core.Interfaces;
+using MineRPG.Core.Interfaces.Settings;
 
 namespace MineRPG.Godot.UI.Options;
 

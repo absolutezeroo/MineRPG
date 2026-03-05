@@ -18,5 +18,5 @@ public enum ItemRarity
     Epic,
 
     /// <summary>The rarest and most powerful tier of items.</summary>
-    Legendary
+    Legendary,
 }

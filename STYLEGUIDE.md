@@ -35,7 +35,8 @@ Every rule in this document is **mandatory**. No exceptions without documented j
 18. [Strings](#18-strings)
 19. [Records and Init](#19-records-and-init)
 20. [Line and File Length](#20-line-and-file-length)
-21. [Absolute Prohibitions Summary](#21-absolute-prohibitions-summary)
+21. [Folder Organization](#21-folder-organization)
+22. [Absolute Prohibitions Summary](#22-absolute-prohibitions-summary)
 
 ---
 
@@ -851,7 +852,84 @@ If a file exceeds 300 lines, question whether the class has too many responsibil
 
 ---
 
-## 21. Absolute Prohibitions Summary
+## 21. Folder Organization
+
+Every directory must be organized by **domain** (what the code does for the game), not by **technical pattern** (Service, Provider, Controller). Files in the same folder must share a common responsibility.
+
+### 21.1 Domain-First Grouping
+
+```
+// ❌ FORBIDDEN — grouping by technical pattern
+Services/
+├── BlockInteractionService.cs   (gameplay)
+├── DebugDataProvider.cs         (debug)
+├── HotbarController.cs          (gameplay)
+├── OptionsProvider.cs            (settings)
+├── JsonSettingsRepository.cs     (settings)
+└── KeybindApplicator.cs          (settings)
+
+// ✅ REQUIRED — grouping by domain
+Gameplay/
+├── BlockInteractionService.cs
+└── HotbarController.cs
+Settings/
+├── OptionsProvider.cs
+├── JsonSettingsRepository.cs
+└── KeybindApplicator.cs
+Debug/
+└── DebugDataProvider.cs
+```
+
+### 21.2 When to Create a Subfolder
+
+Create a subfolder when files in the same directory serve **distinct responsibilities**. The threshold is not a fixed file count — it is a question of **cohesion**:
+
+- If two files address the same concern (e.g., `ChunkSerializer` + `PaletteCompressor` both handle serialization), they belong in the same subfolder
+- If files address unrelated concerns (e.g., `ChunkNode` for rendering vs `FileChunkStorage` for persistence), they must be separated
+- A single file in a subfolder is acceptable if it clearly belongs to a distinct domain (e.g., `Debug/DebugDataProvider.cs`)
+
+### 21.3 Namespace Mirrors Folder Structure
+
+When files move to a subfolder, the namespace **must** change to match:
+
+```csharp
+// File: src/MineRPG.Core/Events/Definitions/GamePausedEvent.cs
+namespace MineRPG.Core.Events.Definitions;
+
+// File: Bootstrap/Settings/OptionsProvider.cs
+namespace MineRPG.Game.Bootstrap.Settings;
+
+// File: src/MineRPG.Godot.World/Chunks/ChunkNode.cs
+namespace MineRPG.Godot.World.Chunks;
+```
+
+### 21.4 Flat Root Files
+
+A project or directory root may contain files that represent the primary entry point or cross-cutting concerns:
+
+```
+MineRPG.Godot.World/
+├── WorldNode.cs         ← root entry point (OK)
+├── Chunks/              ← chunk management domain
+├── Rendering/           ← rendering domain
+├── Storage/             ← persistence domain
+└── Pipeline/            ← worker pipeline domain
+```
+
+Avoid dumping all files at the root. If the root accumulates files that serve different responsibilities, create subfolders immediately.
+
+### 21.5 Prohibited Patterns
+
+| Pattern | Why It's Bad | What to Do Instead |
+|---------|------------|-------------------|
+| `Services/` catch-all folder | Mixes unrelated concerns under a meaningless label | Group by domain: `Settings/`, `Gameplay/`, `Debug/` |
+| `Helpers/` or `Utils/` folder | Attracts unrelated code, grows indefinitely | Place utilities next to the code they help |
+| All files at project root | No visual cue about responsibilities | Create domain subfolders |
+| Deep empty folder chains | `A/B/C/OnlyFile.cs` adds noise | Flatten if intermediate folders have no siblings |
+
+---
+
+## 22. Absolute Prohibitions Summary
 
 | Prohibited | Reason |
 |------------|--------|
@@ -875,6 +953,8 @@ If a file exceeds 300 lines, question whether the class has too many responsibil
 | `this.` qualification (unless ambiguous) | Unnecessary noise |
 | 2+ consecutive blank lines | 1 max |
 | Blank line after `{` or before `}` | Never |
+| Flat file dump at project/folder root | Group by domain, not by pattern |
+| `Services/`, `Helpers/`, `Utils/` catch-all folders | Meaningless labels — use domain-specific names |
 
 ---
 

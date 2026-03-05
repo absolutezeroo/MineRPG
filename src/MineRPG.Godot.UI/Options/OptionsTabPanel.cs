@@ -2,6 +2,7 @@ using Godot;
 
 using MineRPG.Core.DI;
 using MineRPG.Core.Interfaces;
+using MineRPG.Core.Interfaces.Settings;
 using MineRPG.Core.Logging;
 
 namespace MineRPG.Godot.UI.Options;

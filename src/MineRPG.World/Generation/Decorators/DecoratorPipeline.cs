@@ -54,9 +54,9 @@ public sealed class DecoratorPipeline
         int chunkSeed = HashCombine(seed, chunkWorldX, chunkWorldZ);
         Random random = new Random(chunkSeed);
 
-        for (int i = 0; i < _decorators.Length; i++)
+        foreach (IDecorator entry in _decorators)
         {
-            _decorators[i].Decorate(data, biomeMap, heightMap, chunkWorldX, chunkWorldZ, random);
+            entry.Decorate(data, biomeMap, heightMap, chunkWorldX, chunkWorldZ, random);
         }
     }
 
@@ -67,6 +67,7 @@ public sealed class DecoratorPipeline
             int hash = seed;
             hash = hash * 31 + x;
             hash = hash * 31 + z;
+
             return hash;
         }
     }

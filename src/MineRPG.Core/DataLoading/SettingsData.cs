@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
 using MineRPG.Core.Interfaces;
+using MineRPG.Core.Interfaces.Settings;
 
 namespace MineRPG.Core.DataLoading;
 

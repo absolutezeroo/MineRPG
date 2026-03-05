@@ -9,19 +9,17 @@ public sealed class PlayerData
     /// <summary>Default block ID selected in the hotbar.</summary>
     private const ushort DefaultSelectedBlockId = 1;
 
-    private readonly PlayerMovementSettings _movementSettings;
-
     /// <summary>
     /// Initializes a new instance of the <see cref="PlayerData"/> class.
     /// </summary>
     /// <param name="settings">Movement tuning parameters loaded from data files.</param>
     public PlayerData(PlayerMovementSettings settings)
     {
-        _movementSettings = settings;
+        MovementSettings = settings;
     }
 
     /// <summary>Movement tuning parameters for this player.</summary>
-    public PlayerMovementSettings MovementSettings => _movementSettings;
+    public PlayerMovementSettings MovementSettings { get; }
 
     /// <summary>World X position of the player.</summary>
     public float PositionX { get; set; }
