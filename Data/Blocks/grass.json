@@ -6,6 +6,6 @@
   "textures": {
     "top": "grass_top",
     "bottom": "dirt",
-    "side": "grass_side"
+    "side": "grass_block_side"
   }
 }
