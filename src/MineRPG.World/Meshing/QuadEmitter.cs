@@ -57,17 +57,25 @@ internal static class QuadEmitter
 
         if (isFlipped)
         {
-            cornerU[0] = 0; cornerV[0] = 0;
-            cornerU[1] = 0; cornerV[1] = height;
-            cornerU[2] = width; cornerV[2] = height;
-            cornerU[3] = width; cornerV[3] = 0;
+            cornerU[0] = 0;
+            cornerV[0] = 0;
+            cornerU[1] = 0;
+            cornerV[1] = height;
+            cornerU[2] = width;
+            cornerV[2] = height;
+            cornerU[3] = width;
+            cornerV[3] = 0;
         }
         else
         {
-            cornerU[0] = 0; cornerV[0] = 0;
-            cornerU[1] = width; cornerV[1] = 0;
-            cornerU[2] = width; cornerV[2] = height;
-            cornerU[3] = 0; cornerV[3] = height;
+            cornerU[0] = 0;
+            cornerV[0] = 0;
+            cornerU[1] = width;
+            cornerV[1] = 0;
+            cornerU[2] = width;
+            cornerV[2] = height;
+            cornerU[3] = 0;
+            cornerV[3] = height;
         }
 
         float tileU0 = definition.FaceUvs[faceDirection * UvComponentsPerFace + 0];
@@ -78,17 +86,25 @@ internal static class QuadEmitter
 
         if (isFlipped)
         {
-            tilingU[0] = 0; tilingV[0] = 0;
-            tilingU[1] = 0; tilingV[1] = height;
-            tilingU[2] = width; tilingV[2] = height;
-            tilingU[3] = width; tilingV[3] = 0;
+            tilingU[0] = 0;
+            tilingV[0] = 0;
+            tilingU[1] = 0;
+            tilingV[1] = height;
+            tilingU[2] = width;
+            tilingV[2] = height;
+            tilingU[3] = width;
+            tilingV[3] = 0;
         }
         else
         {
-            tilingU[0] = 0; tilingV[0] = 0;
-            tilingU[1] = width; tilingV[1] = 0;
-            tilingU[2] = width; tilingV[2] = height;
-            tilingU[3] = 0; tilingV[3] = height;
+            tilingU[0] = 0;
+            tilingV[0] = 0;
+            tilingU[1] = width;
+            tilingV[1] = 0;
+            tilingU[2] = width;
+            tilingV[2] = height;
+            tilingU[3] = 0;
+            tilingV[3] = height;
         }
 
         if (vAxis == AxisY)
