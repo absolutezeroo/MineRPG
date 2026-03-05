@@ -20,20 +20,24 @@ using MineRPG.World.Meshing;
 namespace MineRPG.Godot.World;
 
 /// <summary>
-/// Drives the async chunk generation and meshing pipeline.
+/// Drives the async chunk generation and meshing pipeline using a fixed worker pool.
 ///
 /// Priority model:
-///   Block edit remeshes -> <see cref="_blockEditQueue"/> (drained fully each frame, no budget).
-///   Initial loads and neighbor remeshes -> <see cref="_loadQueue"/> (time-budgeted).
+///   Block edit remeshes  -> <see cref="_remeshQueue"/> (workers check this FIRST).
+///   Initial loads        -> <see cref="_generationQueue"/> (workers check this second).
+///   Results are enqueued to <see cref="_blockEditResultQueue"/> or <see cref="_loadResultQueue"/>
+///   and drained on the main thread in <see cref="_Process"/>.
+///
+/// Worker pool:
+///   A fixed number of long-running worker tasks (ProcessorCount - 1) consume work items
+///   from the two queues. Remesh work is always checked first, so block edits are never
+///   starved by a backlog of generation tasks — unlike the previous SemaphoreSlim approach
+///   where all tasks competed in a single FIFO wait queue.
 ///
 /// Thread safety:
 ///   Block data is snapshotted (ushort[] copy under read lock) before each background
-///   remesh task. The snapshot is loaded into a temporary <see cref="ChunkData"/> instance
-///   owned by the task. Write locks protect <see cref="ChunkData.SetBlock"/> in WorldNode.
-///
-/// Concurrency:
-///   A <see cref="SemaphoreSlim"/> caps concurrent background tasks at ProcessorCount - 1
-///   to prevent thread pool exhaustion during bulk chunk loads.
+///   remesh task. Write locks protect <see cref="ChunkData.SetBlock"/> in WorldNode.
+///   During initial generation, the worker is the sole accessor of entry.Data.
 /// </summary>
 public sealed partial class ChunkLoadingScheduler : Node
 {
@@ -41,13 +45,23 @@ public sealed partial class ChunkLoadingScheduler : Node
     private const int FrameBudgetMs = 4;
     private const int RenderDistance = 32;
 
-    private readonly ConcurrentQueue<ChunkEntry> _blockEditQueue = new();
-    private readonly ConcurrentQueue<ChunkEntry> _loadQueue = new();
+    // --- Work queues (fed by main thread, consumed by workers) ---
+    private readonly ConcurrentQueue<ChunkEntry> _generationQueue = new();
+    private readonly ConcurrentQueue<RemeshWork> _remeshQueue = new();
+
+    // --- Result queues (fed by workers, consumed by main thread in _Process) ---
+    private readonly ConcurrentQueue<ChunkEntry> _blockEditResultQueue = new();
+    private readonly ConcurrentQueue<ChunkEntry> _loadResultQueue = new();
+
+    // --- Dedup tracking ---
     private readonly ConcurrentDictionary<ChunkCoord, CancellationTokenSource> _pendingCts = new();
     private readonly ConcurrentDictionary<ChunkCoord, byte> _pendingRemeshes = new();
     private readonly ConcurrentDictionary<ChunkCoord, byte> _blockEditRemeshes = new();
 
-    private SemaphoreSlim _taskSemaphore = null!;
+    // --- Worker pool ---
+    private SemaphoreSlim _workSignal = null!;
+    private CancellationTokenSource _shutdownCts = null!;
+    private Task[] _workers = null!;
 
     private IChunkManager _chunkManager = null!;
     private IWorldGenerator _generator = null!;
@@ -62,9 +76,6 @@ public sealed partial class ChunkLoadingScheduler : Node
     /// <inheritdoc />
     public override void _Ready()
     {
-        int maxConcurrent = Math.Max(1, System.Environment.ProcessorCount - 1);
-        _taskSemaphore = new SemaphoreSlim(maxConcurrent, maxConcurrent);
-
         _chunkManager = ServiceLocator.Instance.Get<IChunkManager>();
         _generator = ServiceLocator.Instance.Get<IWorldGenerator>();
         _meshBuilder = ServiceLocator.Instance.Get<IChunkMeshBuilder>();
@@ -88,6 +99,17 @@ public sealed partial class ChunkLoadingScheduler : Node
             _performanceMonitor.SetRenderDistance(RenderDistance);
         }
 
+        // Start worker pool
+        int workerCount = Math.Max(1, System.Environment.ProcessorCount - 1);
+        _shutdownCts = new CancellationTokenSource();
+        _workSignal = new SemaphoreSlim(0);
+        _workers = new Task[workerCount];
+
+        for (int i = 0; i < workerCount; i++)
+        {
+            _workers[i] = Task.Run(() => WorkerLoopAsync(_shutdownCts.Token));
+        }
+
         ServiceLocator.Instance.Register(this);
         _eventBus.Subscribe<PlayerChunkChangedEvent>(OnPlayerChunkChanged);
     }
@@ -97,19 +119,33 @@ public sealed partial class ChunkLoadingScheduler : Node
     {
         _eventBus.Unsubscribe<PlayerChunkChangedEvent>(OnPlayerChunkChanged);
 
+        // Signal all workers to stop
+        _shutdownCts.Cancel();
+
+        // Wake all workers so they can observe the cancellation
+        for (int i = 0; i < _workers.Length; i++)
+        {
+            _workSignal.Release();
+        }
+
+        // Cancel any pending generation CTS
         foreach (CancellationTokenSource cts in _pendingCts.Values)
         {
             cts.Cancel();
         }
 
-        _taskSemaphore.Dispose();
+        // Wait briefly for workers to finish
+        Task.WaitAll(_workers, TimeSpan.FromSeconds(2));
+
+        _workSignal.Dispose();
+        _shutdownCts.Dispose();
     }
 
     /// <inheritdoc />
     public override void _Process(double delta)
     {
         // Phase 1: drain ALL block edit remeshes — no budget, player-facing priority.
-        while (_blockEditQueue.TryDequeue(out ChunkEntry? editEntry))
+        while (_blockEditResultQueue.TryDequeue(out ChunkEntry? editEntry))
         {
             ApplyChunkMesh(editEntry);
         }
@@ -118,7 +154,7 @@ public sealed partial class ChunkLoadingScheduler : Node
         long budgetTicks = (long)(FrameBudgetMs * (Stopwatch.Frequency / 1000.0));
         long startTick = Stopwatch.GetTimestamp();
 
-        while (_loadQueue.TryDequeue(out ChunkEntry? loadEntry))
+        while (_loadResultQueue.TryDequeue(out ChunkEntry? loadEntry))
         {
             ApplyChunkMesh(loadEntry);
 
@@ -133,9 +169,9 @@ public sealed partial class ChunkLoadingScheduler : Node
 
     /// <summary>
     /// Schedule an async remesh for a chunk after a block edit.
-    /// The block data is snapshotted under a read lock inside the background task,
+    /// The block data is snapshotted under a read lock inside the worker,
     /// guaranteeing a consistent copy. Result is enqueued to the high-priority
-    /// <see cref="_blockEditQueue"/>.
+    /// <see cref="_blockEditResultQueue"/>.
     /// </summary>
     /// <param name="coord">The coordinate of the chunk to remesh.</param>
     public void ScheduleBlockEditRemesh(ChunkCoord coord)
@@ -157,7 +193,8 @@ public sealed partial class ChunkLoadingScheduler : Node
 
         _blockEditRemeshes.TryAdd(coord, 0);
 
-        ScheduleRemeshTask(entry, coord, _blockEditQueue);
+        _remeshQueue.Enqueue(new RemeshWork(entry, coord, _blockEditResultQueue));
+        _workSignal.Release();
     }
 
     /// <summary>
@@ -201,70 +238,135 @@ public sealed partial class ChunkLoadingScheduler : Node
         CancellationTokenSource cts = new();
         _pendingCts[entry.Coord] = cts;
 
-        // Do NOT pass cts.Token to Task.Run — if the token is already cancelled,
-        // the lambda never executes and the finally cleanup (TryRemove) is skipped.
-        // The token is passed to WaitAsync and Generate for cooperative cancellation.
-        Task.Run(async () =>
-        {
-            bool semaphoreAcquired = false;
+        _generationQueue.Enqueue(entry);
+        _workSignal.Release();
+    }
 
+    /// <summary>
+    /// Long-running worker loop. Each worker checks the remesh queue first (priority),
+    /// then the generation queue. This guarantees block edit remeshes are processed
+    /// immediately by the next available worker, regardless of generation backlog.
+    /// </summary>
+    private async Task WorkerLoopAsync(CancellationToken shutdownToken)
+    {
+        while (!shutdownToken.IsCancellationRequested)
+        {
             try
             {
-                await _taskSemaphore.WaitAsync(cts.Token).ConfigureAwait(false);
-                semaphoreAcquired = true;
-
-                bool isLoaded = _persistence?.TryLoad(entry.Coord, entry.Data) ?? false;
-
-                if (!isLoaded)
-                {
-                    _generator.Generate(entry, cts.Token);
-
-                    if (cts.Token.IsCancellationRequested)
-                    {
-                        return;
-                    }
-                }
-
-                entry.SetState(ChunkState.Generated);
-                _performanceMonitor?.IncrementChunksGenerated();
-                entry.RecomputeSubChunkInfo();
-                entry.SetState(ChunkState.Meshing);
-
-                // No lock needed here: this task is the sole accessor of entry.Data
-                // during Generating/Meshing states.
-                long meshStart = Stopwatch.GetTimestamp();
-                ChunkData?[] neighbors = _chunkManager.GetNeighborData(entry.Coord);
-                ChunkMeshResult mesh = _meshBuilder.Build(entry.Data, neighbors, cts.Token);
-                _performanceMonitor?.RecordMeshTime(Stopwatch.GetTimestamp() - meshStart);
-                _performanceMonitor?.IncrementChunksMeshed();
-
-                if (cts.Token.IsCancellationRequested)
-                {
-                    return;
-                }
-
-                entry.PendingMesh = mesh;
-                entry.SetState(ChunkState.Ready);
-                _loadQueue.Enqueue(entry);
+                await _workSignal.WaitAsync(shutdownToken).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
-                // Expected when chunk is no longer needed
+                return;
             }
-            catch (Exception exception)
-            {
-                _logger.Error("Chunk generation failed for {0}: {1}", exception, entry.Coord, exception.Message);
-            }
-            finally
-            {
-                _pendingCts.TryRemove(entry.Coord, out _);
 
-                if (semaphoreAcquired)
+            // Priority 1: remesh work (block edits)
+            if (_remeshQueue.TryDequeue(out RemeshWork remeshWork))
+            {
+                ProcessRemeshWork(remeshWork);
+                continue;
+            }
+
+            // Priority 2: chunk generation
+            if (_generationQueue.TryDequeue(out ChunkEntry? genEntry))
+            {
+                ProcessGenerationWork(genEntry);
+                continue;
+            }
+
+            // Spurious wake — no work available, loop back to wait
+        }
+    }
+
+    private void ProcessRemeshWork(RemeshWork work)
+    {
+        try
+        {
+            // Snapshot under read lock — excludes concurrent writes from main thread.
+            ushort[] buffer = new ushort[ChunkData.TotalBlocks];
+            work.Entry.Data.CopyBlocksUnderReadLock(buffer);
+
+            ChunkData snapshotData = new(work.Coord);
+            snapshotData.LoadFromSpan(buffer);
+
+            ChunkData?[] neighbors = _chunkManager.GetNeighborData(work.Coord);
+
+            long meshStart = Stopwatch.GetTimestamp();
+            ChunkMeshResult mesh = _meshBuilder.Build(snapshotData, neighbors, CancellationToken.None);
+            _performanceMonitor?.RecordMeshTime(Stopwatch.GetTimestamp() - meshStart);
+            _performanceMonitor?.IncrementChunksMeshed();
+
+            work.Entry.PendingMesh = mesh;
+            work.Entry.SetState(ChunkState.Ready);
+            work.TargetQueue.Enqueue(work.Entry);
+        }
+        catch (Exception exception)
+        {
+            _pendingRemeshes.TryRemove(work.Coord, out _);
+            _blockEditRemeshes.TryRemove(work.Coord, out _);
+            _logger.Error("Remesh failed for {0}: {1}", exception, work.Coord, exception.Message);
+        }
+    }
+
+    private void ProcessGenerationWork(ChunkEntry entry)
+    {
+        // Retrieve the CTS for cooperative cancellation
+        _pendingCts.TryGetValue(entry.Coord, out CancellationTokenSource? cts);
+        CancellationToken token = cts?.Token ?? CancellationToken.None;
+
+        try
+        {
+            if (token.IsCancellationRequested)
+            {
+                return;
+            }
+
+            bool isLoaded = _persistence?.TryLoad(entry.Coord, entry.Data) ?? false;
+
+            if (!isLoaded)
+            {
+                _generator.Generate(entry, token);
+
+                if (token.IsCancellationRequested)
                 {
-                    _taskSemaphore.Release();
+                    return;
                 }
             }
-        });
+
+            entry.SetState(ChunkState.Generated);
+            _performanceMonitor?.IncrementChunksGenerated();
+            entry.RecomputeSubChunkInfo();
+            entry.SetState(ChunkState.Meshing);
+
+            // No lock needed here: this worker is the sole accessor of entry.Data
+            // during Generating/Meshing states.
+            long meshStart = Stopwatch.GetTimestamp();
+            ChunkData?[] neighbors = _chunkManager.GetNeighborData(entry.Coord);
+            ChunkMeshResult mesh = _meshBuilder.Build(entry.Data, neighbors, token);
+            _performanceMonitor?.RecordMeshTime(Stopwatch.GetTimestamp() - meshStart);
+            _performanceMonitor?.IncrementChunksMeshed();
+
+            if (token.IsCancellationRequested)
+            {
+                return;
+            }
+
+            entry.PendingMesh = mesh;
+            entry.SetState(ChunkState.Ready);
+            _loadResultQueue.Enqueue(entry);
+        }
+        catch (OperationCanceledException)
+        {
+            // Expected when chunk is no longer needed
+        }
+        catch (Exception exception)
+        {
+            _logger.Error("Chunk generation failed for {0}: {1}", exception, entry.Coord, exception.Message);
+        }
+        finally
+        {
+            _pendingCts.TryRemove(entry.Coord, out _);
+        }
     }
 
     private void ApplyChunkMesh(ChunkEntry entry)
@@ -295,7 +397,7 @@ public sealed partial class ChunkLoadingScheduler : Node
 
         // Block-edit neighbor remeshes go to the priority queue so both sides
         // of a chunk boundary update in the same frame.
-        ConcurrentQueue<ChunkEntry> targetQueue = isFromBlockEdit ? _blockEditQueue : _loadQueue;
+        ConcurrentQueue<ChunkEntry> targetQueue = isFromBlockEdit ? _blockEditResultQueue : _loadResultQueue;
 
         foreach (ChunkCoord neighborCoord in neighborCoords)
         {
@@ -319,64 +421,9 @@ public sealed partial class ChunkLoadingScheduler : Node
                 continue;
             }
 
-            ScheduleRemeshTask(neighbor, neighborCoord, targetQueue);
+            _remeshQueue.Enqueue(new RemeshWork(neighbor, neighborCoord, targetQueue));
+            _workSignal.Release();
         }
-    }
-
-    /// <summary>
-    /// Common remesh task: snapshots block data under a read lock,
-    /// builds the mesh on a background thread, and enqueues the result
-    /// to the specified target queue.
-    /// </summary>
-    private void ScheduleRemeshTask(
-        ChunkEntry entry,
-        ChunkCoord coord,
-        ConcurrentQueue<ChunkEntry> targetQueue)
-    {
-        ChunkEntry capturedEntry = entry;
-        ChunkCoord capturedCoord = coord;
-
-        Task.Run(async () =>
-        {
-            bool semaphoreAcquired = false;
-
-            try
-            {
-                await _taskSemaphore.WaitAsync().ConfigureAwait(false);
-                semaphoreAcquired = true;
-
-                // Snapshot under read lock — excludes concurrent writes from main thread.
-                ushort[] buffer = new ushort[ChunkData.TotalBlocks];
-                capturedEntry.Data.CopyBlocksUnderReadLock(buffer);
-
-                ChunkData snapshotData = new(capturedCoord);
-                snapshotData.LoadFromSpan(buffer);
-
-                ChunkData?[] neighbors = _chunkManager.GetNeighborData(capturedCoord);
-
-                long meshStart = Stopwatch.GetTimestamp();
-                ChunkMeshResult mesh = _meshBuilder.Build(snapshotData, neighbors, CancellationToken.None);
-                _performanceMonitor?.RecordMeshTime(Stopwatch.GetTimestamp() - meshStart);
-                _performanceMonitor?.IncrementChunksMeshed();
-
-                capturedEntry.PendingMesh = mesh;
-                capturedEntry.SetState(ChunkState.Ready);
-                targetQueue.Enqueue(capturedEntry);
-            }
-            catch (Exception exception)
-            {
-                _pendingRemeshes.TryRemove(capturedCoord, out _);
-                _blockEditRemeshes.TryRemove(capturedCoord, out _);
-                _logger.Error("Remesh failed for {0}: {1}", exception, capturedCoord, exception.Message);
-            }
-            finally
-            {
-                if (semaphoreAcquired)
-                {
-                    _taskSemaphore.Release();
-                }
-            }
-        });
     }
 
     private void UpdatePerformanceMetrics()
@@ -386,7 +433,9 @@ public sealed partial class ChunkLoadingScheduler : Node
             return;
         }
 
-        _performanceMonitor.SetChunksInQueue(_blockEditQueue.Count + _loadQueue.Count + _pendingCts.Count);
+        int pendingWork = _blockEditResultQueue.Count + _loadResultQueue.Count
+            + _generationQueue.Count + _remeshQueue.Count;
+        _performanceMonitor.SetChunksInQueue(pendingWork);
         _performanceMonitor.SetActiveChunks(_chunkManager.Count);
         _performanceMonitor.SetVisibleChunks(_worldNode.ChunkNodeCount);
 
@@ -413,4 +462,12 @@ public sealed partial class ChunkLoadingScheduler : Node
         _chunkManager.Remove(coord);
         _worldNode.RemoveChunkNode(coord);
     }
+
+    /// <summary>
+    /// Work item for a remesh operation. Carries the entry, coord, and target result queue.
+    /// </summary>
+    private readonly record struct RemeshWork(
+        ChunkEntry Entry,
+        ChunkCoord Coord,
+        ConcurrentQueue<ChunkEntry> TargetQueue);
 }

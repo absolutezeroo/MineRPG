@@ -59,7 +59,22 @@ public sealed partial class WorldNode : Node3D
     }
 
     /// <inheritdoc />
-    public override void _ExitTree() => _eventBus.Unsubscribe<PlayerPositionUpdatedEvent>(OnPlayerPositionUpdated);
+    public override void _ExitTree()
+    {
+        _eventBus.Unsubscribe<PlayerPositionUpdatedEvent>(OnPlayerPositionUpdated);
+
+        // Free all active chunk nodes to prevent Godot resource leaks
+        foreach (ChunkNode node in _chunkNodes.Values)
+        {
+            node.ClearMesh();
+            node.QueueFree();
+        }
+
+        _chunkNodes.Clear();
+
+        // Free idle pooled nodes
+        _chunkNodePool.FreeAll();
+    }
 
     /// <summary>
     /// Updates the player's chunk position based on their world coordinates.

@@ -64,4 +64,16 @@ public sealed class ChunkNodePool
         _activeCount--;
         _recycleCount++;
     }
+
+    /// <summary>
+    /// Frees all idle nodes in the pool via QueueFree. Call during shutdown
+    /// to prevent Godot resource leaks.
+    /// </summary>
+    public void FreeAll()
+    {
+        while (_idle.TryPop(out ChunkNode? node))
+        {
+            node.QueueFree();
+        }
+    }
 }
