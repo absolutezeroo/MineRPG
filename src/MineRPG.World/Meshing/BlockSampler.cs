@@ -58,6 +58,12 @@ internal static class BlockSampler
             localZ = worldZ - ChunkData.SizeZ;
         }
 
+        // Diagonal case: both X and Z are out of bounds — no diagonal neighbor available
+        if (neighborDirectionX != 0 && neighborDirectionZ != 0)
+        {
+            return 0;
+        }
+
         ChunkData? neighbor = null;
 
         if (neighborDirectionX == 1)

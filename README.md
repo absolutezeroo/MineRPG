@@ -59,7 +59,7 @@ dotnet format MineRPG.sln --verify-no-changes
 
 ## Conventions
 
-- [Style Guide](STYLE_GUIDE.md) — Mandatory C# conventions
+- [Style Guide](STYLEGUIDE.md) — Mandatory C# conventions
 - [Architecture](ARCHITECTURE.md) — Dependency rules and project structure
 - [Contributing](docs/CONTRIBUTING.md) — Git workflow and development guide
 - [Conventional Commits](https://www.conventionalcommits.org/) — Commit message format

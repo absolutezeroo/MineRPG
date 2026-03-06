@@ -86,6 +86,8 @@ public sealed class BlockRegistry
             ComputeFaceUvs(definition);
         }
 
+        _inner.Freeze();
+
         logger.Info("BlockRegistry: Loaded {0} block types (including air), {1} unique textures.",
             _inner.Count, AtlasLayout.TextureNames.Count);
     }

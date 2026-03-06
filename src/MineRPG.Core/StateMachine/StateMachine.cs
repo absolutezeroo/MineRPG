@@ -87,13 +87,11 @@ public sealed class StateMachine : IStateMachine
     /// <inheritdoc />
     public void TickAll(float deltaTime)
     {
-        // Stack enumerates top-to-bottom; copy to array and iterate bottom-to-top
-        // to avoid LINQ Reverse() allocation in this potentially per-frame method.
-        IState[] states = _stack.ToArray();
-
-        for (int i = states.Length - 1; i >= 0; i--)
+        // Stack<T>.GetEnumerator() returns a struct enumerator (no allocation).
+        // Stack enumerates top-to-bottom which is fine for ticking all states.
+        foreach (IState state in _stack)
         {
-            states[i].Tick(deltaTime);
+            state.Tick(deltaTime);
         }
     }
 }

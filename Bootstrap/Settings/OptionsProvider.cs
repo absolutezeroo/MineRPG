@@ -21,6 +21,7 @@ public sealed class OptionsProvider : IOptionsProvider
     private readonly ISettingsRepository _settingsRepo;
     private readonly ILogger _logger;
     private Dictionary<string, KeybindData> _cachedKeybinds;
+    private bool _suppressSave;
 
     /// <summary>
     /// Initializes a new instance and applies all settings from the provided snapshot.
@@ -176,6 +177,9 @@ public sealed class OptionsProvider : IOptionsProvider
 
     private void ApplyAllSettings(SettingsData settings)
     {
+        // Suppress per-property saves during bulk initialization
+        _suppressSave = true;
+
         VSyncEnabled = settings.VSyncEnabled;
         WindowMode = settings.WindowMode;
         MsaaQuality = settings.MsaaQuality;
@@ -188,11 +192,18 @@ public sealed class OptionsProvider : IOptionsProvider
         RenderDistance = settings.RenderDistance;
         FieldOfView = settings.FieldOfView;
 
+        _suppressSave = false;
+
         _logger.Info("OptionsProvider: Applied all settings from snapshot.");
     }
 
     private void SaveSnapshot()
     {
+        if (_suppressSave)
+        {
+            return;
+        }
+
         SettingsData snapshot = BuildSnapshot();
         _settingsRepo.Save(snapshot);
     }

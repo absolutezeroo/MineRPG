@@ -1,3 +1,6 @@
+using System;
+using System.Threading.Tasks;
+
 using Godot;
 
 using MineRPG.Core.DataLoading;
@@ -24,6 +27,8 @@ public sealed partial class GameBootstrapper : Node
     /// </summary>
     public override void _Ready()
     {
+        RegisterGlobalExceptionHandlers();
+
         string dataRoot = ProjectSettings.GlobalizePath("res://Data");
         DataPath.SetRoot(dataRoot);
 
@@ -55,5 +60,19 @@ public sealed partial class GameBootstrapper : Node
 #endif
 
         logger.Info("GameBootstrapper: Bootstrap initialization complete.");
+    }
+
+    private static void RegisterGlobalExceptionHandlers()
+    {
+        AppDomain.CurrentDomain.UnhandledException += (_, args) =>
+        {
+            GD.PrintErr($"[FATAL] Unhandled exception: {args.ExceptionObject}");
+        };
+
+        TaskScheduler.UnobservedTaskException += (_, args) =>
+        {
+            GD.PrintErr($"[ERROR] Unobserved task exception: {args.Exception}");
+            args.SetObserved();
+        };
     }
 }

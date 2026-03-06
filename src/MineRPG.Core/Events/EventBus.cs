@@ -76,10 +76,19 @@ public sealed class EventBus : IEventBus
     /// <inheritdoc />
     public int FlushQueued()
     {
+        // Snapshot the current count to avoid unbounded re-entrancy:
+        // handlers may call PublishQueued, adding new items during flush.
+        // Those new items will be processed on the next flush call.
+        int itemsToProcess = _deferredQueue.Count;
         int count = 0;
 
-        while (_deferredQueue.TryDequeue(out Action? action))
+        for (int i = 0; i < itemsToProcess; i++)
         {
+            if (!_deferredQueue.TryDequeue(out Action? action))
+            {
+                break;
+            }
+
             action();
             count++;
         }
