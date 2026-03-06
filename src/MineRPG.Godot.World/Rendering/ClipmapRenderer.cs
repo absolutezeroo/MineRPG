@@ -51,11 +51,7 @@ public sealed partial class ClipmapRenderer : Node3D
         {
             VertexColorUseAsAlbedo = true,
             ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded,
-            DepthDrawMode = BaseMaterial3D.DepthDrawModeEnum.Always,
         };
-
-        // Depth bias pushes clipmap slightly behind voxel chunks to avoid z-fighting
-        _clipmapMaterial.SetRenderPriority(-1);
 
         for (int i = 0; i < ClipmapConfig.RingCount; i++)
         {

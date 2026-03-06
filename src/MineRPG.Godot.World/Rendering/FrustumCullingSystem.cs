@@ -141,7 +141,10 @@ public sealed partial class FrustumCullingSystem : Node
         for (int i = 0; i < planeCount; i++)
         {
             Plane plane = (Plane)frustumGodot[i];
-            planes[i] = new FrustumPlane(plane.Normal.X, plane.Normal.Y, plane.Normal.Z, -plane.D);
+            // Godot frustum planes have outward-pointing normals; our IsBoxOutside
+            // uses the p-vertex algorithm which expects inward-pointing normals.
+            // Negate the normals to convert; D stays as-is (Convention A: N·P + d = 0).
+            planes[i] = new FrustumPlane(-plane.Normal.X, -plane.Normal.Y, -plane.Normal.Z, plane.D);
         }
 
         Span<FrustumPlane> visiblePlanes = planes[..planeCount];
