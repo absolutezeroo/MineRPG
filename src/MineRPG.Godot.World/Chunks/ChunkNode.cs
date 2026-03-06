@@ -38,6 +38,12 @@ public sealed partial class ChunkNode : Node3D
     public MeshInstance3D?[] SubChunkMeshInstances { get; } = new MeshInstance3D?[SubChunkConstants.SubChunkCount];
 
     /// <summary>
+    /// Gets or sets the sub-chunk metadata for this chunk, used by vertical occlusion culling.
+    /// Set after mesh apply from the chunk pipeline. Null until first mesh is applied.
+    /// </summary>
+    public SubChunkInfo[]? SubChunkMetadata { get; set; }
+
+    /// <summary>
     /// Sets the shared material used by all chunk mesh instances for opaque terrain.
     /// Must be called once at startup before any ChunkNode enters the tree.
     /// </summary>
@@ -136,6 +142,7 @@ public sealed partial class ChunkNode : Node3D
         }
 
         _collisionShape.Shape = null;
+        SubChunkMetadata = null;
     }
 
     private MeshInstance3D GetOrCreateSubChunkMeshInstance(int subChunkIndex)

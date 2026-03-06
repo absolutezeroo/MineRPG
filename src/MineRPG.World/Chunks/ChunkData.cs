@@ -111,29 +111,41 @@ public sealed class ChunkData
     public SubChunkInfo[] ComputeSubChunkInfo()
     {
         SubChunkInfo[] result = new SubChunkInfo[SubChunkConstants.SubChunkCount];
+        int blocksPerSlice = SizeX * SizeZ;
 
         for (int subChunkY = 0; subChunkY < SubChunkConstants.SubChunkCount; subChunkY++)
         {
             int minY = subChunkY * SubChunkConstants.SubChunkSize;
             int nonAirCount = 0;
+            bool hasBarrier = false;
 
             for (int y = minY; y < minY + SubChunkConstants.SubChunkSize; y++)
             {
+                int sliceNonAirCount = 0;
+
                 for (int z = 0; z < SizeZ; z++)
                 {
                     for (int x = 0; x < SizeX; x++)
                     {
                         if (_blocks[GetIndex(x, y, z)] != 0)
                         {
-                            nonAirCount++;
+                            sliceNonAirCount++;
                         }
                     }
+                }
+
+                nonAirCount += sliceNonAirCount;
+
+                if (sliceNonAirCount == blocksPerSlice)
+                {
+                    hasBarrier = true;
                 }
             }
 
             bool isEmpty = nonAirCount == 0;
             bool isFullySolid = nonAirCount == SubChunkConstants.BlocksPerSubChunk;
-            result[subChunkY] = new SubChunkInfo(subChunkY, isEmpty, isFullySolid, nonAirCount);
+            result[subChunkY] = new SubChunkInfo(
+                subChunkY, isEmpty, isFullySolid, hasBarrier, nonAirCount);
         }
 
         return result;

@@ -287,6 +287,8 @@ internal sealed class ChunkWorkerPool : IDisposable
             ChunkData snapshotData = new(work.Coord);
             snapshotData.LoadFromSpan(buffer);
 
+            work.Entry.SubChunks = snapshotData.ComputeSubChunkInfo();
+
             ChunkData?[] neighbors = _chunkManager.GetNeighborData(work.Coord);
 
             long meshStart = Stopwatch.GetTimestamp();

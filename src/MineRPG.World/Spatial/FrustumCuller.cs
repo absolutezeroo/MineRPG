@@ -43,6 +43,46 @@ public static class FrustumCuller
     }
 
     /// <summary>
+    /// Computes a bitmask of sub-chunks that are vertically occluded.
+    /// Scans downward from the camera's sub-chunk level. When a sub-chunk
+    /// with a full horizontal barrier (or fully solid) is found, all sub-chunks
+    /// below it are marked as occluded because the barrier blocks visibility.
+    /// </summary>
+    /// <param name="subChunks">Sub-chunk metadata array (16 entries).</param>
+    /// <param name="cameraY">The camera's Y position in world coordinates.</param>
+    /// <returns>
+    /// A 16-bit mask where bit N is set if sub-chunk N is vertically occluded.
+    /// </returns>
+    public static ushort ComputeVerticalOcclusionMask(
+        ReadOnlySpan<SubChunkInfo> subChunks,
+        float cameraY)
+    {
+        int cameraSubChunk = Math.Clamp(
+            (int)(cameraY / SubChunkConstants.SubChunkSize),
+            0,
+            SubChunkConstants.SubChunkCount - 1);
+
+        ushort mask = 0;
+
+        // Scan downward from camera position looking for a barrier
+        for (int i = cameraSubChunk; i >= 0; i--)
+        {
+            if (subChunks[i].HasFullHorizontalBarrier || subChunks[i].IsFullySolid)
+            {
+                // Everything below this barrier is occluded from above
+                for (int j = i - 1; j >= 0; j--)
+                {
+                    mask |= (ushort)(1 << j);
+                }
+
+                break;
+            }
+        }
+
+        return mask;
+    }
+
+    /// <summary>
     /// Tests whether a sub-chunk AABB is inside the frustum.
     /// </summary>
     /// <param name="planes">The 6 frustum planes.</param>

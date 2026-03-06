@@ -11,9 +11,11 @@ namespace MineRPG.Godot.World.Rendering;
 
 /// <summary>
 /// Extracts the camera frustum planes each frame and sets chunk and sub-chunk visibility.
-/// Performs two-level culling:
+/// Performs three-level culling:
 /// 1. Chunk-level: hides entire ChunkNodes outside the frustum (including collision).
-/// 2. Sub-chunk-level: hides individual 16x16x16 MeshInstance3Ds within visible chunks.
+/// 2. Sub-chunk frustum: hides individual 16x16x16 MeshInstance3Ds outside the frustum.
+/// 3. Vertical occlusion: hides sub-chunks below a solid horizontal barrier when
+///    the camera is above it, preventing underground geometry from being rendered.
 /// Uses a position/rotation threshold to avoid recalculating when the camera barely moves.
 /// </summary>
 public sealed partial class FrustumCullingSystem : Node
@@ -47,6 +49,11 @@ public sealed partial class FrustumCullingSystem : Node
     /// Gets the total number of non-empty sub-chunk mesh instances evaluated.
     /// </summary>
     public int TotalSubChunks { get; private set; }
+
+    /// <summary>
+    /// Gets the number of sub-chunks hidden by vertical occlusion culling.
+    /// </summary>
+    public int OccludedSubChunks { get; private set; }
 
     /// <summary>
     /// Sets the camera used for frustum extraction.
@@ -116,10 +123,12 @@ public sealed partial class FrustumCullingSystem : Node
         }
 
         Span<FrustumPlane> visiblePlanes = planes[..planeCount];
+        float cameraY = _camera!.GlobalPosition.Y;
         int visibleChunks = 0;
         int totalChunks = 0;
         int visibleSubChunks = 0;
         int totalSubChunks = 0;
+        int occludedSubChunks = 0;
 
         foreach (ChunkNode child in _worldNode!.GetChunkNodes())
         {
@@ -138,8 +147,16 @@ public sealed partial class FrustumCullingSystem : Node
 
             visibleChunks++;
 
-            // Level 2: Sub-chunk frustum test (16x16x16 AABBs)
+            // Level 2+3: Sub-chunk frustum test + vertical occlusion
             MeshInstance3D?[] subChunkMeshes = child.SubChunkMeshInstances;
+            SubChunkInfo[]? metadata = child.SubChunkMetadata;
+
+            ushort occlusionMask = 0;
+
+            if (metadata is not null)
+            {
+                occlusionMask = FrustumCuller.ComputeVerticalOcclusionMask(metadata, cameraY);
+            }
 
             for (int i = 0; i < subChunkMeshes.Length; i++)
             {
@@ -151,6 +168,15 @@ public sealed partial class FrustumCullingSystem : Node
                 }
 
                 totalSubChunks++;
+
+                // Check vertical occlusion first (cheaper than frustum test)
+                if ((occlusionMask & (1 << i)) != 0)
+                {
+                    meshInstance.Visible = false;
+                    occludedSubChunks++;
+                    continue;
+                }
+
                 int subChunkMinY = i * SubChunkConstants.SubChunkSize;
 
                 bool isSubChunkVisible = FrustumCuller.IsSubChunkVisible(
@@ -169,5 +195,6 @@ public sealed partial class FrustumCullingSystem : Node
         TotalChunks = totalChunks;
         VisibleSubChunks = visibleSubChunks;
         TotalSubChunks = totalSubChunks;
+        OccludedSubChunks = occludedSubChunks;
     }
 }

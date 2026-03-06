@@ -2,6 +2,7 @@ using System;
 
 using FluentAssertions;
 
+using MineRPG.World.Chunks;
 using MineRPG.World.Spatial;
 
 namespace MineRPG.Tests.World;
@@ -104,6 +105,94 @@ public sealed class FrustumCullerTests
         isOutside.Should().BeTrue();
     }
 
+    [Fact]
+    public void ComputeVerticalOcclusionMask_NoBarriers_ReturnsZero()
+    {
+        // Arrange - all sub-chunks have no barrier
+        SubChunkInfo[] subChunks = CreateSubChunkInfoArray(hasBarrierAt: -1);
+
+        // Act
+        ushort mask = FrustumCuller.ComputeVerticalOcclusionMask(subChunks, 100f);
+
+        // Assert
+        mask.Should().Be(0, "no barriers means nothing is occluded");
+    }
+
+    [Fact]
+    public void ComputeVerticalOcclusionMask_BarrierBelowCamera_OccludesSubChunksBelow()
+    {
+        // Arrange - barrier at sub-chunk 4 (Y 64-79), camera at Y=100 (sub-chunk 6)
+        SubChunkInfo[] subChunks = CreateSubChunkInfoArray(hasBarrierAt: 4);
+
+        // Act
+        ushort mask = FrustumCuller.ComputeVerticalOcclusionMask(subChunks, 100f);
+
+        // Assert - sub-chunks 0-3 should be occluded (below barrier at 4)
+        for (int i = 0; i < 4; i++)
+        {
+            ((mask >> i) & 1).Should().Be(1, $"sub-chunk {i} should be occluded below barrier at 4");
+        }
+
+        // Sub-chunk 4 (barrier) and above should NOT be occluded
+        for (int i = 4; i < SubChunkConstants.SubChunkCount; i++)
+        {
+            ((mask >> i) & 1).Should().Be(0, $"sub-chunk {i} should not be occluded");
+        }
+    }
+
+    [Fact]
+    public void ComputeVerticalOcclusionMask_BarrierAboveCamera_NoOcclusion()
+    {
+        // Arrange - barrier at sub-chunk 8 (Y 128-143), camera at Y=50 (sub-chunk 3)
+        SubChunkInfo[] subChunks = CreateSubChunkInfoArray(hasBarrierAt: 8);
+
+        // Act
+        ushort mask = FrustumCuller.ComputeVerticalOcclusionMask(subChunks, 50f);
+
+        // Assert - barrier is above camera, so no downward occlusion
+        mask.Should().Be(0, "barrier above camera does not cause downward occlusion");
+    }
+
+    [Fact]
+    public void ComputeVerticalOcclusionMask_BarrierAtCameraLevel_OccludesBelow()
+    {
+        // Arrange - barrier at sub-chunk 4, camera at Y=70 (also sub-chunk 4)
+        SubChunkInfo[] subChunks = CreateSubChunkInfoArray(hasBarrierAt: 4);
+
+        // Act
+        ushort mask = FrustumCuller.ComputeVerticalOcclusionMask(subChunks, 70f);
+
+        // Assert - sub-chunks 0-3 should be occluded
+        for (int i = 0; i < 4; i++)
+        {
+            ((mask >> i) & 1).Should().Be(1, $"sub-chunk {i} should be occluded");
+        }
+    }
+
+    [Fact]
+    public void ComputeVerticalOcclusionMask_FullySolidSubChunk_ActsAsBarrier()
+    {
+        // Arrange - sub-chunk 3 is fully solid (implies barrier)
+        SubChunkInfo[] subChunks = new SubChunkInfo[SubChunkConstants.SubChunkCount];
+
+        for (int i = 0; i < SubChunkConstants.SubChunkCount; i++)
+        {
+            bool isFullySolid = i == 3;
+            subChunks[i] = new SubChunkInfo(i, false, isFullySolid, false, 100);
+        }
+
+        // Act - camera at Y=80 (sub-chunk 5)
+        ushort mask = FrustumCuller.ComputeVerticalOcclusionMask(subChunks, 80f);
+
+        // Assert - sub-chunks 0-2 should be occluded (below fully-solid sub-chunk 3)
+        for (int i = 0; i < 3; i++)
+        {
+            ((mask >> i) & 1).Should().Be(1, $"sub-chunk {i} should be occluded below solid at 3");
+        }
+
+        ((mask >> 3) & 1).Should().Be(0, "the solid sub-chunk itself is not occluded");
+    }
+
     /// <summary>
     /// Creates 6 axis-aligned planes forming a box frustum.
     /// </summary>
@@ -123,5 +212,18 @@ public sealed class FrustumCullerTests
         planes[4] = new FrustumPlane(0, 0, 1, -minZ);
         // Far plane: normal (0,0,-1), D = maxZ
         planes[5] = new FrustumPlane(0, 0, -1, maxZ);
+    }
+
+    private static SubChunkInfo[] CreateSubChunkInfoArray(int hasBarrierAt)
+    {
+        SubChunkInfo[] subChunks = new SubChunkInfo[SubChunkConstants.SubChunkCount];
+
+        for (int i = 0; i < SubChunkConstants.SubChunkCount; i++)
+        {
+            bool hasBarrier = i == hasBarrierAt;
+            subChunks[i] = new SubChunkInfo(i, false, false, hasBarrier, 100);
+        }
+
+        return subChunks;
     }
 }

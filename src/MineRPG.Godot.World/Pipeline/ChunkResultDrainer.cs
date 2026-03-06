@@ -99,6 +99,7 @@ internal sealed class ChunkResultDrainer
 
         ChunkNode chunkNode = _worldNode.GetOrCreateChunkNode(entry.Coord);
         chunkNode.ApplyMesh(entry.PendingMesh!);
+        chunkNode.SubChunkMetadata = entry.SubChunks;
         entry.PendingMesh = null;
 
         _eventBus.Publish(new ChunkMeshedEvent { Coord = entry.Coord });

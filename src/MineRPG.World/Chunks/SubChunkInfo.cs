@@ -18,6 +18,13 @@ public readonly struct SubChunkInfo
     /// <summary>True when all 4096 blocks are non-air (no internal faces can exist).</summary>
     public bool IsFullySolid { get; }
 
+    /// <summary>
+    /// True when at least one complete 16x16 horizontal Y-slice has all blocks as non-air.
+    /// Acts as a sealed barrier for vertical occlusion culling - nothing below
+    /// this sub-chunk can be seen from above when the camera is higher.
+    /// </summary>
+    public bool HasFullHorizontalBarrier { get; }
+
     /// <summary>Number of non-air blocks. Useful for heuristics.</summary>
     public int NonAirCount { get; }
 
@@ -33,12 +40,19 @@ public readonly struct SubChunkInfo
     /// <param name="yIndex">Vertical sub-chunk index.</param>
     /// <param name="isEmpty">Whether all blocks are air.</param>
     /// <param name="isFullySolid">Whether all blocks are non-air.</param>
+    /// <param name="hasFullHorizontalBarrier">Whether a complete horizontal barrier exists.</param>
     /// <param name="nonAirCount">Count of non-air blocks.</param>
-    public SubChunkInfo(int yIndex, bool isEmpty, bool isFullySolid, int nonAirCount)
+    public SubChunkInfo(
+        int yIndex,
+        bool isEmpty,
+        bool isFullySolid,
+        bool hasFullHorizontalBarrier,
+        int nonAirCount)
     {
         YIndex = yIndex;
         IsEmpty = isEmpty;
         IsFullySolid = isFullySolid;
+        HasFullHorizontalBarrier = hasFullHorizontalBarrier;
         NonAirCount = nonAirCount;
     }
 }
