@@ -83,10 +83,7 @@ public sealed partial class ChunkMapPanel : Control
     /// <summary>
     /// Updates the chunk map display. Called by DebugManager.
     /// </summary>
-    public void UpdateDisplay()
-    {
-        QueueRedraw();
-    }
+    public void UpdateDisplay() => QueueRedraw();
 
     /// <inheritdoc />
     public override void _Draw()

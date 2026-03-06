@@ -174,7 +174,7 @@ public sealed partial class DebugManager : Control
 
         if (_debugMenuPanel is not null && _debugMenuPanel.Visible)
         {
-            _debugMenuPanel.UpdateDisplay();
+            _debugMenuPanel.UpdateDisplay(delta);
         }
     }
 
@@ -198,7 +198,7 @@ public sealed partial class DebugManager : Control
         {
             Input.MouseMode = Input.MouseModeEnum.Visible;
         }
-        else
+        else if (!AnyPanelNeedsMouse())
         {
             Input.MouseMode = Input.MouseModeEnum.Captured;
         }
@@ -309,6 +309,12 @@ public sealed partial class DebugManager : Control
 
         _blockInspectorPanel.Visible = !_blockInspectorPanel.Visible;
         _logger.Debug("DebugManager: BlockInspectorPanel toggled, Visible={0}", _blockInspectorPanel.Visible);
+    }
+
+    private bool AnyPanelNeedsMouse()
+    {
+        return (_chunkMapPanel is not null && _chunkMapPanel.Visible) ||
+               (_blockInspectorPanel is not null && _blockInspectorPanel.Visible);
     }
 
     private void UpdateAnyModuleVisible()

@@ -65,7 +65,7 @@ public sealed partial class WorldTab : VBoxContainer, IDebugTab
     }
 
     /// <inheritdoc />
-    public void UpdateDisplay()
+    public void UpdateDisplay(double delta)
     {
         UpdatePositionLabel();
         UpdateChunkInfoLabel();

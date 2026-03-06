@@ -86,10 +86,7 @@ public sealed partial class BiomeOverlayPanel : Control
     /// <summary>
     /// Updates the biome overlay. Called by DebugManager.
     /// </summary>
-    public void UpdateDisplay()
-    {
-        QueueRedraw();
-    }
+    public void UpdateDisplay() => QueueRedraw();
 
     /// <inheritdoc />
     public override void _Draw()

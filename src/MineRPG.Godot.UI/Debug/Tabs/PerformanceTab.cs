@@ -117,13 +117,13 @@ public sealed partial class PerformanceTab : VBoxContainer, IDebugTab
     }
 
     /// <inheritdoc />
-    public void UpdateDisplay()
+    public void UpdateDisplay(double delta)
     {
         UpdateMetrics();
         UpdatePipeline();
         UpdateMemory();
         UpdateSpikes();
-        UpdateBenchmark();
+        UpdateBenchmark(delta);
     }
 
     private void UpdateMetrics()
@@ -194,7 +194,7 @@ public sealed partial class PerformanceTab : VBoxContainer, IDebugTab
         _spikeLabel.Text = _builder.ToString();
     }
 
-    private void UpdateBenchmark()
+    private void UpdateBenchmark(double delta)
     {
         if (!_benchmarkRunner.IsRunning)
         {
@@ -206,7 +206,7 @@ public sealed partial class PerformanceTab : VBoxContainer, IDebugTab
             RenderingServer.RenderingInfo.TotalDrawCallsInFrame);
 
         bool stillRunning = _benchmarkRunner.RecordFrame(
-            GetProcessDeltaTime(),
+            delta,
             drawCalls,
             _monitor.TotalVertices,
             heapMb);

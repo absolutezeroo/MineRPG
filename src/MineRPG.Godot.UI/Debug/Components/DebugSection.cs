@@ -13,7 +13,7 @@ public sealed partial class DebugSection : VBoxContainer
     private readonly bool _startExpanded;
 
     private VBoxContainer _content = null!;
-    private Label _headerLabel = null!;
+    private Button _headerButton = null!;
     private bool _isExpanded;
 
     /// <summary>
@@ -37,23 +37,21 @@ public sealed partial class DebugSection : VBoxContainer
     {
         _isExpanded = _startExpanded;
 
-        Button headerButton = new();
-        headerButton.Flat = true;
-        headerButton.Alignment = HorizontalAlignment.Left;
-        headerButton.AddThemeColorOverride("font_color", DebugTheme.TextAccent);
-        headerButton.AddThemeFontSizeOverride("font_size", DebugTheme.FontSizeSmall);
+        _headerButton = new Button();
+        _headerButton.Flat = true;
+        _headerButton.Alignment = HorizontalAlignment.Left;
+        _headerButton.AddThemeColorOverride("font_color", DebugTheme.TextAccent);
+        _headerButton.AddThemeFontSizeOverride("font_size", DebugTheme.FontSizeSmall);
 
         StyleBoxEmpty emptyStyle = new();
-        headerButton.AddThemeStyleboxOverride("normal", emptyStyle);
-        headerButton.AddThemeStyleboxOverride("hover", emptyStyle);
-        headerButton.AddThemeStyleboxOverride("pressed", emptyStyle);
-        headerButton.AddThemeStyleboxOverride("focus", emptyStyle);
+        _headerButton.AddThemeStyleboxOverride("normal", emptyStyle);
+        _headerButton.AddThemeStyleboxOverride("hover", emptyStyle);
+        _headerButton.AddThemeStyleboxOverride("pressed", emptyStyle);
+        _headerButton.AddThemeStyleboxOverride("focus", emptyStyle);
 
-        AddChild(headerButton);
-        _headerLabel = headerButton.GetChild(0) as Label ?? new Label();
-
-        headerButton.Text = GetHeaderText();
-        headerButton.Pressed += OnHeaderPressed;
+        _headerButton.Text = GetHeaderText();
+        _headerButton.Pressed += OnHeaderPressed;
+        AddChild(_headerButton);
 
         _content = new VBoxContainer();
         _content.Visible = _isExpanded;
@@ -67,8 +65,7 @@ public sealed partial class DebugSection : VBoxContainer
     {
         _isExpanded = !_isExpanded;
         _content.Visible = _isExpanded;
-        Button headerButton = GetChild(0) as Button ?? new Button();
-        headerButton.Text = GetHeaderText();
+        _headerButton.Text = GetHeaderText();
     }
 
     private string GetHeaderText()

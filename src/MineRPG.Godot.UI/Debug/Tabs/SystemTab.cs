@@ -76,10 +76,7 @@ public sealed partial class SystemTab : VBoxContainer, IDebugTab
     }
 
     /// <inheritdoc />
-    public void UpdateDisplay()
-    {
-        UpdateGCInfo();
-    }
+    public void UpdateDisplay(double delta) => UpdateGCInfo();
 
     private void BuildEngineInfo()
     {

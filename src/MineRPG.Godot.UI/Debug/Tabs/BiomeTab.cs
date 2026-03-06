@@ -61,10 +61,10 @@ public sealed partial class BiomeTab : VBoxContainer, IDebugTab
     }
 
     /// <inheritdoc />
-    public void UpdateDisplay()
+    public void UpdateDisplay(double delta)
     {
         UpdateCurrentBiome();
-        UpdateCoverage();
+        UpdateCoverage(delta);
     }
 
     private void UpdateCurrentBiome()
@@ -81,10 +81,10 @@ public sealed partial class BiomeTab : VBoxContainer, IDebugTab
         _currentBiomeLabel.Text = _builder.ToString();
     }
 
-    private void UpdateCoverage()
+    private void UpdateCoverage(double delta)
     {
         // Update coverage every 2 seconds to reduce overhead
-        _coverageUpdateTimer += GetProcessDeltaTime();
+        _coverageUpdateTimer += delta;
 
         if (_coverageUpdateTimer < 2.0)
         {
@@ -105,10 +105,8 @@ public sealed partial class BiomeTab : VBoxContainer, IDebugTab
 
         int totalWithBiome = 0;
 
-        for (int i = 0; i < _chunkBuffer.Count; i++)
+        foreach (ChunkStateEntry entry in _chunkBuffer)
         {
-            ChunkStateEntry entry = _chunkBuffer[i];
-
             if (!_chunkDebugProvider.TryGetChunkDebugInfo(entry.ChunkX, entry.ChunkZ, out ChunkDebugInfo info))
             {
                 continue;

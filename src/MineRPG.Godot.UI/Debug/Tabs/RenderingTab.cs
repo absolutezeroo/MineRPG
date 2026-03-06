@@ -49,11 +49,11 @@ public sealed partial class RenderingTab : VBoxContainer, IDebugTab
 
         AddToggle(meshingSection.Content, "Greedy Meshing",
             () => _flags.GreedyMeshingEnabled,
-            value => PublishFlag("GreedyMeshingEnabled", _flags.GreedyMeshingEnabled = value, false));
+            value => SetAndPublish(v => _flags.GreedyMeshingEnabled = v, value, "GreedyMeshingEnabled", false));
 
         AddToggle(meshingSection.Content, "Vertex AO",
             () => _flags.VertexAoEnabled,
-            value => PublishFlag("VertexAoEnabled", _flags.VertexAoEnabled = value, false));
+            value => SetAndPublish(v => _flags.VertexAoEnabled = v, value, "VertexAoEnabled", false));
 
         // -- Threading section --
         DebugSection threadingSection = new("Threading");
@@ -61,7 +61,7 @@ public sealed partial class RenderingTab : VBoxContainer, IDebugTab
 
         AddToggle(threadingSection.Content, "Async Generation",
             () => _flags.AsyncGenerationEnabled,
-            value => PublishFlag("AsyncGenerationEnabled", _flags.AsyncGenerationEnabled = value, false));
+            value => SetAndPublish(v => _flags.AsyncGenerationEnabled = v, value, "AsyncGenerationEnabled", false));
 
         // -- Generation section --
         DebugSection generationSection = new("Generation");
@@ -69,35 +69,35 @@ public sealed partial class RenderingTab : VBoxContainer, IDebugTab
 
         AddToggle(generationSection.Content, "Cheese Caves",
             () => _flags.CheeseCavesEnabled,
-            value => PublishFlag("CheeseCavesEnabled", _flags.CheeseCavesEnabled = value, true));
+            value => SetAndPublish(v => _flags.CheeseCavesEnabled = v, value, "CheeseCavesEnabled", true));
 
         AddToggle(generationSection.Content, "Spaghetti Caves",
             () => _flags.SpaghettiCavesEnabled,
-            value => PublishFlag("SpaghettiCavesEnabled", _flags.SpaghettiCavesEnabled = value, true));
+            value => SetAndPublish(v => _flags.SpaghettiCavesEnabled = v, value, "SpaghettiCavesEnabled", true));
 
         AddToggle(generationSection.Content, "Noodle Caves",
             () => _flags.NoodleCavesEnabled,
-            value => PublishFlag("NoodleCavesEnabled", _flags.NoodleCavesEnabled = value, true));
+            value => SetAndPublish(v => _flags.NoodleCavesEnabled = v, value, "NoodleCavesEnabled", true));
 
         AddToggle(generationSection.Content, "Decorators",
             () => _flags.DecoratorsEnabled,
-            value => PublishFlag("DecoratorsEnabled", _flags.DecoratorsEnabled = value, true));
+            value => SetAndPublish(v => _flags.DecoratorsEnabled = v, value, "DecoratorsEnabled", true));
 
         AddToggle(generationSection.Content, "Ore Distribution",
             () => _flags.OreDistributionEnabled,
-            value => PublishFlag("OreDistributionEnabled", _flags.OreDistributionEnabled = value, true));
+            value => SetAndPublish(v => _flags.OreDistributionEnabled = v, value, "OreDistributionEnabled", true));
 
         AddToggle(generationSection.Content, "Cave Features",
             () => _flags.CaveFeaturesEnabled,
-            value => PublishFlag("CaveFeaturesEnabled", _flags.CaveFeaturesEnabled = value, true));
+            value => SetAndPublish(v => _flags.CaveFeaturesEnabled = v, value, "CaveFeaturesEnabled", true));
 
         AddToggle(generationSection.Content, "Surface Rules",
             () => _flags.SurfaceRulesEnabled,
-            value => PublishFlag("SurfaceRulesEnabled", _flags.SurfaceRulesEnabled = value, true));
+            value => SetAndPublish(v => _flags.SurfaceRulesEnabled = v, value, "SurfaceRulesEnabled", true));
 
         AddToggle(generationSection.Content, "Biome Blending",
             () => _flags.BiomeBlendingEnabled,
-            value => PublishFlag("BiomeBlendingEnabled", _flags.BiomeBlendingEnabled = value, true));
+            value => SetAndPublish(v => _flags.BiomeBlendingEnabled = v, value, "BiomeBlendingEnabled", true));
 
         // -- Rendering section --
         DebugSection renderSection = new("Rendering");
@@ -105,15 +105,15 @@ public sealed partial class RenderingTab : VBoxContainer, IDebugTab
 
         AddToggle(renderSection.Content, "Fog",
             () => _flags.FogEnabled,
-            value => PublishFlag("FogEnabled", _flags.FogEnabled = value, false));
+            value => SetAndPublish(v => _flags.FogEnabled = v, value, "FogEnabled", false));
 
         AddToggle(renderSection.Content, "Wireframe Mode",
             () => _flags.WireframeModeEnabled,
-            value => PublishFlag("WireframeModeEnabled", _flags.WireframeModeEnabled = value, false));
+            value => SetAndPublish(v => _flags.WireframeModeEnabled = v, value, "WireframeModeEnabled", false));
 
         AddToggle(renderSection.Content, "Show Normals",
             () => _flags.ShowNormalsEnabled,
-            value => PublishFlag("ShowNormalsEnabled", _flags.ShowNormalsEnabled = value, false));
+            value => SetAndPublish(v => _flags.ShowNormalsEnabled = v, value, "ShowNormalsEnabled", false));
 
         // -- Live impact --
         DebugSection impactSection = new("Live Impact");
@@ -129,7 +129,7 @@ public sealed partial class RenderingTab : VBoxContainer, IDebugTab
     }
 
     /// <inheritdoc />
-    public void UpdateDisplay()
+    public void UpdateDisplay(double delta)
     {
         _builder.Clear();
         _builder.Append("Vertices: ").Append(_monitor.TotalVertices.ToString("N0")).AppendLine();
@@ -149,8 +149,13 @@ public sealed partial class RenderingTab : VBoxContainer, IDebugTab
         parent.AddChild(toggle);
     }
 
-    private void PublishFlag(string flagName, bool newValue, bool requiresRegeneration)
+    private void SetAndPublish(
+        Action<bool> setter,
+        bool newValue,
+        string flagName,
+        bool requiresRegeneration)
     {
+        setter(newValue);
         _eventBus.Publish(new OptimizationFlagChangedEvent
         {
             FlagName = flagName,

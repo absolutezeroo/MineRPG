@@ -29,51 +29,15 @@ public sealed partial class DebugButton : Button
     {
         Text = _labelText;
 
-        StyleBoxFlat normalStyle = new();
-        normalStyle.BgColor = new Color(0.15f, 0.2f, 0.3f, 0.8f);
-        normalStyle.ContentMarginLeft = 8f;
-        normalStyle.ContentMarginRight = 8f;
-        normalStyle.ContentMarginTop = 4f;
-        normalStyle.ContentMarginBottom = 4f;
-        normalStyle.CornerRadiusTopLeft = 3;
-        normalStyle.CornerRadiusTopRight = 3;
-        normalStyle.CornerRadiusBottomLeft = 3;
-        normalStyle.CornerRadiusBottomRight = 3;
-
-        StyleBoxFlat hoverStyle = new();
-        hoverStyle.BgColor = new Color(0.2f, 0.3f, 0.45f, 0.9f);
-        hoverStyle.ContentMarginLeft = 8f;
-        hoverStyle.ContentMarginRight = 8f;
-        hoverStyle.ContentMarginTop = 4f;
-        hoverStyle.ContentMarginBottom = 4f;
-        hoverStyle.CornerRadiusTopLeft = 3;
-        hoverStyle.CornerRadiusTopRight = 3;
-        hoverStyle.CornerRadiusBottomLeft = 3;
-        hoverStyle.CornerRadiusBottomRight = 3;
-
-        StyleBoxFlat pressedStyle = new();
-        pressedStyle.BgColor = new Color(0.1f, 0.15f, 0.25f, 0.9f);
-        pressedStyle.ContentMarginLeft = 8f;
-        pressedStyle.ContentMarginRight = 8f;
-        pressedStyle.ContentMarginTop = 4f;
-        pressedStyle.ContentMarginBottom = 4f;
-        pressedStyle.CornerRadiusTopLeft = 3;
-        pressedStyle.CornerRadiusTopRight = 3;
-        pressedStyle.CornerRadiusBottomLeft = 3;
-        pressedStyle.CornerRadiusBottomRight = 3;
-
-        AddThemeStyleboxOverride("normal", normalStyle);
-        AddThemeStyleboxOverride("hover", hoverStyle);
-        AddThemeStyleboxOverride("pressed", pressedStyle);
+        AddThemeStyleboxOverride("normal", DebugTheme.CreateButtonStyle(new Color(0.15f, 0.2f, 0.3f, 0.8f)));
+        AddThemeStyleboxOverride("hover", DebugTheme.CreateButtonStyle(new Color(0.2f, 0.3f, 0.45f, 0.9f)));
+        AddThemeStyleboxOverride("pressed", DebugTheme.CreateButtonStyle(new Color(0.1f, 0.15f, 0.25f, 0.9f)));
         AddThemeColorOverride("font_color", DebugTheme.TextPrimary);
         AddThemeFontSizeOverride("font_size", DebugTheme.FontSizeSmall);
 
         Pressed += OnPressed;
     }
 
-    private void OnPressed()
-    {
-        _action();
-    }
+    private void OnPressed() => _action();
 }
 #endif

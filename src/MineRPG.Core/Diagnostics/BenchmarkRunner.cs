@@ -188,8 +188,5 @@ public sealed class BenchmarkRunner
     /// <summary>
     /// Aborts a running benchmark.
     /// </summary>
-    public void Abort()
-    {
-        IsRunning = false;
-    }
+    public void Abort() => IsRunning = false;
 }

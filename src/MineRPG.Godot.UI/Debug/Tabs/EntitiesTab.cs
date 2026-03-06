@@ -50,7 +50,7 @@ public sealed partial class EntitiesTab : VBoxContainer, IDebugTab
     }
 
     /// <inheritdoc />
-    public void UpdateDisplay()
+    public void UpdateDisplay(double delta)
     {
         _builder.Clear();
         _builder.Append("Position: ")

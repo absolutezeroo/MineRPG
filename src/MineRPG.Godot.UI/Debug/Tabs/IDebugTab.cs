@@ -11,6 +11,7 @@ public interface IDebugTab
     /// Updates the tab's display. Called each frame by DebugMenuPanel
     /// when this tab is active.
     /// </summary>
-    void UpdateDisplay();
+    /// <param name="delta">Frame delta time in seconds.</param>
+    void UpdateDisplay(double delta);
 }
 #endif

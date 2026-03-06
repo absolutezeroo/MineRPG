@@ -52,10 +52,7 @@ public sealed partial class MiningOverlayNode : Node3D
     }
 
     /// <inheritdoc />
-    public override void _ExitTree()
-    {
-        _eventBus?.Unsubscribe<MiningProgressChangedEvent>(OnMiningProgressChanged);
-    }
+    public override void _ExitTree() => _eventBus?.Unsubscribe<MiningProgressChangedEvent>(OnMiningProgressChanged);
 
     private void OnMiningProgressChanged(MiningProgressChangedEvent evt)
     {

@@ -38,6 +38,8 @@ public sealed partial class DebugMenuPanel : PanelContainer
     private Button[] _tabButtons = null!;
     private Control[] _tabContents = null!;
     private IDebugTab[] _tabs = null!;
+    private StyleBoxFlat _tabActiveStyle = null!;
+    private StyleBoxFlat _tabInactiveStyle = null!;
     private int _activeTab;
 
     /// <summary>
@@ -86,6 +88,8 @@ public sealed partial class DebugMenuPanel : PanelContainer
         tabBar.AddThemeConstantOverride("separation", 2);
         root.AddChild(tabBar);
 
+        _tabActiveStyle = DebugTheme.CreateTabActiveStyle();
+        _tabInactiveStyle = DebugTheme.CreateTabInactiveStyle();
         _tabButtons = new Button[TabCount];
 
         for (int i = 0; i < TabCount; i++)
@@ -133,10 +137,8 @@ public sealed partial class DebugMenuPanel : PanelContainer
     /// <summary>
     /// Updates the active tab display. Called by DebugManager.
     /// </summary>
-    public void UpdateDisplay()
-    {
-        _tabs[_activeTab].UpdateDisplay();
-    }
+    /// <param name="delta">Frame delta time in seconds.</param>
+    public void UpdateDisplay(double delta) => _tabs[_activeTab].UpdateDisplay(delta);
 
     private void AddTab(VBoxContainer parent, int index, Control tabControl)
     {
@@ -157,7 +159,7 @@ public sealed partial class DebugMenuPanel : PanelContainer
             _tabContents[i].Visible = i == index;
             _tabButtons[i].AddThemeStyleboxOverride(
                 "normal",
-                i == index ? DebugTheme.CreateTabActiveStyle() : DebugTheme.CreateTabInactiveStyle());
+                i == index ? _tabActiveStyle : _tabInactiveStyle);
         }
     }
 }

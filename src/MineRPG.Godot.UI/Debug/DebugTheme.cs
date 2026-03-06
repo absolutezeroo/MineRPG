@@ -162,6 +162,26 @@ public static class DebugTheme
     }
 
     /// <summary>
+    /// Creates a styled button box with consistent padding and rounded corners.
+    /// </summary>
+    /// <param name="bgColor">Background color for the button state.</param>
+    /// <returns>A configured StyleBoxFlat.</returns>
+    public static StyleBoxFlat CreateButtonStyle(Color bgColor)
+    {
+        StyleBoxFlat style = new();
+        style.BgColor = bgColor;
+        style.ContentMarginLeft = 8f;
+        style.ContentMarginRight = 8f;
+        style.ContentMarginTop = 4f;
+        style.ContentMarginBottom = 4f;
+        style.CornerRadiusTopLeft = 3;
+        style.CornerRadiusTopRight = 3;
+        style.CornerRadiusBottomLeft = 3;
+        style.CornerRadiusBottomRight = 3;
+        return style;
+    }
+
+    /// <summary>
     /// Applies standard debug label styling to an existing Label.
     /// </summary>
     /// <param name="label">The label to style.</param>
