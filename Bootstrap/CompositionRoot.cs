@@ -151,6 +151,12 @@ public static class CompositionRoot
         PerformanceMonitor performanceMonitor = new();
         locator.Register<PerformanceMonitor>(performanceMonitor);
 
+        PipelineMetrics pipelineMetrics = new();
+        locator.Register<PipelineMetrics>(pipelineMetrics);
+
+        OptimizationFlags optimizationFlags = new();
+        locator.Register<OptimizationFlags>(optimizationFlags);
+
         DebugDataProvider debugDataProvider = new(playerData, chunkManager, biomeSelector, performanceMonitor);
         locator.Register<IDebugDataProvider>(debugDataProvider);
 

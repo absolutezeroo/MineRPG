@@ -15,6 +15,9 @@ using MineRPG.World.Spatial;
 
 using MineRPG.Godot.World.Chunks;
 using MineRPG.Godot.World.Rendering;
+#if DEBUG
+using MineRPG.Godot.World.Debug;
+#endif
 
 namespace MineRPG.Godot.World;
 
@@ -34,6 +37,10 @@ public sealed partial class WorldNode : Node3D
     private ILogger _logger = null!;
     private ChunkLoadingScheduler? _scheduler;
     private ChunkCoord _lastKnownPlayerChunk = new(int.MinValue, int.MinValue);
+
+#if DEBUG
+    private ChunkBorderRenderer? _chunkBorderRenderer;
+#endif
 
     /// <summary>
     /// Gets the chunk node pool used for recycling chunk nodes.
@@ -62,6 +69,10 @@ public sealed partial class WorldNode : Node3D
 
         MiningOverlayNode miningOverlay = new();
         AddChild(miningOverlay);
+
+#if DEBUG
+        _eventBus.Subscribe<DebugToggleEvent>(OnDebugToggle);
+#endif
     }
 
     /// <inheritdoc />
@@ -74,6 +85,9 @@ public sealed partial class WorldNode : Node3D
         }
 
         _eventBus.Unsubscribe<PlayerPositionUpdatedEvent>(OnPlayerPositionUpdated);
+#if DEBUG
+        _eventBus.Unsubscribe<DebugToggleEvent>(OnDebugToggle);
+#endif
 
         // Free all active chunk nodes to prevent Godot resource leaks
         foreach (ChunkNode node in _chunkNodes.Values)
@@ -309,6 +323,28 @@ public sealed partial class WorldNode : Node3D
     }
 
     private void OnPlayerPositionUpdated(PlayerPositionUpdatedEvent evt) => UpdatePlayerPosition(evt.X, evt.Z);
+
+#if DEBUG
+    private void OnDebugToggle(DebugToggleEvent evt)
+    {
+        if (evt.ModuleKey != "chunk_border")
+        {
+            return;
+        }
+
+        if (_chunkBorderRenderer is null)
+        {
+            _chunkBorderRenderer = new ChunkBorderRenderer();
+            _chunkBorderRenderer.Name = "ChunkBorderRenderer";
+            _chunkBorderRenderer.Visible = true;
+            AddChild(_chunkBorderRenderer);
+            _logger.Debug("WorldNode: ChunkBorderRenderer created.");
+            return;
+        }
+
+        _chunkBorderRenderer.Visible = evt.Visible;
+    }
+#endif
 
     private void ScheduleOrSyncRemesh(ChunkCoord coord)
     {

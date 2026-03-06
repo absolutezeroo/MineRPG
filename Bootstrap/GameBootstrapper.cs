@@ -7,6 +7,7 @@ using MineRPG.Core.Interfaces;
 using MineRPG.Core.Interfaces.Settings;
 using MineRPG.Core.Logging;
 
+using MineRPG.Game.Bootstrap.Debug;
 using MineRPG.Game.Bootstrap.Settings;
 
 namespace MineRPG.Game.Bootstrap;
@@ -46,6 +47,10 @@ public sealed partial class GameBootstrapper : Node
         locator.Register(settingsData);
 
         KeybindApplicator.Apply(settingsData, logger);
+
+#if DEBUG
+        DebugInputRegistrar.RegisterAll(logger);
+#endif
 
         logger.Info("GameBootstrapper: Bootstrap initialization complete.");
     }
