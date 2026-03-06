@@ -13,20 +13,20 @@ namespace MineRPG.Godot.UI.Debug;
 /// <summary>
 /// Central coordinator for all debug modules. Owns the <see cref="PerformanceSampler"/>
 /// and lazily instantiates debug panels on first toggle.
-/// Added as a child of HUDNode (CanvasLayer). All toggles happen via _Input.
+/// Delegates input to <see cref="DebugInputHandler"/> and panel creation to
+/// <see cref="DebugModuleFactory"/>.
 /// </summary>
 public sealed partial class DebugManager : Control
 {
     private ILogger _logger = null!;
-    private IDebugDataProvider _debugData = null!;
     private IEventBus _eventBus = null!;
     private PerformanceMonitor _performanceMonitor = null!;
-    private PipelineMetrics _pipelineMetrics = null!;
     private OptimizationFlags _optimizationFlags = null!;
 
     private Camera3D? _camera;
+    private DebugInputHandler _inputHandler = null!;
+    private DebugModuleFactory _factory = null!;
 
-    // Lazily created modules - null until first toggle
     private DebugMenuPanel? _debugMenuPanel;
     private DebugHudPanel? _hudPanel;
     private ChunkMapPanel? _chunkMapPanel;
@@ -34,19 +34,14 @@ public sealed partial class DebugManager : Control
     private PerformanceGraphPanel? _perfGraphPanel;
     private BiomeOverlayPanel? _biomeOverlayPanel;
 
-    private IChunkDebugProvider? _chunkDebugProvider;
     private global::Godot.Environment? _cachedEnvironment;
     private bool _chunkBorderVisible;
     private bool _anyModuleVisible;
 
-    /// <summary>
-    /// The performance sampler owned by this manager.
-    /// </summary>
+    /// <summary>The performance sampler owned by this manager.</summary>
     public PerformanceSampler Sampler { get; private set; } = null!;
 
-    /// <summary>
-    /// Sets the camera reference for modules that need look direction.
-    /// </summary>
+    /// <summary>Sets the camera reference for modules that need look direction.</summary>
     /// <param name="camera">The active 3D camera.</param>
     public void SetCamera(Camera3D camera) => _camera = camera;
 
@@ -56,23 +51,25 @@ public sealed partial class DebugManager : Control
         IServiceLocator locator = ServiceLocator.Instance;
         _logger = locator.Get<ILogger>();
         _eventBus = locator.Get<IEventBus>();
-        _debugData = locator.Get<IDebugDataProvider>();
+        IDebugDataProvider debugData = locator.Get<IDebugDataProvider>();
         _performanceMonitor = locator.Get<PerformanceMonitor>();
-        _pipelineMetrics = locator.Get<PipelineMetrics>();
+        PipelineMetrics pipelineMetrics = locator.Get<PipelineMetrics>();
         _optimizationFlags = locator.Get<OptimizationFlags>();
 
-        locator.TryGet(out _chunkDebugProvider);
+        locator.TryGet(out IChunkDebugProvider? chunkDebugProvider);
 
         Sampler = new PerformanceSampler();
 
-        // CanvasLayer children don't get FullRect from a parent Container,
-        // so size from viewport directly for child panels to anchor correctly.
+        _inputHandler = new DebugInputHandler(this, _logger);
+        _factory = new DebugModuleFactory(
+            debugData, Sampler, _performanceMonitor, pipelineMetrics,
+            _optimizationFlags, _eventBus, chunkDebugProvider, _logger);
+
         Size = GetViewportRect().Size;
         GetViewport().SizeChanged += OnViewportSizeChanged;
         MouseFilter = MouseFilterEnum.Ignore;
 
         _eventBus.Subscribe<OptimizationFlagChangedEvent>(OnOptimizationFlagChanged);
-
         _logger.Debug("DebugManager ready.");
     }
 
@@ -85,60 +82,7 @@ public sealed partial class DebugManager : Control
     /// <inheritdoc />
     public override void _Input(InputEvent @event)
     {
-        if (@event.IsActionPressed(InputActionNames.DebugMenu))
-        {
-            ToggleDebugMenu();
-            GetViewport().SetInputAsHandled();
-            return;
-        }
-
-        if (@event.IsActionPressed(InputActionNames.DebugHud))
-        {
-            ToggleHudPanel();
-            GetViewport().SetInputAsHandled();
-            return;
-        }
-
-        if (@event.IsActionPressed(InputActionNames.DebugChunkMap))
-        {
-            ToggleChunkMapPanel();
-            GetViewport().SetInputAsHandled();
-            return;
-        }
-
-        if (@event.IsActionPressed(InputActionNames.DebugChunkBorder))
-        {
-            ToggleChunkBorder();
-            GetViewport().SetInputAsHandled();
-            return;
-        }
-
-        if (@event.IsActionPressed(InputActionNames.DebugPerfGraph))
-        {
-            TogglePerfGraph();
-            GetViewport().SetInputAsHandled();
-            return;
-        }
-
-        if (@event.IsActionPressed(InputActionNames.DebugBiomeOverlay))
-        {
-            ToggleBiomeOverlay();
-            GetViewport().SetInputAsHandled();
-            return;
-        }
-
-        if (@event.IsActionPressed(InputActionNames.DebugBiomeOverlayMode))
-        {
-            CycleBiomeOverlayMode();
-            GetViewport().SetInputAsHandled();
-            return;
-        }
-
-        if (@event.IsActionPressed(InputActionNames.DebugBlockInspector))
-        {
-            ToggleBlockInspector();
-            GetViewport().SetInputAsHandled();
-        }
+        _inputHandler.HandleInput(@event, GetViewport());
     }
 
     /// <inheritdoc />
@@ -153,10 +97,7 @@ public sealed partial class DebugManager : Control
 
         FrameTimeBreakdown breakdown = new();
         Sampler.Sample(delta, breakdown);
-
-        Sampler.UpdateResourceMetrics(
-            _performanceMonitor.ActiveChunks,
-            _performanceMonitor.TotalVertices);
+        Sampler.UpdateResourceMetrics(_performanceMonitor.ActiveChunks, _performanceMonitor.TotalVertices);
 
         if (_hudPanel is not null && _hudPanel.Visible)
         {
@@ -189,17 +130,13 @@ public sealed partial class DebugManager : Control
         }
     }
 
-    private void ToggleDebugMenu()
+    internal void ToggleDebugMenu()
     {
         if (_debugMenuPanel is null)
         {
-            _debugMenuPanel = new DebugMenuPanel(
-                _debugData, Sampler, _performanceMonitor,
-                _pipelineMetrics, _optimizationFlags, _eventBus, _chunkDebugProvider);
-            _debugMenuPanel.Name = "DebugMenuPanel";
+            _debugMenuPanel = _factory.CreateDebugMenuPanel();
             AddChild(_debugMenuPanel);
             Input.MouseMode = Input.MouseModeEnum.Visible;
-            _logger.Debug("DebugManager: DebugMenuPanel created.");
             return;
         }
 
@@ -213,87 +150,69 @@ public sealed partial class DebugManager : Control
         {
             Input.MouseMode = Input.MouseModeEnum.Captured;
         }
-
-        _logger.Debug("DebugManager: DebugMenuPanel toggled, Visible={0}", _debugMenuPanel.Visible);
     }
 
-    private void ToggleHudPanel()
+    internal void ToggleHudPanel()
     {
         if (_hudPanel is null)
         {
-            _hudPanel = new DebugHudPanel(_debugData, Sampler, _performanceMonitor, _pipelineMetrics);
-            _hudPanel.Name = "DebugHudPanel";
-            _hudPanel.SetCamera(_camera);
+            _hudPanel = _factory.CreateHudPanel(_camera);
             AddChild(_hudPanel);
-            _logger.Debug("DebugManager: DebugHudPanel created.");
             return;
         }
 
         _hudPanel.Visible = !_hudPanel.Visible;
-        _logger.Debug("DebugManager: DebugHudPanel toggled, Visible={0}", _hudPanel.Visible);
     }
 
-    private void ToggleChunkMapPanel()
+    internal void ToggleChunkMapPanel()
     {
         if (_chunkMapPanel is null)
         {
-            _chunkMapPanel = new ChunkMapPanel(_debugData, _chunkDebugProvider);
-            _chunkMapPanel.Name = "ChunkMapPanel";
+            _chunkMapPanel = _factory.CreateChunkMapPanel();
             AddChild(_chunkMapPanel);
-            _logger.Debug("DebugManager: ChunkMapPanel created.");
             return;
         }
 
         _chunkMapPanel.Visible = !_chunkMapPanel.Visible;
-        _logger.Debug("DebugManager: ChunkMapPanel toggled, Visible={0}", _chunkMapPanel.Visible);
     }
 
-    private void ToggleBiomeOverlay()
+    internal void ToggleBiomeOverlay()
     {
         if (_biomeOverlayPanel is null)
         {
-            _biomeOverlayPanel = new BiomeOverlayPanel(_debugData, _chunkDebugProvider);
-            _biomeOverlayPanel.Name = "BiomeOverlayPanel";
+            _biomeOverlayPanel = _factory.CreateBiomeOverlayPanel();
             AddChild(_biomeOverlayPanel);
-            _logger.Debug("DebugManager: BiomeOverlayPanel created.");
             return;
         }
 
         _biomeOverlayPanel.Visible = !_biomeOverlayPanel.Visible;
-        _logger.Debug("DebugManager: BiomeOverlayPanel toggled, Visible={0}", _biomeOverlayPanel.Visible);
     }
 
-    private void CycleBiomeOverlayMode()
+    internal void CycleBiomeOverlayMode()
     {
         if (_biomeOverlayPanel is null)
         {
-            // Auto-create and show when cycling mode
-            _biomeOverlayPanel = new BiomeOverlayPanel(_debugData, _chunkDebugProvider);
-            _biomeOverlayPanel.Name = "BiomeOverlayPanel";
+            _biomeOverlayPanel = _factory.CreateBiomeOverlayPanel();
             AddChild(_biomeOverlayPanel);
         }
 
         _biomeOverlayPanel.Visible = true;
         _biomeOverlayPanel.CycleMode();
-        _logger.Debug("DebugManager: BiomeOverlayPanel mode cycled.");
     }
 
-    private void TogglePerfGraph()
+    internal void TogglePerfGraph()
     {
         if (_perfGraphPanel is null)
         {
-            _perfGraphPanel = new PerformanceGraphPanel(Sampler);
-            _perfGraphPanel.Name = "PerformanceGraphPanel";
+            _perfGraphPanel = _factory.CreatePerfGraphPanel();
             AddChild(_perfGraphPanel);
-            _logger.Debug("DebugManager: PerformanceGraphPanel created.");
             return;
         }
 
         _perfGraphPanel.Visible = !_perfGraphPanel.Visible;
-        _logger.Debug("DebugManager: PerformanceGraphPanel toggled, Visible={0}", _perfGraphPanel.Visible);
     }
 
-    private void ToggleChunkBorder()
+    internal void ToggleChunkBorder()
     {
         _chunkBorderVisible = !_chunkBorderVisible;
 
@@ -302,24 +221,18 @@ public sealed partial class DebugManager : Control
             ModuleKey = "chunk_border",
             Visible = _chunkBorderVisible,
         });
-
-        _logger.Debug("DebugManager: ChunkBorder toggled, Visible={0}", _chunkBorderVisible);
     }
 
-    private void ToggleBlockInspector()
+    internal void ToggleBlockInspector()
     {
         if (_blockInspectorPanel is null)
         {
-            _blockInspectorPanel = new BlockInspectorPanel();
-            _blockInspectorPanel.Name = "BlockInspectorPanel";
-            _blockInspectorPanel.SetCamera(_camera);
+            _blockInspectorPanel = _factory.CreateBlockInspectorPanel(_camera);
             AddChild(_blockInspectorPanel);
-            _logger.Debug("DebugManager: BlockInspectorPanel created.");
             return;
         }
 
         _blockInspectorPanel.Visible = !_blockInspectorPanel.Visible;
-        _logger.Debug("DebugManager: BlockInspectorPanel toggled, Visible={0}", _blockInspectorPanel.Visible);
     }
 
     private bool AnyPanelNeedsMouse()
@@ -339,25 +252,17 @@ public sealed partial class DebugManager : Control
             (_biomeOverlayPanel is not null && _biomeOverlayPanel.Visible);
     }
 
-    private void OnViewportSizeChanged()
-    {
-        Size = GetViewportRect().Size;
-    }
+    private void OnViewportSizeChanged() => Size = GetViewportRect().Size;
 
-    private void OnOptimizationFlagChanged(OptimizationFlagChangedEvent evt)
-    {
-        ApplyRenderingFlags();
-    }
+    private void OnOptimizationFlagChanged(OptimizationFlagChangedEvent evt) => ApplyRenderingFlags();
 
     private void ApplyRenderingFlags()
     {
-        // Wireframe mode
         Viewport viewport = GetViewport();
         viewport.DebugDraw = _optimizationFlags.WireframeModeEnabled
             ? Viewport.DebugDrawEnum.Wireframe
             : Viewport.DebugDrawEnum.Disabled;
 
-        // Volumetric fog
         if (_cachedEnvironment is null)
         {
             Node? worldEnv = GetTree().Root.FindChild("WorldEnvironment", true, false);
