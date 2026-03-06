@@ -58,6 +58,17 @@ public sealed partial class InventoryGridNode : GridContainer
         }
     }
 
+    /// <inheritdoc />
+    public override void _ExitTree()
+    {
+        foreach (InventorySlotNode slotNode in _slotNodes)
+        {
+            slotNode.SlotClicked -= OnSlotClicked;
+            slotNode.SlotHovered -= OnSlotHovered;
+            slotNode.SlotUnhovered -= OnSlotUnhovered;
+        }
+    }
+
     private void OnSlotClicked(object? sender, SlotClickedEventArgs e) => SlotClicked?.Invoke(this, e);
 
     private void OnSlotHovered(object? sender, SlotHoverEventArgs e) => SlotHovered?.Invoke(this, e);

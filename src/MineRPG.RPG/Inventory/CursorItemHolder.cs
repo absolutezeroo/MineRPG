@@ -65,6 +65,12 @@ public sealed class CursorItemHolder
     }
 
     /// <summary>
+    /// Notifies listeners that the held item was modified in-place (e.g. count changed).
+    /// Call this after mutating <see cref="HeldItem"/> properties directly.
+    /// </summary>
+    public void NotifyChanged() => RaiseChanged();
+
+    /// <summary>
     /// Clears the cursor, discarding any held item.
     /// </summary>
     public void Clear()

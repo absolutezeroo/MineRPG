@@ -12,7 +12,6 @@ namespace MineRPG.Godot.UI.Inventory;
 public sealed partial class ItemTooltipNode : PanelContainer
 {
     private const int TooltipMargin = 12;
-    private const int MaxWidth = 280;
 
     private Label _nameLabel = null!;
     private Label _categoryLabel = null!;

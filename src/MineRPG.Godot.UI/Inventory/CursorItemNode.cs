@@ -41,11 +41,6 @@ public sealed partial class CursorItemNode : Control
     /// <inheritdoc />
     public override void _Process(double delta)
     {
-        if (!Visible)
-        {
-            return;
-        }
-
         GlobalPosition = GetGlobalMousePosition() + new Vector2(Offset, Offset);
     }
 
@@ -64,6 +59,7 @@ public sealed partial class CursorItemNode : Control
         SetAnchorsAndOffsetsPreset(LayoutPreset.TopLeft);
         Size = new Vector2(IconSize, IconSize);
         ZIndex = 100;
+        SetProcess(false);
 
         _iconRect = new ColorRect();
         _iconRect.CustomMinimumSize = new Vector2(IconSize, IconSize);
@@ -91,14 +87,16 @@ public sealed partial class CursorItemNode : Control
         if (item == null)
         {
             Visible = false;
+            SetProcess(false);
             return;
         }
 
         Visible = true;
+        SetProcess(true);
 
         if (_itemRegistry.TryGet(item.DefinitionId, out ItemDefinition definition))
         {
-            _iconRect.Color = InventorySlotNode.GetCategoryPlaceholderColor(definition.Category);
+            _iconRect.Color = GameTheme.GetCategoryPlaceholderColor(definition.Category);
             _countLabel.Text = item.Count > 1 ? item.Count.ToString() : "";
         }
         else

@@ -1,6 +1,7 @@
 using Godot;
 
 using MineRPG.Core.Logging;
+using MineRPG.Godot.UI;
 
 namespace MineRPG.Game.Bootstrap.Gameplay;
 
@@ -17,7 +18,7 @@ public static class InventoryInputRegistrar
     /// <param name="logger">Logger for diagnostics.</param>
     public static void Register(ILogger logger)
     {
-        const string actionName = "inventory_toggle";
+        StringName actionName = InputActionNames.InventoryToggle;
 
         if (InputMap.HasAction(actionName))
         {

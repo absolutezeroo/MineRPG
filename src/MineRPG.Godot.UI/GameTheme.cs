@@ -104,6 +104,31 @@ public static class GameTheme
     public static readonly Color RarityLegendary = new(1.0f, 0.65f, 0.0f, 1.0f);
 
     // -------------------------------------------------------------------------
+    // Item category placeholder colors (used until real icons exist)
+    // -------------------------------------------------------------------------
+
+    /// <summary>Placeholder color for block items.</summary>
+    public static readonly Color CategoryBlock = new(0.55f, 0.45f, 0.35f, 0.85f);
+
+    /// <summary>Placeholder color for tool items.</summary>
+    public static readonly Color CategoryTool = new(0.50f, 0.60f, 0.70f, 0.85f);
+
+    /// <summary>Placeholder color for weapon items.</summary>
+    public static readonly Color CategoryWeapon = new(0.70f, 0.35f, 0.35f, 0.85f);
+
+    /// <summary>Placeholder color for armor items.</summary>
+    public static readonly Color CategoryArmor = new(0.45f, 0.55f, 0.65f, 0.85f);
+
+    /// <summary>Placeholder color for consumable items.</summary>
+    public static readonly Color CategoryConsumable = new(0.65f, 0.40f, 0.50f, 0.85f);
+
+    /// <summary>Placeholder color for material items.</summary>
+    public static readonly Color CategoryMaterial = new(0.55f, 0.55f, 0.40f, 0.85f);
+
+    /// <summary>Placeholder color for miscellaneous items.</summary>
+    public static readonly Color CategoryMisc = new(0.50f, 0.50f, 0.50f, 0.85f);
+
+    // -------------------------------------------------------------------------
     // Inventory slot colors
     // -------------------------------------------------------------------------
 
@@ -267,6 +292,27 @@ public static class GameTheme
             ItemRarity.Legendary => RarityLegendary,
             _ => throw new ArgumentOutOfRangeException(
                 nameof(rarity), rarity, "Unhandled item rarity"),
+        };
+    }
+
+    /// <summary>
+    /// Returns the placeholder icon color for the given item category.
+    /// Used until real item icon textures are available.
+    /// </summary>
+    /// <param name="category">The item category.</param>
+    /// <returns>The corresponding placeholder color.</returns>
+    public static Color GetCategoryPlaceholderColor(ItemCategory category)
+    {
+        return category switch
+        {
+            ItemCategory.Block => CategoryBlock,
+            ItemCategory.Tool => CategoryTool,
+            ItemCategory.Weapon => CategoryWeapon,
+            ItemCategory.Armor => CategoryArmor,
+            ItemCategory.Consumable => CategoryConsumable,
+            ItemCategory.Material => CategoryMaterial,
+            ItemCategory.Misc => CategoryMisc,
+            _ => CategoryMisc,
         };
     }
 

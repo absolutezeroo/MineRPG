@@ -142,7 +142,7 @@ public sealed partial class InventorySlotNode : PanelContainer
 
         if (_itemRegistry.TryGet(item.DefinitionId, out ItemDefinition definition))
         {
-            _iconRect.Color = GetCategoryPlaceholderColor(definition.Category);
+            _iconRect.Color = GameTheme.GetCategoryPlaceholderColor(definition.Category);
             _countLabel.Text = item.Count > 1 ? item.Count.ToString() : "";
         }
         else
@@ -173,19 +173,4 @@ public sealed partial class InventorySlotNode : PanelContainer
     /// Sets the slot border style to the normal appearance.
     /// </summary>
     public void SetNormal() => AddThemeStyleboxOverride("panel", _normalStyle);
-
-    internal static Color GetCategoryPlaceholderColor(ItemCategory category)
-    {
-        return category switch
-        {
-            ItemCategory.Block => new Color(0.55f, 0.45f, 0.35f, 0.85f),
-            ItemCategory.Tool => new Color(0.50f, 0.60f, 0.70f, 0.85f),
-            ItemCategory.Weapon => new Color(0.70f, 0.35f, 0.35f, 0.85f),
-            ItemCategory.Armor => new Color(0.45f, 0.55f, 0.65f, 0.85f),
-            ItemCategory.Consumable => new Color(0.65f, 0.40f, 0.50f, 0.85f),
-            ItemCategory.Material => new Color(0.55f, 0.55f, 0.40f, 0.85f),
-            ItemCategory.Misc => new Color(0.50f, 0.50f, 0.50f, 0.85f),
-            _ => new Color(0.50f, 0.50f, 0.50f, 0.85f),
-        };
-    }
 }

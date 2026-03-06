@@ -75,11 +75,11 @@ public static class InventorySlotInteraction
 
             if (cursorItem.Count <= 0)
             {
-                cursor.SetItem(null);
+                cursor.Clear();
             }
             else
             {
-                cursor.SetItem(cursorItem);
+                cursor.NotifyChanged();
             }
 
             return;
@@ -135,17 +135,16 @@ public static class InventorySlotInteraction
                 return;
             }
 
-            ItemInstance singleItem = new ItemInstance(cursorItem.DefinitionId, 1, cursorItem.CurrentDurability);
-            inventory.AddItemAt(slotIndex, singleItem);
-            cursorItem.Count -= 1;
-
-            if (cursorItem.Count <= 0)
+            if (cursorItem.Count <= 1)
             {
-                cursor.SetItem(null);
+                inventory.AddItemAt(slotIndex, cursorItem);
+                cursor.Clear();
             }
             else
             {
-                cursor.SetItem(cursorItem);
+                ItemInstance singleItem = cursorItem.Split(1);
+                inventory.AddItemAt(slotIndex, singleItem);
+                cursor.NotifyChanged();
             }
 
             return;
@@ -171,11 +170,11 @@ public static class InventorySlotInteraction
 
             if (cursorItem.Count <= 0)
             {
-                cursor.SetItem(null);
+                cursor.Clear();
             }
             else
             {
-                cursor.SetItem(cursorItem);
+                cursor.NotifyChanged();
             }
 
             return;

@@ -274,6 +274,10 @@ public sealed partial class InventoryScreenNode : Control
         {
             _tooltipNode.ShowForItem(definition, item);
         }
+        else
+        {
+            _tooltipNode.HideTooltip();
+        }
     }
 
     private void OnSlotUnhovered(object? sender, SlotHoverEventArgs e)

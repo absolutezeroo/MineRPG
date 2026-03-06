@@ -85,6 +85,24 @@ public sealed partial class ArmorPanelNode : VBoxContainer
         _offhandSlot.SlotUnhovered += OnSlotUnhovered;
     }
 
+    /// <inheritdoc />
+    public override void _ExitTree()
+    {
+        foreach (InventorySlotNode slotNode in _armorSlots)
+        {
+            slotNode.SlotClicked -= OnSlotClicked;
+            slotNode.SlotHovered -= OnSlotHovered;
+            slotNode.SlotUnhovered -= OnSlotUnhovered;
+        }
+
+        if (_offhandSlot != null)
+        {
+            _offhandSlot.SlotClicked -= OnSlotClicked;
+            _offhandSlot.SlotHovered -= OnSlotHovered;
+            _offhandSlot.SlotUnhovered -= OnSlotUnhovered;
+        }
+    }
+
     private void OnSlotClicked(object? sender, SlotClickedEventArgs e) => SlotClicked?.Invoke(this, e);
 
     private void OnSlotHovered(object? sender, SlotHoverEventArgs e) => SlotHovered?.Invoke(this, e);
