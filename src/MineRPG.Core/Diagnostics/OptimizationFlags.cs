@@ -47,6 +47,44 @@ public sealed class OptimizationFlags
     /// <summary>Generate cave features (stalactites, pillars).</summary>
     public volatile bool CaveFeaturesEnabled = true;
 
+    // -- Culling --
+
+    /// <summary>Enable BFS occlusion culling to skip chunks hidden behind solid terrain.</summary>
+    public volatile bool OcclusionCullingEnabled = true;
+
+    /// <summary>Enable sub-chunk occlusion to skip fully buried 16x16x16 sections.</summary>
+    public volatile bool SubChunkOcclusionEnabled = true;
+
+    // -- LOD --
+
+    /// <summary>Enable level-of-detail for distant chunks (reduced resolution meshing).</summary>
+    public volatile bool LodEnabled = true;
+
+    // -- Batching --
+
+    /// <summary>Enable draw call batching (multiple chunk meshes per MeshInstance3D).</summary>
+    public volatile bool DrawCallBatchingEnabled = true;
+
+    // -- Clipmap --
+
+    /// <summary>Enable geometry clipmap for the far terrain horizon.</summary>
+    public volatile bool ClipmapEnabled = true;
+
+    // -- Vertex Packing --
+
+    /// <summary>Enable vertex data compression to reduce VRAM and bandwidth.</summary>
+    public volatile bool VertexPackingEnabled = true;
+
+    // -- Loading --
+
+    /// <summary>Enable visibility-based chunk loading priority (front-to-back).</summary>
+    public volatile bool PriorityLoadingEnabled = true;
+
+    // -- Incremental Meshing --
+
+    /// <summary>Enable per-sub-chunk incremental remesh on block edits.</summary>
+    public volatile bool IncrementalMeshingEnabled = true;
+
     // -- Rendering --
 
     /// <summary>Enable fog rendering.</summary>

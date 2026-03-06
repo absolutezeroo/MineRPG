@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 using MineRPG.Core.Math;
 
@@ -48,6 +49,17 @@ public interface IChunkManager
     /// <param name="renderDistance">The render distance in chunks.</param>
     /// <returns>A sorted list of chunk coordinates.</returns>
     IReadOnlyList<ChunkCoord> GetCoordsInRange(ChunkCoord center, int renderDistance);
+
+    /// <summary>
+    /// Fills a caller-provided list with chunk coords within Chebyshev distance of center,
+    /// sorted by distance (nearest first). Avoids allocation by reusing the list.
+    /// </summary>
+    /// <param name="center">The center chunk coordinate.</param>
+    /// <param name="renderDistance">The render distance in chunks.</param>
+    /// <param name="result">A pre-allocated list to fill (will be cleared first).</param>
+    [SuppressMessage("Microsoft.Design", "CA1002:DoNotExposeGenericLists",
+        Justification = "Hot-path method uses pre-allocated List for zero-alloc pattern.")]
+    void GetCoordsInRange(ChunkCoord center, int renderDistance, List<ChunkCoord> result);
 
     /// <summary>
     /// Returns neighbor chunk data for the 4 cardinal directions.

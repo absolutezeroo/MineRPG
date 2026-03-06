@@ -28,9 +28,7 @@ public sealed partial class GameplayBootstrap : Node
     {
         ILogger logger = ServiceLocator.Instance.Get<ILogger>();
 
-        WorldNode? worldNode = GetTree().Root.FindChild("WorldNode", true, false) as WorldNode;
-
-        if (worldNode is null)
+        if (GetTree().Root.FindChild("WorldNode", true, false) is not WorldNode worldNode)
         {
             logger.Warning("GameplayBootstrap: WorldNode not found in scene tree.");
             return;
