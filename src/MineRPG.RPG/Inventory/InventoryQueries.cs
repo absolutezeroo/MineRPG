@@ -9,10 +9,7 @@ namespace MineRPG.RPG.Inventory;
 public sealed partial class Inventory
 {
     /// <inheritdoc />
-    public bool Contains(string definitionId, int quantity)
-    {
-        return CountItem(definitionId) >= quantity;
-    }
+    public bool Contains(string definitionId, int quantity) => CountItem(definitionId) >= quantity;
 
     /// <summary>
     /// Counts the total quantity of items with the given definition ID.

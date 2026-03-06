@@ -57,10 +57,7 @@ public sealed class ItemRegistry
     /// <summary>
     /// Freezes the registry, preventing further registrations.
     /// </summary>
-    public void Freeze()
-    {
-        _inner.Freeze();
-    }
+    public void Freeze() => _inner.Freeze();
 
     /// <summary>
     /// Retrieves an item definition by ID. Throws if not found.

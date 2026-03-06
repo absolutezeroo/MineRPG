@@ -231,8 +231,5 @@ public sealed class ChunkData : IDisposable
     /// <summary>
     /// Releases the <see cref="ReaderWriterLockSlim"/> kernel handle.
     /// </summary>
-    public void Dispose()
-    {
-        _lock.Dispose();
-    }
+    public void Dispose() => _lock.Dispose();
 }

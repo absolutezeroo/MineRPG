@@ -195,7 +195,7 @@ public sealed partial class RenderingTab : VBoxContainer, IDebugTab
         _flags.BiomeBlendingEnabled = true;
         _flags.VertexPackingEnabled = true;
         _flags.LodEnabled = true;
-        _flags.DrawCallBatchingEnabled = true;
+        _flags.DrawCallBatchingEnabled = false;
         _flags.FogEnabled = true;
         _flags.WireframeModeEnabled = false;
         _flags.ShowNormalsEnabled = false;

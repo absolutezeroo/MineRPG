@@ -133,8 +133,5 @@ public sealed class InventorySlot
     /// Used internally for inventory operations.
     /// </summary>
     /// <param name="item">The item to set, or null to clear.</param>
-    internal void SetItem(ItemInstance? item)
-    {
-        Item = item;
-    }
+    internal void SetItem(ItemInstance? item) => Item = item;
 }

@@ -71,10 +71,7 @@ public sealed class OcclusionCuller
     /// <summary>
     /// Forces a full BFS recompute on the next Update call.
     /// </summary>
-    public void Invalidate()
-    {
-        _isDirty = true;
-    }
+    public void Invalidate() => _isDirty = true;
 
     /// <summary>
     /// Checks whether a chunk is in the visible set from the last BFS pass.

@@ -80,10 +80,7 @@ public sealed class ClipmapGeneratorTests
     }
 
     [Fact]
-    public void RingCount_IsThree()
-    {
-        ClipmapConfig.RingCount.Should().Be(3);
-    }
+    public void RingCount_IsThree() => ClipmapConfig.RingCount.Should().Be(3);
 
     [Fact]
     public void DefaultConfig_HasCorrectRingRadii()

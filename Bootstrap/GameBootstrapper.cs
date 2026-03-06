@@ -11,6 +11,7 @@ using MineRPG.Core.Interfaces.Settings;
 using MineRPG.Core.Logging;
 using MineRPG.Game.Bootstrap.Debug;
 using MineRPG.Game.Bootstrap.Settings;
+using MineRPG.Godot.UI;
 
 namespace MineRPG.Game.Bootstrap;
 
@@ -54,6 +55,8 @@ public sealed partial class GameBootstrapper : Node
         locator.Register(settingsData);
 
         KeybindApplicator.Apply(settingsData, logger);
+
+        GameTheme.Initialize();
 
 #if DEBUG
         DebugInputRegistrar.RegisterAll(logger);

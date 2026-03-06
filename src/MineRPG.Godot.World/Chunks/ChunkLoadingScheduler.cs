@@ -283,6 +283,12 @@ public sealed partial class ChunkLoadingScheduler : Node
             return;
         }
 
+        // No LOD transitions are possible when render distance is below the first threshold
+        if (CurrentRenderDistance < LodPolicy.Lod0ToLod1Distance)
+        {
+            return;
+        }
+
         foreach (ChunkEntry entry in _chunkManager.GetAll())
         {
             if (entry.State < ChunkState.Ready || entry.State == ChunkState.Unloading)

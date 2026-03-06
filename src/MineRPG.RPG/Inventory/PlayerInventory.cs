@@ -113,20 +113,14 @@ public sealed class PlayerInventory
     /// <param name="definitionId">The item definition ID to search for.</param>
     /// <param name="count">Required quantity.</param>
     /// <returns>True if the player has enough.</returns>
-    public bool HasItem(string definitionId, int count)
-    {
-        return CountItem(definitionId) >= count;
-    }
+    public bool HasItem(string definitionId, int count) => CountItem(definitionId) >= count;
 
     /// <summary>
     /// Counts the total quantity of an item across all inventory sections.
     /// </summary>
     /// <param name="definitionId">The item definition ID to count.</param>
     /// <returns>Total count across hotbar and main inventory.</returns>
-    public int CountItem(string definitionId)
-    {
-        return Main.CountItem(definitionId) + Hotbar.CountItem(definitionId);
-    }
+    public int CountItem(string definitionId) => Main.CountItem(definitionId) + Hotbar.CountItem(definitionId);
 
     /// <summary>
     /// Calculates total defense from all equipped armor.

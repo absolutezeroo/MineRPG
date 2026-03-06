@@ -41,10 +41,7 @@ public sealed class RecipeRegistry
     /// <summary>
     /// Freezes the registry.
     /// </summary>
-    public void Freeze()
-    {
-        _inner.Freeze();
-    }
+    public void Freeze() => _inner.Freeze();
 
     /// <summary>
     /// Gets a recipe by ID. Throws if not found.

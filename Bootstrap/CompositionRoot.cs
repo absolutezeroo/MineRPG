@@ -11,6 +11,7 @@ using MineRPG.Core.Interfaces;
 using MineRPG.Core.Interfaces.Gameplay;
 using MineRPG.Core.Interfaces.Settings;
 using MineRPG.Core.Logging;
+using MineRPG.Core.Registry;
 using MineRPG.Entities.Player;
 using MineRPG.Godot.World;
 using MineRPG.Godot.World.Chunks;
@@ -28,6 +29,7 @@ using MineRPG.World.Spatial;
 using MineRPG.Game.Bootstrap.Debug;
 using MineRPG.Game.Bootstrap.Gameplay;
 using MineRPG.Game.Bootstrap.Settings;
+using MineRPG.Game.Bootstrap.Validation;
 
 namespace MineRPG.Game.Bootstrap;
 
@@ -174,6 +176,21 @@ public static class CompositionRoot
         locator.Register<ItemRegistry>(itemRegistry);
 
         logger.Info("CompositionRoot: Loaded {0} item definitions.", itemDefinitions.Count);
+
+        TagRegistry tagRegistry = new();
+        IReadOnlyList<TagDefinition> tagDefinitions = dataLoader.LoadAll<TagDefinition>("Tags");
+
+        for (int i = 0; i < tagDefinitions.Count; i++)
+        {
+            tagRegistry.Register(tagDefinitions[i]);
+        }
+
+        tagRegistry.Freeze();
+        locator.Register<TagRegistry>(tagRegistry);
+
+        logger.Info("CompositionRoot: Loaded {0} tag definitions.", tagDefinitions.Count);
+
+        RegistryValidator.Validate(blockRegistry, itemRegistry, tagRegistry, logger);
 
         PlayerInventory playerInventory = new(itemRegistry);
         playerData.Inventory = playerInventory;

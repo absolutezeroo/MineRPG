@@ -96,8 +96,5 @@ public sealed class SlotFilterTests
     }
 
     [Fact]
-    public void Accepts_NullDefinition_ReturnsFalse()
-    {
-        SlotFilter.AcceptAll.Accepts(null!).Should().BeFalse();
-    }
+    public void Accepts_NullDefinition_ReturnsFalse() => SlotFilter.AcceptAll.Accepts(null!).Should().BeFalse();
 }

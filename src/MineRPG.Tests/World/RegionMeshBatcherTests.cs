@@ -28,10 +28,7 @@ public sealed class RegionMeshBatcherTests
     }
 
     [Fact]
-    public void RegionSize_IsFour()
-    {
-        RegionMeshBatcher.RegionSize.Should().Be(4);
-    }
+    public void RegionSize_IsFour() => RegionMeshBatcher.RegionSize.Should().Be(4);
 
     [Fact]
     public void BatchSubChunkOpaque_EmptyList_ReturnsEmpty()

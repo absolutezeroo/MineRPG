@@ -75,23 +75,25 @@ internal sealed class RemeshWorkProcessor
             work.Entry.SubChunks = snapshotData.ComputeSubChunkInfo();
             work.Entry.VisibilityMatrix = VisibilityMatrixBuilder.Build(snapshotData, work.Entry.SubChunks);
 
-            // Use downsampled data if LOD > 0
+            // Use downsampled data if LOD > 0 (capture LOD once to avoid tearing)
             ChunkData meshSourceData = snapshotData;
             LodLevel currentLod = work.Entry.CurrentLod;
+            int lodFactor = 1;
 
             if (currentLod != LodLevel.Lod0 && (_optimizationFlags is null || _optimizationFlags.LodEnabled))
             {
-                int factor = LodPolicy.GetDownsampleFactor(currentLod);
-                ushort[] downsampledBuffer = ArrayPool<ushort>.Shared.Rent(ChunkDownsampler.GetOutputSize(factor));
+                lodFactor = LodPolicy.GetDownsampleFactor(currentLod);
+                ushort[] downsampledBuffer = ArrayPool<ushort>.Shared.Rent(
+                    ChunkDownsampler.GetOutputSize(lodFactor));
 
                 try
                 {
                     ChunkDownsampler.Downsample(
-                        snapshotData, factor, downsampledBuffer,
+                        snapshotData, lodFactor, downsampledBuffer,
                         out int outSizeX, out int outSizeY, out int outSizeZ);
 
                     meshSourceData = ChunkDownsampler.Expand(
-                        work.Coord, downsampledBuffer, outSizeX, outSizeY, outSizeZ, factor);
+                        work.Coord, downsampledBuffer, outSizeX, outSizeY, outSizeZ, lodFactor);
                 }
                 finally
                 {
@@ -109,8 +111,7 @@ internal sealed class RemeshWorkProcessor
             // Scale vertex positions for LOD meshes
             if (currentLod != LodLevel.Lod0)
             {
-                int factor = LodPolicy.GetDownsampleFactor(currentLod);
-                mesh = MeshScaler.ScaleResult(mesh, factor);
+                mesh = MeshScaler.ScaleResult(mesh, lodFactor);
             }
 
             // Pack vertices for memory-efficient transport

@@ -50,8 +50,12 @@ public sealed class OptimizationFlags
     /// <summary>Enable level-of-detail for distant chunks (reduced resolution meshing).</summary>
     public volatile bool LodEnabled = true;
 
-    /// <summary>Enable draw call batching (multiple chunk meshes per MeshInstance3D).</summary>
-    public volatile bool DrawCallBatchingEnabled = true;
+    /// <summary>
+    /// Enable draw call batching (multiple chunk meshes per MeshInstance3D).
+    /// Disabled by default: liquid meshes are not yet included in the batch,
+    /// and the O(N) region rebuild per chunk is too slow during initial loading.
+    /// </summary>
+    public volatile bool DrawCallBatchingEnabled;
 
     /// <summary>Enable geometry clipmap for the far terrain horizon.</summary>
     public volatile bool ClipmapEnabled;

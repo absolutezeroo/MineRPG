@@ -74,16 +74,10 @@ public sealed partial class DebugManager : Control
     }
 
     /// <inheritdoc />
-    public override void _ExitTree()
-    {
-        _eventBus?.Unsubscribe<OptimizationFlagChangedEvent>(OnOptimizationFlagChanged);
-    }
+    public override void _ExitTree() => _eventBus?.Unsubscribe<OptimizationFlagChangedEvent>(OnOptimizationFlagChanged);
 
     /// <inheritdoc />
-    public override void _Input(InputEvent @event)
-    {
-        _inputHandler.HandleInput(@event, GetViewport());
-    }
+    public override void _Input(InputEvent @event) => _inputHandler.HandleInput(@event, GetViewport());
 
     /// <inheritdoc />
     public override void _Process(double delta)

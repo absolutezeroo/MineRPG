@@ -53,10 +53,7 @@ public sealed partial class ChunkRegion : Node3D
     /// Registers a chunk as belonging to this region.
     /// </summary>
     /// <param name="coord">The chunk coordinate to add.</param>
-    public void AddChunk(ChunkCoord coord)
-    {
-        _memberChunks.Add(coord);
-    }
+    public void AddChunk(ChunkCoord coord) => _memberChunks.Add(coord);
 
     /// <summary>
     /// Removes a chunk from this region.

@@ -171,10 +171,7 @@ public sealed class EquipmentManager
         return item.Armor.Slot == slot;
     }
 
-    private void OnSlotChanged(object? sender, SlotChangedEventArgs e)
-    {
-        _isDirty = true;
-    }
+    private void OnSlotChanged(object? sender, SlotChangedEventArgs e) => _isDirty = true;
 
     private void RecalculateIfDirty()
     {

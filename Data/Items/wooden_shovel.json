@@ -16,6 +16,6 @@
     "material": "wood",
     "miningSpeed": 2.0,
     "harvestLevel": 1,
-    "effectiveOn": ["dirt", "sand", "gravel", "snow"]
+    "effectiveOn": ["#mineable_shovel"]
   }
 }

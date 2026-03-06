@@ -16,6 +16,6 @@
     "material": "iron",
     "miningSpeed": 6.0,
     "harvestLevel": 2,
-    "effectiveOn": ["stone", "cobblestone", "ore", "iron_ore", "gold_ore", "diamond_ore"]
+    "effectiveOn": ["#mineable_pickaxe"]
   }
 }

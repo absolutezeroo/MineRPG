@@ -91,10 +91,7 @@ public sealed class VertexPackerTests
     }
 
     [Fact]
-    public void PackedVertex_SizeInBytes_Is20()
-    {
-        PackedVertex.SizeInBytes.Should().Be(20);
-    }
+    public void PackedVertex_SizeInBytes_Is20() => PackedVertex.SizeInBytes.Should().Be(20);
 
     private static MeshData CreateSingleVertexMesh(
         float px, float py, float pz,

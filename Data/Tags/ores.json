@@ -1,0 +1,13 @@
+{
+  "tagId": "ores",
+  "values": [
+    "Coal Ore",
+    "Copper Ore",
+    "Iron Ore",
+    "Gold Ore",
+    "Diamond Ore",
+    "Emerald Ore",
+    "Lapis Ore",
+    "Redstone Ore"
+  ]
+}

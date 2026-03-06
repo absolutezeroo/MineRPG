@@ -141,8 +141,5 @@ public sealed class SubChunkOcclusionTestTests
         return infos;
     }
 
-    private static SubChunkInfo[]?[] CreateNullNeighbors()
-    {
-        return new SubChunkInfo[]?[4];
-    }
+    private static SubChunkInfo[]?[] CreateNullNeighbors() => new SubChunkInfo[]?[4];
 }

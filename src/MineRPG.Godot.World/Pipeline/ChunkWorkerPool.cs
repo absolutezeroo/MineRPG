@@ -115,10 +115,7 @@ internal sealed class ChunkWorkerPool : IDisposable
     /// </summary>
     /// <param name="chunkX">The player's current chunk X coordinate.</param>
     /// <param name="chunkZ">The player's current chunk Z coordinate.</param>
-    public void UpdatePlayerChunk(int chunkX, int chunkZ)
-    {
-        _generationProcessor.UpdatePlayerChunk(chunkX, chunkZ);
-    }
+    public void UpdatePlayerChunk(int chunkX, int chunkZ) => _generationProcessor.UpdatePlayerChunk(chunkX, chunkZ);
 
     /// <summary>
     /// Enqueues a chunk for generation and signals a worker.

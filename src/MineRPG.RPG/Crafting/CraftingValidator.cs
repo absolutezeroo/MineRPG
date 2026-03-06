@@ -23,10 +23,7 @@ public sealed class CraftingValidator : ICraftingValidator
     }
 
     /// <inheritdoc />
-    public bool CanCraft(RecipeDefinition recipe, IInventory inventory, int playerLevel)
-    {
-        return GetFailureReason(recipe, inventory, playerLevel) == null;
-    }
+    public bool CanCraft(RecipeDefinition recipe, IInventory inventory, int playerLevel) => GetFailureReason(recipe, inventory, playerLevel) == null;
 
     /// <inheritdoc />
     public string? GetFailureReason(RecipeDefinition recipe, IInventory inventory, int playerLevel)

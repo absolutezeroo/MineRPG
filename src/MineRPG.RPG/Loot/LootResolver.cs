@@ -19,10 +19,8 @@ public sealed class LootResolver : ILootResolver
     }
 
     /// <inheritdoc />
-    public IReadOnlyList<ItemInstance> Resolve(string lootTableRef, Random rng)
-    {
-        return [];
-    }
+    public IReadOnlyList<ItemInstance> Resolve(string lootTableRef, Random rng) =>
+        [];
 
     /// <summary>
     /// Resolves a loot table definition into concrete item drops.

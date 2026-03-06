@@ -300,10 +300,7 @@ public sealed partial class Inventory : IInventory
     /// <summary>
     /// Removes all items from the inventory.
     /// </summary>
-    public void Clear()
-    {
-        ClearAndReturn();
-    }
+    public void Clear() => ClearAndReturn();
 
     private void ValidateIndex(int index)
     {
@@ -314,15 +311,9 @@ public sealed partial class Inventory : IInventory
         }
     }
 
-    private void RaiseSlotChanged(int index, ItemInstance? oldItem, ItemInstance? newItem)
-    {
-        SlotChanged?.Invoke(this, new SlotChangedEventArgs(index, oldItem, newItem));
-    }
+    private void RaiseSlotChanged(int index, ItemInstance? oldItem, ItemInstance? newItem) => SlotChanged?.Invoke(this, new SlotChangedEventArgs(index, oldItem, newItem));
 
-    private void RaiseInventoryChanged()
-    {
-        InventoryChanged?.Invoke(this, EventArgs.Empty);
-    }
+    private void RaiseInventoryChanged() => InventoryChanged?.Invoke(this, EventArgs.Empty);
 
     private static ItemInstance? CloneForEvent(ItemInstance? item)
     {

@@ -116,34 +116,36 @@ internal sealed class GenerationWorkProcessor
             entry.VisibilityMatrix = VisibilityMatrixBuilder.Build(entry.Data, entry.SubChunks);
             entry.SetState(ChunkState.Meshing);
 
-            // Determine LOD level based on distance
+            // Determine LOD level based on distance (read flag once to avoid tearing)
+            bool lodEnabled = _optimizationFlags is null || _optimizationFlags.LodEnabled;
             ChunkData meshSourceData = entry.Data;
+            int lodFactor = 1;
 
-            if (_optimizationFlags is null || _optimizationFlags.LodEnabled)
+            if (lodEnabled)
             {
                 ChunkCoord playerChunk = new(_playerChunkX, _playerChunkZ);
                 int distance = entry.Coord.ChebyshevDistance(playerChunk);
                 entry.CurrentLod = LodPolicy.GetInitialLod(distance);
-            }
 
-            // Downsample if LOD > 0
-            if (entry.CurrentLod != LodLevel.Lod0 && (_optimizationFlags is null || _optimizationFlags.LodEnabled))
-            {
-                int factor = LodPolicy.GetDownsampleFactor(entry.CurrentLod);
-                ushort[] downsampledBuffer = ArrayPool<ushort>.Shared.Rent(ChunkDownsampler.GetOutputSize(factor));
-
-                try
+                if (entry.CurrentLod != LodLevel.Lod0)
                 {
-                    ChunkDownsampler.Downsample(
-                        entry.Data, factor, downsampledBuffer,
-                        out int outSizeX, out int outSizeY, out int outSizeZ);
+                    lodFactor = LodPolicy.GetDownsampleFactor(entry.CurrentLod);
+                    ushort[] downsampledBuffer = ArrayPool<ushort>.Shared.Rent(
+                        ChunkDownsampler.GetOutputSize(lodFactor));
 
-                    meshSourceData = ChunkDownsampler.Expand(
-                        entry.Coord, downsampledBuffer, outSizeX, outSizeY, outSizeZ, factor);
-                }
-                finally
-                {
-                    ArrayPool<ushort>.Shared.Return(downsampledBuffer);
+                    try
+                    {
+                        ChunkDownsampler.Downsample(
+                            entry.Data, lodFactor, downsampledBuffer,
+                            out int outSizeX, out int outSizeY, out int outSizeZ);
+
+                        meshSourceData = ChunkDownsampler.Expand(
+                            entry.Coord, downsampledBuffer, outSizeX, outSizeY, outSizeZ, lodFactor);
+                    }
+                    finally
+                    {
+                        ArrayPool<ushort>.Shared.Return(downsampledBuffer);
+                    }
                 }
             }
 
@@ -161,8 +163,7 @@ internal sealed class GenerationWorkProcessor
             // Scale vertex positions for LOD meshes
             if (entry.CurrentLod != LodLevel.Lod0)
             {
-                int factor = LodPolicy.GetDownsampleFactor(entry.CurrentLod);
-                mesh = MeshScaler.ScaleResult(mesh, factor);
+                mesh = MeshScaler.ScaleResult(mesh, lodFactor);
             }
 
             // Pack vertices for memory-efficient transport
