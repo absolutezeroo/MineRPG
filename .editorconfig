@@ -300,8 +300,8 @@ dotnet_naming_symbols.local_functions.applicable_accessibilities = *
 # Analyzer Severity Overrides
 # =============================================================================
 
-# IDE0005: Remove unnecessary using
-dotnet_diagnostic.IDE0005.severity = warning
+# IDE0005: Remove unnecessary using (suggestion to avoid blocking build; requires GenerateDocumentationFile)
+dotnet_diagnostic.IDE0005.severity = suggestion
 
 # IDE0011: Add braces (enforced by csharp_prefer_braces = true:error above)
 dotnet_diagnostic.IDE0011.severity = error

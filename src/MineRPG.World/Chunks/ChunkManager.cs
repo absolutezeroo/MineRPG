@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 using MineRPG.Core.Events;
 using MineRPG.Core.Logging;
@@ -148,6 +149,10 @@ public sealed class ChunkManager : IChunkManager
     /// <param name="center">The center chunk coordinate.</param>
     /// <param name="renderDistance">The render distance in chunks.</param>
     /// <param name="result">A pre-allocated list to fill (will be cleared first).</param>
+    [SuppressMessage("Microsoft.Design", "CA1002:DoNotExposeGenericLists",
+        Justification = "Hot-path method uses pre-allocated List for zero-alloc pattern.")]
+    [SuppressMessage("Microsoft.Performance", "CA1822:MarkMembersAsStatic",
+        Justification = "Instance method for consistency with IChunkManager interface.")]
     public void GetCoordsInRange(ChunkCoord center, int renderDistance, List<ChunkCoord> result)
     {
         result.Clear();
