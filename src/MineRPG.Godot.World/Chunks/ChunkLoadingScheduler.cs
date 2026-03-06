@@ -188,10 +188,54 @@ public sealed partial class ChunkLoadingScheduler : Node
             UnloadChunk(coord);
         }
 
+        SortLoadBufferByPriority(center);
+
         foreach (ChunkEntry entry in _loadBuffer)
         {
             _workerPool.EnqueueGeneration(entry);
         }
+    }
+
+    private void SortLoadBufferByPriority(ChunkCoord center)
+    {
+        if (_loadBuffer.Count <= 1)
+        {
+            return;
+        }
+
+        OptimizationFlags? flags = null;
+
+        if (ServiceLocator.Instance.TryGet<OptimizationFlags>(out OptimizationFlags? f))
+        {
+            flags = f;
+        }
+
+        if (flags is null || !flags.PriorityLoadingEnabled)
+        {
+            return;
+        }
+
+        float forwardX = 0f;
+        float forwardZ = -1f;
+
+        if (ServiceLocator.Instance.TryGet<PlayerData>(out PlayerData? playerData)
+            && playerData is not null)
+        {
+            forwardX = MathF.Sin(playerData.CameraYaw);
+            forwardZ = -MathF.Cos(playerData.CameraYaw);
+        }
+
+        float capturedForwardX = forwardX;
+        float capturedForwardZ = forwardZ;
+
+        _loadBuffer.Sort((a, b) =>
+        {
+            int priorityA = ChunkPriorityCalculator.ComputePriority(
+                a.Coord, center, capturedForwardX, capturedForwardZ);
+            int priorityB = ChunkPriorityCalculator.ComputePriority(
+                b.Coord, center, capturedForwardX, capturedForwardZ);
+            return priorityA.CompareTo(priorityB);
+        });
     }
 
     private void UnloadChunk(ChunkCoord coord)

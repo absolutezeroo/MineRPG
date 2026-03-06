@@ -21,13 +21,13 @@ public sealed class MiningProgressTracker
     public VoxelPosition3D TargetBlock { get; private set; }
 
     /// <summary>Raised when a block is fully broken.</summary>
-    public event Action<VoxelPosition3D>? BlockBroken;
+    public event EventHandler<BlockBrokenEventArgs>? BlockBroken;
 
     /// <summary>Raised when mining is cancelled before completion.</summary>
-    public event Action? MiningCancelled;
+    public event EventHandler? MiningCancelled;
 
     /// <summary>Raised when mining progress changes.</summary>
-    public event Action<float>? ProgressChanged;
+    public event EventHandler<MiningProgressChangedEventArgs>? ProgressChanged;
 
     /// <summary>
     /// Starts mining a block at the given position.
@@ -47,7 +47,7 @@ public sealed class MiningProgressTracker
         _totalBreakTime = breakTime;
         _elapsedTime = 0f;
         Progress = 0f;
-        ProgressChanged?.Invoke(0f);
+        ProgressChanged?.Invoke(this, new MiningProgressChangedEventArgs(0f));
     }
 
     /// <summary>
@@ -63,14 +63,14 @@ public sealed class MiningProgressTracker
 
         _elapsedTime += deltaTime;
         Progress = Math.Clamp(_elapsedTime / _totalBreakTime, 0f, 1f);
-        ProgressChanged?.Invoke(Progress);
+        ProgressChanged?.Invoke(this, new MiningProgressChangedEventArgs(Progress));
 
         if (IsComplete())
         {
             VoxelPosition3D brokenBlock = TargetBlock;
             IsMining = false;
             Progress = 0f;
-            BlockBroken?.Invoke(brokenBlock);
+            BlockBroken?.Invoke(this, new BlockBrokenEventArgs(brokenBlock));
         }
     }
 
@@ -87,7 +87,7 @@ public sealed class MiningProgressTracker
         IsMining = false;
         Progress = 0f;
         _elapsedTime = 0f;
-        MiningCancelled?.Invoke();
+        MiningCancelled?.Invoke(this, EventArgs.Empty);
     }
 
     /// <summary>

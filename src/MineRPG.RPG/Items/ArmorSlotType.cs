@@ -3,7 +3,7 @@ namespace MineRPG.RPG.Items;
 /// <summary>
 /// Equipment slots for armor pieces.
 /// </summary>
-public enum ArmorSlotType : byte
+public enum ArmorSlotType
 {
     /// <summary>Head armor slot.</summary>
     Helmet,

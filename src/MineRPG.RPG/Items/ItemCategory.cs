@@ -3,7 +3,7 @@ namespace MineRPG.RPG.Items;
 /// <summary>
 /// Categories of items that determine their primary behavior and UI grouping.
 /// </summary>
-public enum ItemCategory : byte
+public enum ItemCategory
 {
     /// <summary>Placeable block items.</summary>
     Block,

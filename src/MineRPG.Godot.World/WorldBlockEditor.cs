@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Threading;
 
+using MineRPG.Core.Diagnostics;
+using MineRPG.Core.DI;
 using MineRPG.Core.Events;
 using MineRPG.Core.Logging;
 using MineRPG.Core.Math;
@@ -104,7 +106,7 @@ internal sealed class WorldBlockEditor
             NewBlockId = 0,
         });
 
-        ScheduleOrSyncRemesh(coord);
+        ScheduleOrSyncRemesh(coord, position.Y);
         _logger.Debug("Block broken at {0}", position);
     }
 
@@ -167,11 +169,11 @@ internal sealed class WorldBlockEditor
             NewBlockId = blockId,
         });
 
-        ScheduleOrSyncRemesh(coord);
+        ScheduleOrSyncRemesh(coord, position.Y);
         _logger.Debug("Block placed at {0}, blockId={1}", position, blockId);
     }
 
-    private void ScheduleOrSyncRemesh(ChunkCoord coord)
+    private void ScheduleOrSyncRemesh(ChunkCoord coord, int worldY)
     {
         if (_scheduler is not null)
         {
@@ -187,7 +189,32 @@ internal sealed class WorldBlockEditor
         ChunkData?[] neighbors = _chunkManager.GetNeighborData(coord);
         ChunkMeshResult mesh = _meshBuilder.Build(entry.Data, neighbors, CancellationToken.None);
 
-        if (_chunkNodes.TryGetValue(coord, out ChunkNode? chunkNode))
+        if (!_chunkNodes.TryGetValue(coord, out ChunkNode? chunkNode))
+        {
+            entry.SetState(ChunkState.Ready);
+            return;
+        }
+
+        bool useIncremental = false;
+
+        if (ServiceLocator.Instance.TryGet<OptimizationFlags>(out OptimizationFlags? flags)
+            && flags is not null)
+        {
+            useIncremental = flags.IncrementalMeshingEnabled;
+        }
+
+        if (useIncremental)
+        {
+            int localY = worldY % ChunkData.SizeY;
+            List<int> affectedSubChunks = new();
+            IncrementalMeshUpdater.GetAffectedSubChunks(localY, affectedSubChunks);
+
+            foreach (int subChunkIndex in affectedSubChunks)
+            {
+                chunkNode.ApplySubChunkMesh(subChunkIndex, mesh.SubChunks[subChunkIndex]);
+            }
+        }
+        else
         {
             chunkNode.ApplyMesh(mesh);
         }

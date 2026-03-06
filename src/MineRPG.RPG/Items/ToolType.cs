@@ -3,7 +3,7 @@ namespace MineRPG.RPG.Items;
 /// <summary>
 /// Types of tools that determine which blocks they mine efficiently.
 /// </summary>
-public enum ToolType : byte
+public enum ToolType
 {
     /// <summary>Mines stone, ores, and similar hard blocks.</summary>
     Pickaxe,

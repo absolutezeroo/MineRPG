@@ -1,5 +1,6 @@
 using MineRPG.Core.Math;
 using MineRPG.World.Meshing;
+using MineRPG.World.Spatial;
 
 namespace MineRPG.World.Chunks;
 
@@ -45,6 +46,13 @@ public sealed class ChunkEntry
     /// Computed after generation. Used for occlusion culling.
     /// </summary>
     public int HighestBlockY { get; set; } = -1;
+
+    /// <summary>
+    /// Face-to-face visibility matrix for BFS occlusion culling.
+    /// Describes which faces of this chunk can see which other faces.
+    /// Computed after generation/remesh on background threads.
+    /// </summary>
+    public ChunkVisibilityMatrix? VisibilityMatrix { get; set; }
 
     /// <summary>
     /// Creates a new chunk entry for the given coordinate.

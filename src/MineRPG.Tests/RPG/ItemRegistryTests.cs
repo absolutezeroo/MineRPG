@@ -8,6 +8,10 @@ namespace MineRPG.Tests.RPG;
 
 public sealed class ItemRegistryTests
 {
+    private static readonly string[] FuelCraftingTags = ["fuel", "crafting"];
+    private static readonly string[] FuelWoodTags = ["fuel", "wood"];
+    private static readonly string[] BuildingTags = ["building"];
+
     [Fact]
     public void Register_AddsItem()
     {
@@ -96,19 +100,19 @@ public sealed class ItemRegistryTests
         registry.Register(new ItemDefinition
         {
             Id = "coal",
-            Tags = new[] { "fuel", "crafting" },
+            Tags = FuelCraftingTags,
         });
 
         registry.Register(new ItemDefinition
         {
             Id = "stick",
-            Tags = new[] { "fuel", "wood" },
+            Tags = FuelWoodTags,
         });
 
         registry.Register(new ItemDefinition
         {
             Id = "stone",
-            Tags = new[] { "building" },
+            Tags = BuildingTags,
         });
 
         IReadOnlyList<ItemDefinition> fuelItems = registry.GetByTag("fuel");

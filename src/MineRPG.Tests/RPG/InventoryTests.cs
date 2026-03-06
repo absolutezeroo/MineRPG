@@ -286,7 +286,7 @@ public sealed class InventoryTests
         Inventory inventory = new Inventory(3, registry);
 
         int eventCount = 0;
-        inventory.SlotChanged += (index, oldItem, newItem) => eventCount++;
+        inventory.SlotChanged += (object? sender, SlotChangedEventArgs e) => eventCount++;
 
         inventory.TryAdd(new ItemInstance("stone", 5));
 
@@ -301,7 +301,7 @@ public sealed class InventoryTests
         Inventory inventory = new Inventory(3, registry);
 
         int eventCount = 0;
-        inventory.InventoryChanged += () => eventCount++;
+        inventory.InventoryChanged += (object? sender, EventArgs e) => eventCount++;
 
         inventory.TryAdd(new ItemInstance("stone", 5));
 

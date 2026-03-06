@@ -140,6 +140,47 @@ public sealed partial class ChunkNode : Node3D
     }
 
     /// <summary>
+    /// Applies mesh data to a single sub-chunk without touching other sub-chunks.
+    /// Used for incremental updates after block edits.
+    /// </summary>
+    /// <param name="subChunkIndex">The sub-chunk index to update.</param>
+    /// <param name="subChunkMesh">The mesh data for the sub-chunk.</param>
+    public void ApplySubChunkMesh(int subChunkIndex, SubChunkMesh subChunkMesh)
+    {
+        if (subChunkMesh.IsEmpty)
+        {
+            ClearSubChunkMesh(subChunkIndex);
+            return;
+        }
+
+        ArrayMesh? mesh = ChunkMeshApplier.Build(subChunkMesh);
+
+        if (mesh is null)
+        {
+            ClearSubChunkMesh(subChunkIndex);
+            return;
+        }
+
+        MeshInstance3D instance = GetOrCreateSubChunkMeshInstance(subChunkIndex);
+        instance.Mesh = mesh;
+
+        int surfaceIndex = 0;
+
+        if (!subChunkMesh.Opaque.IsEmpty)
+        {
+            instance.SetSurfaceOverrideMaterial(
+                surfaceIndex, _sharedMaterial ?? CreateFallbackMaterial());
+            surfaceIndex++;
+        }
+
+        if (!subChunkMesh.Liquid.IsEmpty)
+        {
+            instance.SetSurfaceOverrideMaterial(
+                surfaceIndex, _sharedWaterMaterial ?? CreateFallbackMaterial());
+        }
+    }
+
+    /// <summary>
     /// Clears all sub-chunk meshes and the collision shape, resetting this node for pooling.
     /// </summary>
     public void ClearMesh()

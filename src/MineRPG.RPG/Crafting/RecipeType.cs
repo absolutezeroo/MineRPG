@@ -3,7 +3,7 @@ namespace MineRPG.RPG.Crafting;
 /// <summary>
 /// Types of crafting recipes determining how ingredients are matched.
 /// </summary>
-public enum RecipeType : byte
+public enum RecipeType
 {
     /// <summary>Requires exact placement in a crafting grid pattern.</summary>
     Shaped,

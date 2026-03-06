@@ -65,10 +65,10 @@ public sealed class Inventory : IInventory
     public IReadOnlyList<InventorySlot> Slots => _slots;
 
     /// <summary>Raised when a slot's contents change.</summary>
-    public event Action<int, ItemInstance?, ItemInstance?>? SlotChanged;
+    public event EventHandler<SlotChangedEventArgs>? SlotChanged;
 
     /// <summary>Raised when any change occurs in the inventory.</summary>
-    public event Action? InventoryChanged;
+    public event EventHandler? InventoryChanged;
 
     /// <inheritdoc />
     public ItemInstance? GetSlot(int index)
@@ -410,12 +410,12 @@ public sealed class Inventory : IInventory
 
     private void RaiseSlotChanged(int index, ItemInstance? oldItem, ItemInstance? newItem)
     {
-        SlotChanged?.Invoke(index, oldItem, newItem);
+        SlotChanged?.Invoke(this, new SlotChangedEventArgs(index, oldItem, newItem));
     }
 
     private void RaiseInventoryChanged()
     {
-        InventoryChanged?.Invoke();
+        InventoryChanged?.Invoke(this, EventArgs.Empty);
     }
 
     private static ItemInstance? CloneForEvent(ItemInstance? item)

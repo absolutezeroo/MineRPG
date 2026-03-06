@@ -1,6 +1,8 @@
 using MineRPG.RPG.Inventory;
 using MineRPG.RPG.Items;
 
+using InventoryContainer = MineRPG.RPG.Inventory.Inventory;
+
 namespace MineRPG.RPG.Equipment;
 
 /// <summary>
@@ -9,7 +11,7 @@ namespace MineRPG.RPG.Equipment;
 /// </summary>
 public sealed class EquipmentManager
 {
-    private readonly Inventory _armorInventory;
+    private readonly InventoryContainer _armorInventory;
     private readonly ItemRegistry _itemRegistry;
     private readonly List<SetBonusDefinition> _setDefinitions;
     private readonly List<string> _activeResistances = new();
@@ -28,7 +30,7 @@ public sealed class EquipmentManager
     /// <param name="itemRegistry">The item registry for definition lookups.</param>
     /// <param name="setDefinitions">All known equipment set definitions.</param>
     public EquipmentManager(
-        Inventory armorInventory,
+        InventoryContainer armorInventory,
         ItemRegistry itemRegistry,
         IReadOnlyList<SetBonusDefinition> setDefinitions)
     {
@@ -111,10 +113,10 @@ public sealed class EquipmentManager
     }
 
     /// <summary>Raised when equipment changes in any armor slot.</summary>
-    public event Action<ArmorSlotType, ItemInstance?, ItemInstance?>? EquipmentChanged;
+    public event EventHandler<EquipmentChangedEventArgs>? EquipmentChanged;
 
     /// <summary>Raised when equipment stats are recalculated.</summary>
-    public event Action? StatsRecalculated;
+    public event EventHandler? StatsRecalculated;
 
     /// <summary>
     /// Equips an armor item in the appropriate slot.
@@ -130,7 +132,7 @@ public sealed class EquipmentManager
         _armorInventory.Slots[slotIndex].SetItem(armor);
         _isDirty = true;
 
-        EquipmentChanged?.Invoke(slot, previous, armor);
+        EquipmentChanged?.Invoke(this, new EquipmentChangedEventArgs(slot, previous, armor));
 
         return previous;
     }
@@ -148,7 +150,7 @@ public sealed class EquipmentManager
         _armorInventory.Slots[slotIndex].SetItem(null);
         _isDirty = true;
 
-        EquipmentChanged?.Invoke(slot, previous, null);
+        EquipmentChanged?.Invoke(this, new EquipmentChangedEventArgs(slot, previous, null));
 
         return previous;
     }
@@ -159,7 +161,7 @@ public sealed class EquipmentManager
     /// <param name="slot">The target armor slot.</param>
     /// <param name="item">The item definition to check.</param>
     /// <returns>True if the item can be equipped in the slot.</returns>
-    public bool CanEquip(ArmorSlotType slot, ItemDefinition item)
+    public static bool CanEquip(ArmorSlotType slot, ItemDefinition item)
     {
         if (item == null || item.Armor == null)
         {
@@ -169,7 +171,7 @@ public sealed class EquipmentManager
         return item.Armor.Slot == slot;
     }
 
-    private void OnSlotChanged(int index, ItemInstance? oldItem, ItemInstance? newItem)
+    private void OnSlotChanged(object? sender, SlotChangedEventArgs e)
     {
         _isDirty = true;
     }
@@ -228,7 +230,7 @@ public sealed class EquipmentManager
         }
 
         EvaluateSetBonuses(equippedItemIds);
-        StatsRecalculated?.Invoke();
+        StatsRecalculated?.Invoke(this, EventArgs.Empty);
     }
 
     private void EvaluateSetBonuses(List<string> equippedItemIds)

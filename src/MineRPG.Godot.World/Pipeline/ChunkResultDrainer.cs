@@ -2,12 +2,14 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 
 using MineRPG.Core.DataLoading;
+using MineRPG.Core.DI;
 using MineRPG.Core.Events;
 using MineRPG.Core.Events.Definitions;
 using MineRPG.Core.Logging;
 using MineRPG.Core.Math;
 using MineRPG.World.Chunks;
 using MineRPG.World.Events;
+using MineRPG.World.Spatial;
 
 using MineRPG.Godot.World.Chunks;
 
@@ -101,6 +103,13 @@ internal sealed class ChunkResultDrainer
         chunkNode.ApplyMesh(entry.PendingMesh!);
         chunkNode.SubChunkMetadata = entry.SubChunks;
         entry.PendingMesh = null;
+
+        if (entry.VisibilityMatrix.HasValue
+            && ServiceLocator.Instance.TryGet<OcclusionCuller>(out OcclusionCuller? culler)
+            && culler is not null)
+        {
+            culler.SetMatrix(entry.Coord, entry.VisibilityMatrix.Value);
+        }
 
         _eventBus.Publish(new ChunkMeshedEvent { Coord = entry.Coord });
 

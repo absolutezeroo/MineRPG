@@ -9,6 +9,7 @@ using MineRPG.Core.Logging;
 using MineRPG.Core.Math;
 using MineRPG.World.Chunks;
 using MineRPG.World.Meshing;
+using MineRPG.World.Spatial;
 
 namespace MineRPG.Godot.World.Pipeline;
 
@@ -67,6 +68,7 @@ internal sealed class RemeshWorkProcessor
             snapshotData.LoadFromSpan(buffer);
 
             work.Entry.SubChunks = snapshotData.ComputeSubChunkInfo();
+            work.Entry.VisibilityMatrix = VisibilityMatrixBuilder.Build(snapshotData, work.Entry.SubChunks);
 
             ChunkData?[] neighbors = _chunkManager.GetNeighborData(work.Coord);
 
