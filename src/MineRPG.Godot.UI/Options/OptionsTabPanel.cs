@@ -10,7 +10,7 @@ namespace MineRPG.Godot.UI.Options;
 /// <summary>
 /// Abstract base for options tab content panels.
 /// Subclasses implement <see cref="BuildContent"/> to populate their rows.
-/// Provides factory helpers that match the existing UI palette conventions.
+/// Provides factory helpers that use <see cref="GameTheme"/> for consistent styling.
 /// </summary>
 public abstract partial class OptionsTabPanel : Control
 {
@@ -25,21 +25,6 @@ public abstract partial class OptionsTabPanel : Control
 
     /// <summary>Default height for control rows.</summary>
     protected const float RowHeight = 28f;
-
-    /// <summary>Font size for labels in option rows.</summary>
-    protected const int LabelFontSize = 16;
-
-    /// <summary>Font size for section header labels.</summary>
-    protected const int SectionHeaderFontSize = 14;
-
-    /// <summary>Standard text color for labels.</summary>
-    protected static readonly Color LabelColor = new(0.85f, 0.85f, 0.85f, 1f);
-
-    /// <summary>Green accent color for section headers.</summary>
-    protected static readonly Color SectionHeaderColor = new(0.6f, 0.75f, 0.6f, 1f);
-
-    /// <summary>Yellow accent color for elements in listening/active state.</summary>
-    protected static readonly Color ListeningColor = new(1f, 0.85f, 0.3f, 1f);
 
     /// <summary>The options provider resolved from <see cref="ServiceLocator"/>.</summary>
     protected IOptionsProvider Options { get; private set; } = null!;
@@ -71,7 +56,7 @@ public abstract partial class OptionsTabPanel : Control
     protected abstract void BuildContent(VBoxContainer layout);
 
     /// <summary>
-    /// Creates a section header label with the green accent color.
+    /// Creates a section header label with the accent green color from <see cref="GameTheme"/>.
     /// </summary>
     /// <param name="text">The section header text.</param>
     /// <returns>A styled label for section headers.</returns>
@@ -79,8 +64,8 @@ public abstract partial class OptionsTabPanel : Control
     {
         Label header = new();
         header.Text = text;
-        header.AddThemeColorOverride("font_color", SectionHeaderColor);
-        header.AddThemeFontSizeOverride("font_size", SectionHeaderFontSize);
+        header.AddThemeColorOverride("font_color", GameTheme.AccentGreen);
+        header.AddThemeFontSizeOverride("font_size", GameTheme.FontSizeSmall);
         return header;
     }
 
@@ -110,8 +95,6 @@ public abstract partial class OptionsTabPanel : Control
         Label label = new();
         label.Text = labelText;
         label.CustomMinimumSize = new Vector2(LabelColumnWidth, 0f);
-        label.AddThemeColorOverride("font_color", LabelColor);
-        label.AddThemeFontSizeOverride("font_size", LabelFontSize);
         row.AddChild(label);
 
         slider = new HSlider();
@@ -125,8 +108,6 @@ public abstract partial class OptionsTabPanel : Control
 
         valueLabel = new Label();
         valueLabel.CustomMinimumSize = new Vector2(ValueLabelWidth, 0f);
-        valueLabel.AddThemeColorOverride("font_color", LabelColor);
-        valueLabel.AddThemeFontSizeOverride("font_size", LabelFontSize);
         row.AddChild(valueLabel);
 
         return row;
@@ -150,8 +131,6 @@ public abstract partial class OptionsTabPanel : Control
         Label label = new();
         label.Text = labelText;
         label.CustomMinimumSize = new Vector2(LabelColumnWidth, 0f);
-        label.AddThemeColorOverride("font_color", LabelColor);
-        label.AddThemeFontSizeOverride("font_size", LabelFontSize);
         row.AddChild(label);
 
         toggle = new CheckButton();
@@ -181,8 +160,6 @@ public abstract partial class OptionsTabPanel : Control
         Label label = new();
         label.Text = labelText;
         label.CustomMinimumSize = new Vector2(LabelColumnWidth, 0f);
-        label.AddThemeColorOverride("font_color", LabelColor);
-        label.AddThemeFontSizeOverride("font_size", LabelFontSize);
         row.AddChild(label);
 
         dropdown = new OptionButton();

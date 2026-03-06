@@ -126,9 +126,9 @@ public static class RegistryValidator
             {
                 string reference = effectiveOn[j];
 
-                if (reference.Length > 0 && reference[0] == '#')
+                if (TagRegistry.IsTagReference(reference))
                 {
-                    string tagId = reference.Substring(1);
+                    string tagId = TagRegistry.StripTagPrefix(reference);
 
                     if (!tagRegistry.TryGet(tagId, out _))
                     {

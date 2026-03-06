@@ -25,7 +25,8 @@ namespace MineRPG.Game.Bootstrap.States;
 /// </summary>
 public sealed partial class GameStateOrchestrator : Node, IGameStateController
 {
-    private const string MainMenuScenePath = "res://Scenes/MainMenu.tscn";
+    private const string MainMenuScenePath = "res://Scenes/UI/MainMenu.tscn";
+    private const string LoadingScreenScenePath = "res://Scenes/UI/LoadingScreen.tscn";
     private const string GameplayScenePath = "res://Scenes/Main.tscn";
 
     private StateMachine _stateMachine = null!;
@@ -205,10 +206,11 @@ public sealed partial class GameStateOrchestrator : Node, IGameStateController
 
     private void AddLoadingScreen()
     {
-        LoadingScreenNode loadingScreen = new();
+        PackedScene loadingScene = GD.Load<PackedScene>(LoadingScreenScenePath);
+        Node loadingScreen = loadingScene.Instantiate();
         loadingScreen.Name = "LoadingScreen";
         GetTree().Root.AddChild(loadingScreen);
-        _logger.Info("GameStateOrchestrator: LoadingScreenNode added to scene tree.");
+        _logger.Info("GameStateOrchestrator: LoadingScreen scene added to scene tree.");
     }
 
     private void SubscribeEvents()

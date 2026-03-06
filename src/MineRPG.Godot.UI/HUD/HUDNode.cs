@@ -7,19 +7,19 @@ using MineRPG.Core.Logging;
 using MineRPG.Godot.UI.Debug;
 #endif
 
-using MineRPG.Godot.UI.Screens;
-
 namespace MineRPG.Godot.UI.HUD;
 
 /// <summary>
 /// CanvasLayer container for all in-game HUD elements.
-/// Creates and owns CrosshairNode, HotbarNode, PauseMenuNode, and
-/// (in DEBUG builds) DebugManager for all debug overlays.
-/// The Camera3D reference is wired via [Export] with a fallback
-/// resolution in CallDeferred (same pattern as PlayerNode).
+/// Creates and owns CrosshairNode programmatically, and instantiates
+/// Hotbar.tscn and PauseMenu.tscn from packed scenes.
+/// In DEBUG builds, also creates the DebugManager for all debug overlays.
 /// </summary>
 public sealed partial class HUDNode : CanvasLayer
 {
+    private const string HotbarScenePath = "res://Scenes/UI/HUD/Hotbar.tscn";
+    private const string PauseMenuScenePath = "res://Scenes/UI/PauseMenu.tscn";
+
     [Export] private Camera3D _camera = null!;
 
 #if DEBUG
@@ -45,11 +45,13 @@ public sealed partial class HUDNode : CanvasLayer
         AddChild(_debugManager);
 #endif
 
-        HotbarNode hotbar = new();
+        PackedScene hotbarScene = GD.Load<PackedScene>(HotbarScenePath);
+        Node hotbar = hotbarScene.Instantiate();
         hotbar.Name = "Hotbar";
         AddChild(hotbar);
 
-        PauseMenuNode pauseMenu = new();
+        PackedScene pauseMenuScene = GD.Load<PackedScene>(PauseMenuScenePath);
+        Node pauseMenu = pauseMenuScene.Instantiate();
         pauseMenu.Name = "PauseMenu";
         AddChild(pauseMenu);
 

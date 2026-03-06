@@ -32,14 +32,6 @@ public sealed partial class ControlsTabPanel : OptionsTabPanel
         new("fly_speed_down", "Fly Speed Down"),
     ];
 
-    private const int RebindButtonFontSize = 14;
-    private const float RebindButtonWidth = 160f;
-    private const float RebindButtonHeight = 28f;
-
-    private static readonly Color RebindButtonNormal = new(0.28f, 0.24f, 0.20f, 1f);
-    private static readonly Color RebindButtonListening = new(0.45f, 0.38f, 0.10f, 1f);
-    private static readonly Color RebindButtonBorder = new(0.4f, 0.35f, 0.28f, 1f);
-
     private readonly Button[] _rebindButtons = new Button[RebindableActions.Length];
 
     private string? _listeningActionName;
@@ -61,14 +53,11 @@ public sealed partial class ControlsTabPanel : OptionsTabPanel
             Label actionLabel = new();
             actionLabel.Text = rowData.DisplayLabel;
             actionLabel.CustomMinimumSize = new Vector2(LabelColumnWidth, 0f);
-            actionLabel.AddThemeColorOverride("font_color", LabelColor);
-            actionLabel.AddThemeFontSizeOverride("font_size", LabelFontSize);
             row.AddChild(actionLabel);
 
             Button rebindButton = new();
             rebindButton.Text = GetCurrentBindingLabel(rowData.ActionName);
-            rebindButton.CustomMinimumSize = new Vector2(RebindButtonWidth, RebindButtonHeight);
-            rebindButton.AddThemeFontSizeOverride("font_size", RebindButtonFontSize);
+            rebindButton.CustomMinimumSize = new Vector2(160f, 28f);
             ApplyRebindButtonStyle(rebindButton, isListening: false);
             rebindButton.Pressed += () => OnRebindButtonPressed(capturedIndex, rowData.ActionName);
             row.AddChild(rebindButton);
@@ -82,7 +71,6 @@ public sealed partial class ControlsTabPanel : OptionsTabPanel
         Button resetButton = new();
         resetButton.Text = "Reset to Defaults";
         resetButton.CustomMinimumSize = new Vector2(180f, 36f);
-        resetButton.AddThemeFontSizeOverride("font_size", LabelFontSize);
         resetButton.SizeFlagsHorizontal = SizeFlags.ShrinkCenter;
         resetButton.Pressed += OnResetToDefaults;
         layout.AddChild(resetButton);
@@ -160,7 +148,8 @@ public sealed partial class ControlsTabPanel : OptionsTabPanel
         // Persist the new binding
         SaveKeybinds();
 
-        Logger.Info("ControlsTabPanel: Rebound '{0}' to {1}.", actionName, inputEvent.AsText());
+        Logger.Info(
+            "ControlsTabPanel: Rebound '{0}' to {1}.", actionName, inputEvent.AsText());
 
         _listeningActionName = null;
         _listeningButtonIndex = -1;
@@ -171,7 +160,8 @@ public sealed partial class ControlsTabPanel : OptionsTabPanel
         if (_listeningButtonIndex >= 0 && _listeningButtonIndex < _rebindButtons.Length)
         {
             Button button = _rebindButtons[_listeningButtonIndex];
-            button.Text = GetCurrentBindingLabel(RebindableActions[_listeningButtonIndex].ActionName);
+            button.Text = GetCurrentBindingLabel(
+                RebindableActions[_listeningButtonIndex].ActionName);
             ApplyRebindButtonStyle(button, isListening: false);
         }
 
@@ -199,7 +189,8 @@ public sealed partial class ControlsTabPanel : OptionsTabPanel
         }
 
         // Clear keybind overrides from settings
-        Options.UpdateKeybindsAndSave(new System.Collections.Generic.Dictionary<string, KeybindData>());
+        Options.UpdateKeybindsAndSave(
+            new System.Collections.Generic.Dictionary<string, KeybindData>());
 
         Logger.Info("ControlsTabPanel: Input bindings reset to project defaults.");
     }
@@ -218,17 +209,13 @@ public sealed partial class ControlsTabPanel : OptionsTabPanel
 
     private static void ApplyRebindButtonStyle(Button button, bool isListening)
     {
-        StyleBoxFlat style = new();
-        style.BgColor = isListening ? RebindButtonListening : RebindButtonNormal;
-        style.SetBorderWidthAll(1);
-        style.BorderColor = RebindButtonBorder;
-        style.SetContentMarginAll(4);
+        StyleBoxFlat style = GameTheme.CreateRebindButtonStyle(isListening);
         button.AddThemeStyleboxOverride("normal", style);
         button.AddThemeStyleboxOverride("hover", style);
 
         button.AddThemeColorOverride(
             "font_color",
-            isListening ? ListeningColor : LabelColor);
+            isListening ? GameTheme.ListeningText : GameTheme.TextBody);
     }
 
     private void SaveKeybinds()

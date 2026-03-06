@@ -171,9 +171,10 @@ public sealed partial class ChunkLoadingScheduler : Node
 
     /// <summary>
     /// Forces an immediate load of chunks around the given center coordinate.
+    /// Skips directional priority sorting so chunks load uniformly by distance.
     /// </summary>
     /// <param name="center">The center chunk coordinate.</param>
-    public void ForceLoadAround(ChunkCoord center) => UpdateLoadedChunks(center);
+    public void ForceLoadAround(ChunkCoord center) => UpdateLoadedChunks(center, skipPrioritySort: true);
 
     /// <summary>
     /// Sets the render distance in chunks. Clamped to [4, 64].
@@ -192,7 +193,7 @@ public sealed partial class ChunkLoadingScheduler : Node
         UpdateChunkLods(evt.NewChunk);
     }
 
-    private void UpdateLoadedChunks(ChunkCoord center)
+    private void UpdateLoadedChunks(ChunkCoord center, bool skipPrioritySort = false)
     {
         _distanceEvaluator.Evaluate(center, CurrentRenderDistance, _loadBuffer, _unloadBuffer);
 
@@ -201,7 +202,10 @@ public sealed partial class ChunkLoadingScheduler : Node
             UnloadChunk(coord);
         }
 
-        SortLoadBufferByPriority(center);
+        if (!skipPrioritySort)
+        {
+            SortLoadBufferByPriority(center);
+        }
 
         foreach (ChunkEntry entry in _loadBuffer)
         {

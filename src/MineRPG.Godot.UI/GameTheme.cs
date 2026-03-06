@@ -115,9 +115,13 @@ public static class GameTheme
     /// <summary>World list entry hover background.</summary>
     public static readonly Color WorldEntryHover = new(0.35f, 0.30f, 0.25f, 0.90f);
 
-    // -------------------------------------------------------------------------
+    /// <summary>World list entry border color.</summary>
+    public static readonly Color WorldEntryBorder = new(0.30f, 0.25f, 0.20f, 0.80f);
+
+    /// <summary>World list entry hover border color.</summary>
+    public static readonly Color WorldEntryHoverBorder = new(0.50f, 0.45f, 0.35f, 0.90f);
+
     // Font sizes
-    // -------------------------------------------------------------------------
 
     /// <summary>Small sub-label text (14px).</summary>
     public const int FontSizeSmall = 14;
@@ -214,27 +218,14 @@ public static class GameTheme
     // -------------------------------------------------------------------------
 
     /// <summary>
-    /// Creates a StyleBoxFlat for an active tab button state.
+    /// Creates a StyleBoxFlat for a tab button in active or inactive state.
     /// </summary>
-    /// <returns>A configured StyleBoxFlat with active tab colors.</returns>
-    public static StyleBoxFlat CreateTabActiveStyle()
+    /// <param name="isActive">True for the selected/active tab.</param>
+    /// <returns>A configured StyleBoxFlat with the appropriate tab colors.</returns>
+    public static StyleBoxFlat CreateTabStyle(bool isActive)
     {
         StyleBoxFlat style = new();
-        style.BgColor = TabActive;
-        style.SetBorderWidthAll(BorderWidthThin);
-        style.BorderColor = TabBorder;
-        style.SetContentMarginAll(6f);
-        return style;
-    }
-
-    /// <summary>
-    /// Creates a StyleBoxFlat for an inactive tab button state.
-    /// </summary>
-    /// <returns>A configured StyleBoxFlat with inactive tab colors.</returns>
-    public static StyleBoxFlat CreateTabInactiveStyle()
-    {
-        StyleBoxFlat style = new();
-        style.BgColor = TabInactive;
+        style.BgColor = isActive ? TabActive : TabInactive;
         style.SetBorderWidthAll(BorderWidthThin);
         style.BorderColor = TabBorder;
         style.SetContentMarginAll(6f);
@@ -265,7 +256,7 @@ public static class GameTheme
         StyleBoxFlat style = new();
         style.BgColor = WorldEntryNormal;
         style.SetBorderWidthAll(BorderWidthThin);
-        style.BorderColor = new Color(0.30f, 0.25f, 0.20f, 0.80f);
+        style.BorderColor = WorldEntryBorder;
         style.SetContentMarginAll(6f);
         return style;
     }
@@ -279,7 +270,7 @@ public static class GameTheme
         StyleBoxFlat style = new();
         style.BgColor = WorldEntryHover;
         style.SetBorderWidthAll(BorderWidthThin);
-        style.BorderColor = new Color(0.50f, 0.45f, 0.35f, 0.90f);
+        style.BorderColor = WorldEntryHoverBorder;
         style.SetContentMarginAll(6f);
         return style;
     }

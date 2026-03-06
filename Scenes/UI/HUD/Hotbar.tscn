@@ -1,0 +1,171 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/MineRPG.Godot.UI/HUD/HotbarNode.cs" id="1_hotbar"]
+
+[node name="Hotbar" type="Control"]
+layout_mode = 3
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -243.0
+offset_top = -62.0
+offset_right = 243.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+script = ExtResource("1_hotbar")
+
+[node name="SlotContainer" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 4
+
+[node name="Slot0" type="PanelContainer" parent="SlotContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(50, 50)
+
+[node name="Icon0" type="TextureRect" parent="SlotContainer/Slot0"]
+layout_mode = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Count0" type="Label" parent="SlotContainer/Slot0"]
+layout_mode = 2
+size_flags_horizontal = 10
+size_flags_vertical = 8
+visible = false
+
+[node name="Slot1" type="PanelContainer" parent="SlotContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(50, 50)
+
+[node name="Icon1" type="TextureRect" parent="SlotContainer/Slot1"]
+layout_mode = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Count1" type="Label" parent="SlotContainer/Slot1"]
+layout_mode = 2
+size_flags_horizontal = 10
+size_flags_vertical = 8
+visible = false
+
+[node name="Slot2" type="PanelContainer" parent="SlotContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(50, 50)
+
+[node name="Icon2" type="TextureRect" parent="SlotContainer/Slot2"]
+layout_mode = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Count2" type="Label" parent="SlotContainer/Slot2"]
+layout_mode = 2
+size_flags_horizontal = 10
+size_flags_vertical = 8
+visible = false
+
+[node name="Slot3" type="PanelContainer" parent="SlotContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(50, 50)
+
+[node name="Icon3" type="TextureRect" parent="SlotContainer/Slot3"]
+layout_mode = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Count3" type="Label" parent="SlotContainer/Slot3"]
+layout_mode = 2
+size_flags_horizontal = 10
+size_flags_vertical = 8
+visible = false
+
+[node name="Slot4" type="PanelContainer" parent="SlotContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(50, 50)
+
+[node name="Icon4" type="TextureRect" parent="SlotContainer/Slot4"]
+layout_mode = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Count4" type="Label" parent="SlotContainer/Slot4"]
+layout_mode = 2
+size_flags_horizontal = 10
+size_flags_vertical = 8
+visible = false
+
+[node name="Slot5" type="PanelContainer" parent="SlotContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(50, 50)
+
+[node name="Icon5" type="TextureRect" parent="SlotContainer/Slot5"]
+layout_mode = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Count5" type="Label" parent="SlotContainer/Slot5"]
+layout_mode = 2
+size_flags_horizontal = 10
+size_flags_vertical = 8
+visible = false
+
+[node name="Slot6" type="PanelContainer" parent="SlotContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(50, 50)
+
+[node name="Icon6" type="TextureRect" parent="SlotContainer/Slot6"]
+layout_mode = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Count6" type="Label" parent="SlotContainer/Slot6"]
+layout_mode = 2
+size_flags_horizontal = 10
+size_flags_vertical = 8
+visible = false
+
+[node name="Slot7" type="PanelContainer" parent="SlotContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(50, 50)
+
+[node name="Icon7" type="TextureRect" parent="SlotContainer/Slot7"]
+layout_mode = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Count7" type="Label" parent="SlotContainer/Slot7"]
+layout_mode = 2
+size_flags_horizontal = 10
+size_flags_vertical = 8
+visible = false
+
+[node name="Slot8" type="PanelContainer" parent="SlotContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(50, 50)
+
+[node name="Icon8" type="TextureRect" parent="SlotContainer/Slot8"]
+layout_mode = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Count8" type="Label" parent="SlotContainer/Slot8"]
+layout_mode = 2
+size_flags_horizontal = 10
+size_flags_vertical = 8
+visible = false

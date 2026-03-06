@@ -215,10 +215,25 @@ internal sealed class ChunkWorkerPool : IDisposable
             _workSignal.Release();
         }
 
-        foreach (CancellationTokenSource pendingCts in _pendingCts.Values)
+        // Snapshot keys and TryRemove each to take ownership — workers may
+        // concurrently remove+dispose entries from GenerationWorkProcessor.Process().
+        List<ChunkCoord> pendingKeys = new(_pendingCts.Keys);
+
+        for (int i = 0; i < pendingKeys.Count; i++)
         {
-            pendingCts.Cancel();
-            pendingCts.Dispose();
+            if (_pendingCts.TryRemove(pendingKeys[i], out CancellationTokenSource? cts))
+            {
+                try
+                {
+                    cts.Cancel();
+                }
+                catch (ObjectDisposedException)
+                {
+                    // Worker already disposed this CTS — safe to ignore.
+                }
+
+                cts.Dispose();
+            }
         }
 
         Task.WaitAll(_workers, TimeSpan.FromSeconds(10));

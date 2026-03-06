@@ -14,24 +14,12 @@ namespace MineRPG.Godot.UI.Screens;
 
 /// <summary>
 /// Panel that lists existing saved worlds and provides a form to create new ones.
+/// Layout is defined in Scenes/UI/WorldSelection.tscn; this script contains only
+/// signal handlers, world list population, and event bus publishing.
 /// Publishes <see cref="WorldLoadRequestedEvent"/> when a world is selected or created.
 /// </summary>
 public sealed partial class WorldSelectionPanelNode : Control
 {
-    private const float PanelWidth = 500f;
-    private const float ButtonHeight = 42f;
-    private const float FieldHeight = 36f;
-    private const int HeaderFontSize = 28;
-    private const int LabelFontSize = 16;
-    private const int ButtonFontSize = 18;
-
-    private static readonly Color PanelBgColor = new(0.15f, 0.12f, 0.1f, 0.95f);
-    private static readonly Color SectionBgColor = new(0.2f, 0.17f, 0.14f, 0.9f);
-    private static readonly Color WorldEntryColor = new(0.25f, 0.22f, 0.18f, 0.85f);
-    private static readonly Color WorldEntryHoverColor = new(0.35f, 0.3f, 0.25f, 0.9f);
-    private static readonly Color HeaderColor = new(1f, 1f, 1f, 1f);
-    private static readonly Color SubTextColor = new(0.7f, 0.7f, 0.65f, 1f);
-
     /// <summary>
     /// Emitted when the player clicks the Back button.
     /// </summary>
@@ -57,111 +45,27 @@ public sealed partial class WorldSelectionPanelNode : Control
         _savesRoot = Path.Combine(
             Path.GetDirectoryName(dataRoot) ?? dataRoot, "Saves");
 
-        SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
-        MouseFilter = MouseFilterEnum.Ignore;
+        GameTheme.Apply(this);
 
-        // Center panel via CenterContainer
-        CenterContainer panelCenter = new();
-        panelCenter.SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
-        panelCenter.MouseFilter = MouseFilterEnum.Ignore;
-        AddChild(panelCenter);
+        _worldListContainer = GetNode<VBoxContainer>(
+            "CenterContainer/PanelContainer/VBoxContainer/ScrollContainer/WorldList");
+        _nameField = GetNode<LineEdit>(
+            "CenterContainer/PanelContainer/VBoxContainer/CreateSection/CreateVBox/NameRow/NameField");
+        _seedField = GetNode<LineEdit>(
+            "CenterContainer/PanelContainer/VBoxContainer/CreateSection/CreateVBox/SeedRow/SeedField");
 
-        PanelContainer panelContainer = new();
-        panelContainer.CustomMinimumSize = new Vector2(PanelWidth, 500f);
+        Label header = GetNode<Label>(
+            "CenterContainer/PanelContainer/VBoxContainer/Header");
+        header.AddThemeFontSizeOverride("font_size", GameTheme.FontSizeSubTitle);
+        header.AddThemeColorOverride("font_color", GameTheme.TextTitle);
 
-        StyleBoxFlat panelStyle = new();
-        panelStyle.BgColor = PanelBgColor;
-        panelStyle.SetBorderWidthAll(2);
-        panelStyle.BorderColor = new Color(0.3f, 0.25f, 0.2f, 1f);
-        panelStyle.SetContentMarginAll(16);
-        panelContainer.AddThemeStyleboxOverride("panel", panelStyle);
-        panelCenter.AddChild(panelContainer);
-
-        VBoxContainer mainLayout = new();
-        mainLayout.AddThemeConstantOverride("separation", 12);
-        panelContainer.AddChild(mainLayout);
-
-        // Header
-        Label header = new();
-        header.Text = "Select World";
-        header.HorizontalAlignment = HorizontalAlignment.Center;
-        header.AddThemeColorOverride("font_color", HeaderColor);
-        header.AddThemeFontSizeOverride("font_size", HeaderFontSize);
-        mainLayout.AddChild(header);
-
-        // Separator
-        HSeparator separator = new();
-        mainLayout.AddChild(separator);
-
-        // World list section
-        _worldListContainer = new VBoxContainer();
-        _worldListContainer.AddThemeConstantOverride("separation", 4);
-        mainLayout.AddChild(_worldListContainer);
-
-        // Separator
-        HSeparator separator2 = new();
-        mainLayout.AddChild(separator2);
-
-        // Create world section
-        Label createHeader = new();
-        createHeader.Text = "Create New World";
-        createHeader.AddThemeColorOverride("font_color", HeaderColor);
-        createHeader.AddThemeFontSizeOverride("font_size", 20);
-        mainLayout.AddChild(createHeader);
-
-        // World name
-        HBoxContainer nameRow = new();
-        nameRow.AddThemeConstantOverride("separation", 8);
-        mainLayout.AddChild(nameRow);
-
-        Label nameLabel = new();
-        nameLabel.Text = "Name:";
-        nameLabel.CustomMinimumSize = new Vector2(60f, 0f);
-        nameLabel.AddThemeFontSizeOverride("font_size", LabelFontSize);
-        nameRow.AddChild(nameLabel);
-
-        _nameField = new LineEdit();
-        _nameField.PlaceholderText = "New World";
-        _nameField.SizeFlagsHorizontal = SizeFlags.ExpandFill;
-        _nameField.CustomMinimumSize = new Vector2(0f, FieldHeight);
-        nameRow.AddChild(_nameField);
-
-        // Seed
-        HBoxContainer seedRow = new();
-        seedRow.AddThemeConstantOverride("separation", 8);
-        mainLayout.AddChild(seedRow);
-
-        Label seedLabel = new();
-        seedLabel.Text = "Seed:";
-        seedLabel.CustomMinimumSize = new Vector2(60f, 0f);
-        seedLabel.AddThemeFontSizeOverride("font_size", LabelFontSize);
-        seedRow.AddChild(seedLabel);
-
-        _seedField = new LineEdit();
-        _seedField.PlaceholderText = "Leave empty for random";
-        _seedField.SizeFlagsHorizontal = SizeFlags.ExpandFill;
-        _seedField.CustomMinimumSize = new Vector2(0f, FieldHeight);
-        seedRow.AddChild(_seedField);
-
-        // Buttons row
-        HBoxContainer buttonRow = new();
-        buttonRow.AddThemeConstantOverride("separation", 8);
-        buttonRow.Alignment = BoxContainer.AlignmentMode.Center;
-        mainLayout.AddChild(buttonRow);
-
-        Button createButton = new();
-        createButton.Text = "Create & Play";
-        createButton.CustomMinimumSize = new Vector2(160f, ButtonHeight);
-        createButton.AddThemeFontSizeOverride("font_size", ButtonFontSize);
+        Button createButton = GetNode<Button>(
+            "CenterContainer/PanelContainer/VBoxContainer/CreateSection/CreateVBox/CreateButton");
         createButton.Pressed += OnCreatePressed;
-        buttonRow.AddChild(createButton);
 
-        Button backButton = new();
-        backButton.Text = "Back";
-        backButton.CustomMinimumSize = new Vector2(120f, ButtonHeight);
-        backButton.AddThemeFontSizeOverride("font_size", ButtonFontSize);
+        Button backButton = GetNode<Button>(
+            "CenterContainer/PanelContainer/VBoxContainer/BackButton");
         backButton.Pressed += OnBackPressed;
-        buttonRow.AddChild(backButton);
 
         RefreshWorldList();
 
@@ -173,7 +77,6 @@ public sealed partial class WorldSelectionPanelNode : Control
     /// </summary>
     public void RefreshWorldList()
     {
-        // Clear existing entries
         foreach (Node child in _worldListContainer.GetChildren())
         {
             child.QueueFree();
@@ -185,8 +88,7 @@ public sealed partial class WorldSelectionPanelNode : Control
         {
             Label emptyLabel = new();
             emptyLabel.Text = "No saved worlds found.";
-            emptyLabel.AddThemeColorOverride("font_color", SubTextColor);
-            emptyLabel.AddThemeFontSizeOverride("font_size", LabelFontSize);
+            emptyLabel.AddThemeColorOverride("font_color", GameTheme.TextSub);
             emptyLabel.HorizontalAlignment = HorizontalAlignment.Center;
             _worldListContainer.AddChild(emptyLabel);
             return;
@@ -197,21 +99,8 @@ public sealed partial class WorldSelectionPanelNode : Control
             Button worldButton = new();
             worldButton.Text = $"{world.Name}  (seed: {world.Seed})";
             worldButton.CustomMinimumSize = new Vector2(0f, 40f);
-            worldButton.AddThemeFontSizeOverride("font_size", LabelFontSize);
-
-            StyleBoxFlat worldStyle = new();
-            worldStyle.BgColor = WorldEntryColor;
-            worldStyle.SetBorderWidthAll(1);
-            worldStyle.BorderColor = new Color(0.3f, 0.25f, 0.2f, 0.8f);
-            worldStyle.SetContentMarginAll(6);
-            worldButton.AddThemeStyleboxOverride("normal", worldStyle);
-
-            StyleBoxFlat hoverStyle = new();
-            hoverStyle.BgColor = WorldEntryHoverColor;
-            hoverStyle.SetBorderWidthAll(1);
-            hoverStyle.BorderColor = new Color(0.5f, 0.45f, 0.35f, 0.9f);
-            hoverStyle.SetContentMarginAll(6);
-            worldButton.AddThemeStyleboxOverride("hover", hoverStyle);
+            worldButton.AddThemeStyleboxOverride("normal", GameTheme.CreateWorldEntryStyle());
+            worldButton.AddThemeStyleboxOverride("hover", GameTheme.CreateWorldEntryHoverStyle());
 
             WorldMeta capturedWorld = world;
             worldButton.Pressed += () => OnWorldSelected(capturedWorld);
@@ -221,7 +110,8 @@ public sealed partial class WorldSelectionPanelNode : Control
 
     private void OnWorldSelected(WorldMeta world)
     {
-        _logger.Info("WorldSelectionPanel: Selected world '{0}' (seed={1})", world.Name, world.Seed);
+        _logger.Info(
+            "WorldSelectionPanel: Selected world '{0}' (seed={1})", world.Name, world.Seed);
         _eventBus.Publish(new WorldLoadRequestedEvent { Meta = world });
     }
 
@@ -242,7 +132,6 @@ public sealed partial class WorldSelectionPanelNode : Control
         }
         else if (!int.TryParse(_seedField.Text.Trim(), out seed))
         {
-            // Use string hash as seed for non-numeric input
             seed = _seedField.Text.Trim().GetHashCode(StringComparison.Ordinal);
         }
 
@@ -256,7 +145,8 @@ public sealed partial class WorldSelectionPanelNode : Control
         };
 
         _worldRepository.SaveMeta(_savesRoot, meta);
-        _logger.Info("WorldSelectionPanel: Created world '{0}' (seed={1})", worldName, seed);
+        _logger.Info(
+            "WorldSelectionPanel: Created world '{0}' (seed={1})", worldName, seed);
         _eventBus.Publish(new WorldLoadRequestedEvent { Meta = meta });
     }
 

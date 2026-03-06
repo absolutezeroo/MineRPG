@@ -10,7 +10,8 @@ namespace MineRPG.Core.Registry;
 /// </summary>
 public sealed class TagRegistry
 {
-    private const char TagPrefix = '#';
+    /// <summary>The character prefix used to identify tag references (e.g. "#mineable_pickaxe").</summary>
+    public const char TagPrefix = '#';
 
     private readonly Dictionary<string, TagDefinition> _tags =
         new(StringComparer.OrdinalIgnoreCase);
@@ -25,6 +26,21 @@ public sealed class TagRegistry
 
     /// <summary>Whether the registry has been frozen.</summary>
     public bool IsFrozen => _isFrozen;
+
+    /// <summary>
+    /// Returns true if the string starts with the tag prefix character ('#').
+    /// </summary>
+    /// <param name="value">The string to check.</param>
+    /// <returns>True if the value is a tag reference.</returns>
+    public static bool IsTagReference(string value) =>
+        value.Length > 0 && value[0] == TagPrefix;
+
+    /// <summary>
+    /// Strips the tag prefix from a tag reference (e.g. "#mineable_pickaxe" becomes "mineable_pickaxe").
+    /// </summary>
+    /// <param name="tagReference">The tag reference string with prefix.</param>
+    /// <returns>The tag ID without the prefix character.</returns>
+    public static string StripTagPrefix(string tagReference) => tagReference.Substring(1);
 
     /// <summary>
     /// Registers a tag definition. Must be called before <see cref="Freeze"/>.
