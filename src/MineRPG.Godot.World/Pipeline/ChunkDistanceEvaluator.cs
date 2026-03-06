@@ -13,6 +13,9 @@ namespace MineRPG.Godot.World.Pipeline;
 internal sealed class ChunkDistanceEvaluator
 {
     private readonly IChunkManager _chunkManager;
+    private readonly HashSet<ChunkCoord> _neededSet = new();
+    private readonly List<ChunkEntry> _snapshotBuffer = new();
+    private readonly List<ChunkCoord> _coordsBuffer = new();
 
     /// <summary>
     /// Creates an evaluator backed by the given chunk manager.
@@ -40,20 +43,27 @@ internal sealed class ChunkDistanceEvaluator
         toLoad.Clear();
         toUnload.Clear();
 
-        IReadOnlyList<ChunkCoord> needed = _chunkManager.GetCoordsInRange(center, renderDistance);
-        HashSet<ChunkCoord> neededSet = new(needed);
+        _chunkManager.GetCoordsInRange(center, renderDistance, _coordsBuffer);
 
-        List<ChunkEntry> snapshot = new(_chunkManager.GetAll());
+        _neededSet.Clear();
 
-        foreach (ChunkEntry entry in snapshot)
+        foreach (ChunkCoord coord in _coordsBuffer)
         {
-            if (!neededSet.Contains(entry.Coord))
+            _neededSet.Add(coord);
+        }
+
+        _snapshotBuffer.Clear();
+        _snapshotBuffer.AddRange(_chunkManager.GetAll());
+
+        foreach (ChunkEntry entry in _snapshotBuffer)
+        {
+            if (!_neededSet.Contains(entry.Coord))
             {
                 toUnload.Add(entry.Coord);
             }
         }
 
-        foreach (ChunkCoord coord in needed)
+        foreach (ChunkCoord coord in _coordsBuffer)
         {
             ChunkEntry entry = _chunkManager.GetOrCreate(coord);
 

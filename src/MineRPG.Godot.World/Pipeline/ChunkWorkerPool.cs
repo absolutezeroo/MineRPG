@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -279,9 +280,10 @@ internal sealed class ChunkWorkerPool : IDisposable
 
     private void ProcessRemeshWork(RemeshWork work)
     {
+        ushort[] buffer = ArrayPool<ushort>.Shared.Rent(ChunkData.TotalBlocks);
+
         try
         {
-            ushort[] buffer = new ushort[ChunkData.TotalBlocks];
             work.Entry.Data.CopyBlocksUnderReadLock(buffer);
 
             ChunkData snapshotData = new(work.Coord);
@@ -305,6 +307,10 @@ internal sealed class ChunkWorkerPool : IDisposable
             PendingRemeshes.TryRemove(work.Coord, out _);
             BlockEditRemeshes.TryRemove(work.Coord, out _);
             _logger.Error("Remesh failed for {0}: {1}", exception, work.Coord, exception.Message);
+        }
+        finally
+        {
+            ArrayPool<ushort>.Shared.Return(buffer);
         }
     }
 
@@ -362,7 +368,10 @@ internal sealed class ChunkWorkerPool : IDisposable
         }
         finally
         {
-            _pendingCts.TryRemove(entry.Coord, out _);
+            if (_pendingCts.TryRemove(entry.Coord, out CancellationTokenSource? removedCts))
+            {
+                removedCts.Dispose();
+            }
         }
     }
 

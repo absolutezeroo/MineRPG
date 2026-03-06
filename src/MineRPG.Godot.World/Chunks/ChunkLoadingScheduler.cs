@@ -30,7 +30,7 @@ namespace MineRPG.Godot.World.Chunks;
 public sealed partial class ChunkLoadingScheduler : Node
 {
     /// <summary>The default render distance in chunks.</summary>
-    public const int DefaultRenderDistance = 32;
+    public const int DefaultRenderDistance = 16;
 
     private const int FrameBudgetMs = 4;
     private const int UnloadFrameBudgetMs = 2;

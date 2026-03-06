@@ -8,7 +8,7 @@ namespace MineRPG.World.Spatial;
 /// <param name="AdjacentPosition">World position adjacent to the hit (for block placement).</param>
 /// <param name="BlockId">The block ID that was hit.</param>
 /// <param name="Distance">Distance from origin to the hit point.</param>
-public sealed record VoxelRaycastResult(
+public readonly record struct VoxelRaycastResult(
     bool Hit,
     WorldPosition HitPosition,
     WorldPosition AdjacentPosition,

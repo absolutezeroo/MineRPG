@@ -47,8 +47,12 @@ public sealed class PlayerRepository
             Directory.CreateDirectory(worldSaveDirectory);
 
             string savePath = GetSavePath(worldSaveDirectory);
+            string tempPath = savePath + ".tmp";
             string json = JsonConvert.SerializeObject(data, Formatting.Indented);
-            File.WriteAllText(savePath, json);
+
+            // Atomic save: write to temp file, then rename to avoid corruption on crash
+            File.WriteAllText(tempPath, json);
+            File.Move(tempPath, savePath, overwrite: true);
 
             _logger.Info(
                 "PlayerRepository: Saved player at ({0:F1}, {1:F1}, {2:F1}).",

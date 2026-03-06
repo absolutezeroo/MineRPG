@@ -10,7 +10,7 @@ namespace MineRPG.World.Chunks;
 /// Stores block IDs for one 16x256x16 chunk as a cache-friendly flat ushort array.
 /// Index formula: x + z*SizeX + y*SizeX*SizeZ (matches VoxelMath.GetIndex).
 /// </summary>
-public sealed class ChunkData
+public sealed class ChunkData : IDisposable
 {
     /// <summary>Chunk width in blocks (X axis).</summary>
     public const int SizeX = 16;
@@ -62,14 +62,23 @@ public sealed class ChunkData
 
     /// <summary>
     /// Sets the block ID at the specified local position.
+    /// Validates coordinates in debug builds; caller must ensure in-bounds access.
     /// </summary>
     /// <param name="x">Local X coordinate.</param>
     /// <param name="y">Local Y coordinate.</param>
     /// <param name="z">Local Z coordinate.</param>
     /// <param name="blockId">The block ID to set.</param>
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// Thrown when coordinates are outside chunk bounds (debug builds only via assertion).
+    /// </exception>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void SetBlock(int x, int y, int z, ushort blockId)
-        => _blocks[GetIndex(x, y, z)] = blockId;
+    {
+        System.Diagnostics.Debug.Assert(
+            IsInBounds(x, y, z),
+            $"SetBlock out of bounds: ({x}, {y}, {z})");
+        _blocks[GetIndex(x, y, z)] = blockId;
+    }
 
     /// <summary>
     /// Returns a read-only span over the raw block array.
@@ -217,5 +226,13 @@ public sealed class ChunkData
         {
             _lock.ExitReadLock();
         }
+    }
+
+    /// <summary>
+    /// Releases the <see cref="ReaderWriterLockSlim"/> kernel handle.
+    /// </summary>
+    public void Dispose()
+    {
+        _lock.Dispose();
     }
 }

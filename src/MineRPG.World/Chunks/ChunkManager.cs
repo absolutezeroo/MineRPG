@@ -61,8 +61,9 @@ public sealed class ChunkManager : IChunkManager
     /// <param name="coord">The chunk coordinate to remove.</param>
     public void Remove(ChunkCoord coord)
     {
-        if (_chunks.TryRemove(coord, out _))
+        if (_chunks.TryRemove(coord, out ChunkEntry? entry))
         {
+            entry.Data.Dispose();
             _logger.Debug("Chunk unloaded: {0}", coord);
             _eventBus.Publish(new ChunkUnloadedEvent { Coord = coord });
         }
@@ -106,9 +107,27 @@ public sealed class ChunkManager : IChunkManager
     /// <param name="coord">The center chunk coordinate.</param>
     /// <returns>An array of 4 neighbor chunk data references (nullable).</returns>
     public ChunkData?[] GetNeighborData(ChunkCoord coord)
+        => GetNeighborData(coord, new ChunkData?[NeighborCount]);
+
+    /// <summary>
+    /// Fills a caller-provided buffer with neighbor chunk data for the 4 cardinal directions.
+    /// Index: [0]=+X(East), [1]=-X(West), [2]=+Z(South), [3]=-Z(North).
+    /// Avoids allocation by reusing the buffer.
+    /// </summary>
+    /// <param name="coord">The center chunk coordinate.</param>
+    /// <param name="neighbors">A pre-allocated buffer of length >= 4 to fill.</param>
+    /// <returns>The same buffer, filled with neighbor data.</returns>
+    public ChunkData?[] GetNeighborData(ChunkCoord coord, ChunkData?[] neighbors)
     {
-        ChunkData?[] neighbors = new ChunkData?[NeighborCount];
-        ChunkCoord[] neighborCoords = [coord.East, coord.West, coord.South, coord.North];
+        neighbors[EastIndex] = null;
+        neighbors[WestIndex] = null;
+        neighbors[SouthIndex] = null;
+        neighbors[NorthIndex] = null;
+
+        ReadOnlySpan<ChunkCoord> neighborCoords = stackalloc ChunkCoord[]
+        {
+            coord.East, coord.West, coord.South, coord.North,
+        };
 
         for (int i = 0; i < NeighborCount; i++)
         {
@@ -120,5 +139,29 @@ public sealed class ChunkManager : IChunkManager
         }
 
         return neighbors;
+    }
+
+    /// <summary>
+    /// Fills a caller-provided list with chunk coords within Chebyshev distance of center,
+    /// sorted by distance (nearest first). Avoids allocation by reusing the list.
+    /// </summary>
+    /// <param name="center">The center chunk coordinate.</param>
+    /// <param name="renderDistance">The render distance in chunks.</param>
+    /// <param name="result">A pre-allocated list to fill (will be cleared first).</param>
+    public void GetCoordsInRange(ChunkCoord center, int renderDistance, List<ChunkCoord> result)
+    {
+        result.Clear();
+
+        for (int x = -renderDistance; x <= renderDistance; x++)
+        {
+            for (int z = -renderDistance; z <= renderDistance; z++)
+            {
+                result.Add(new ChunkCoord(center.X + x, center.Z + z));
+            }
+        }
+
+        ChunkCoord sortCenter = center;
+        result.Sort((a, b) =>
+            a.ChebyshevDistance(sortCenter).CompareTo(b.ChebyshevDistance(sortCenter)));
     }
 }

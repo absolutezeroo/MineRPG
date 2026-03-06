@@ -24,8 +24,8 @@ public sealed class MiningState
     /// <summary>Mining progress from 0.0 (not started) to 1.0 (complete).</summary>
     public float Progress { get; private set; }
 
-    /// <summary>Visual crack stage index from 0 (no crack) to 10 (broken).</summary>
-    public int CrackStage => (int)(Progress * CrackStageCount);
+    /// <summary>Visual crack stage index from 0 (no crack) to 9 (almost broken).</summary>
+    public int CrackStage => System.Math.Min((int)(Progress * CrackStageCount), CrackStageCount - 1);
 
     /// <summary>Whether the current mining operation has reached 100% progress.</summary>
     public bool IsComplete => Progress >= 1f;

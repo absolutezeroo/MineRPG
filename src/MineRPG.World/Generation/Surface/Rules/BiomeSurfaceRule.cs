@@ -26,6 +26,9 @@ public sealed class BiomeSurfaceRule : ISurfaceRule
             // Top surface block
             case true:
                 return context.Biome.SurfaceBlock;
+
+            default:
+                break;
         }
 
         // Filler / sub-surface layer

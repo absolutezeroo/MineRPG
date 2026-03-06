@@ -48,14 +48,22 @@ public sealed partial class ChunkNode : Node3D
     /// Must be called once at startup before any ChunkNode enters the tree.
     /// </summary>
     /// <param name="material">The shared opaque terrain material.</param>
-    public static void SetSharedMaterial(Material material) => _sharedMaterial = material;
+    public static void SetSharedMaterial(Material material)
+    {
+        _sharedMaterial?.Dispose();
+        _sharedMaterial = material;
+    }
 
     /// <summary>
     /// Sets the shared material used for translucent liquid surfaces.
     /// Must be called once at startup before any ChunkNode enters the tree.
     /// </summary>
     /// <param name="material">The shared liquid material.</param>
-    public static void SetSharedWaterMaterial(Material material) => _sharedWaterMaterial = material;
+    public static void SetSharedWaterMaterial(Material material)
+    {
+        _sharedWaterMaterial?.Dispose();
+        _sharedWaterMaterial = material;
+    }
 
     /// <inheritdoc />
     public override void _Ready()

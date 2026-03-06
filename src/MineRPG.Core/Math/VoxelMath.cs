@@ -140,6 +140,11 @@ public static class VoxelMath
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static float SmoothStep(float edge0, float edge1, float x)
     {
+        if (edge1 <= edge0)
+        {
+            return x >= edge0 ? 1f : 0f;
+        }
+
         float t = Clamp((x - edge0) / (edge1 - edge0), 0f, 1f);
         return t * t * (SmoothStepCoefficient - SmoothStepSubtractor * t);
     }
