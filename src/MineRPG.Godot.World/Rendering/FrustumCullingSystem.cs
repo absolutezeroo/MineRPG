@@ -141,7 +141,7 @@ public sealed partial class FrustumCullingSystem : Node
         for (int i = 0; i < planeCount; i++)
         {
             Plane plane = (Plane)frustumGodot[i];
-            planes[i] = new FrustumPlane(plane.Normal.X, plane.Normal.Y, plane.Normal.Z, plane.D);
+            planes[i] = new FrustumPlane(plane.Normal.X, plane.Normal.Y, plane.Normal.Z, -plane.D);
         }
 
         Span<FrustumPlane> visiblePlanes = planes[..planeCount];

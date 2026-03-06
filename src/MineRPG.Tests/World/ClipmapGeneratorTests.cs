@@ -90,11 +90,13 @@ public sealed class ClipmapGeneratorTests
     {
         ClipmapConfig config = new();
 
+        int cutoff = ClipmapConfig.DefaultVoxelRenderDistance;
+
         config.Rings.Should().HaveCount(3);
-        config.Rings[0].InnerRadiusChunks.Should().Be(32);
-        config.Rings[0].OuterRadiusChunks.Should().Be(64);
-        config.Rings[1].InnerRadiusChunks.Should().Be(64);
-        config.Rings[2].OuterRadiusChunks.Should().Be(256);
+        config.Rings[0].InnerRadiusChunks.Should().Be(cutoff);
+        config.Rings[0].OuterRadiusChunks.Should().Be(cutoff * 4);
+        config.Rings[1].InnerRadiusChunks.Should().Be(cutoff * 4);
+        config.Rings[2].OuterRadiusChunks.Should().Be(cutoff * 16);
     }
 
     [Fact]

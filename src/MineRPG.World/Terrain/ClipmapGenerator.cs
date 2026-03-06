@@ -118,7 +118,7 @@ public static class ClipmapGenerator
                 float innerSq = innerRadius * innerRadius;
                 float outerSq = outerRadius * outerRadius;
 
-                if (distanceSquared < innerSq * 0.9f || distanceSquared > outerSq * 1.1f)
+                if (distanceSquared < innerSq * 1.05f || distanceSquared > outerSq * 1.1f)
                 {
                     continue;
                 }

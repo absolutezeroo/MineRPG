@@ -4,6 +4,7 @@
 /export_presets.cfg
 export.cfg
 addons/
+*.png
 
 # .NET / C# build output
 bin/

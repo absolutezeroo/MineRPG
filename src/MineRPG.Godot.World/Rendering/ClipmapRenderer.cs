@@ -1,5 +1,3 @@
-using System;
-
 using Godot;
 
 using MineRPG.World.Meshing;
@@ -20,6 +18,7 @@ public sealed partial class ClipmapRenderer : Node3D
 {
     private readonly MeshInstance3D[] _ringInstances = new MeshInstance3D[ClipmapConfig.RingCount];
 
+    private StandardMaterial3D? _clipmapMaterial;
     private ClipmapConfig _config = new();
     private ClipmapGenerator.HeightSampler? _heightSampler;
     private ClipmapGenerator.ColorSampler? _colorSampler;
@@ -48,6 +47,16 @@ public sealed partial class ClipmapRenderer : Node3D
     /// <inheritdoc />
     public override void _Ready()
     {
+        _clipmapMaterial = new StandardMaterial3D
+        {
+            VertexColorUseAsAlbedo = true,
+            ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded,
+            DepthDrawMode = BaseMaterial3D.DepthDrawModeEnum.Always,
+        };
+
+        // Depth bias pushes clipmap slightly behind voxel chunks to avoid z-fighting
+        _clipmapMaterial.SetRenderPriority(-1);
+
         for (int i = 0; i < ClipmapConfig.RingCount; i++)
         {
             MeshInstance3D instance = new();
@@ -56,6 +65,30 @@ public sealed partial class ClipmapRenderer : Node3D
             AddChild(instance);
             _ringInstances[i] = instance;
         }
+    }
+
+    /// <summary>
+    /// Updates the clipmap inner radius and ring layout when render distance changes.
+    /// Forces a full rebuild on the next position update.
+    /// </summary>
+    /// <param name="renderDistanceChunks">New voxel render distance in chunks.</param>
+    public void UpdateRenderDistance(int renderDistanceChunks)
+    {
+        if (!_isInitialized || renderDistanceChunks == _config.VoxelCutoffChunks)
+        {
+            return;
+        }
+
+        _config = new ClipmapConfig
+        {
+            VoxelCutoffChunks = renderDistanceChunks,
+            Rings = ClipmapConfig.CreateDefaultRings(renderDistanceChunks),
+            RebuildThresholdBlocks = _config.RebuildThresholdBlocks,
+        };
+
+        // Force rebuild on next UpdatePlayerPosition call
+        _lastRebuildX = float.MinValue;
+        _lastRebuildZ = float.MinValue;
     }
 
     /// <summary>
@@ -101,6 +134,7 @@ public sealed partial class ClipmapRenderer : Node3D
 
             ArrayMesh arrayMesh = BuildArrayMesh(ringMeshes[i]);
             _ringInstances[i].Mesh = arrayMesh;
+            _ringInstances[i].MaterialOverride = _clipmapMaterial;
         }
     }
 

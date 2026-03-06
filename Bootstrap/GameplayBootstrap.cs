@@ -126,7 +126,7 @@ public sealed partial class GameplayBootstrap : Node
         clipmap.Name = "ClipmapRenderer";
         worldNode.AddChild(clipmap);
 
-        MineRPG.World.Terrain.ClipmapGenerator.HeightSampler heightSampler =
+        World.Terrain.ClipmapGenerator.HeightSampler heightSampler =
             (float worldX, float worldZ) =>
             {
                 MineRPG.World.Generation.TerrainColumn column =
@@ -134,7 +134,7 @@ public sealed partial class GameplayBootstrap : Node
                 return column.SurfaceY;
             };
 
-        MineRPG.World.Terrain.ClipmapGenerator.ColorSampler colorSampler =
+        World.Terrain.ClipmapGenerator.ColorSampler colorSampler =
             (float worldX, float worldZ, out float r, out float g, out float b) =>
             {
                 r = 0.486f;
@@ -142,7 +142,7 @@ public sealed partial class GameplayBootstrap : Node
                 b = 0.420f;
             };
 
-        clipmap.Configure(new MineRPG.World.Terrain.ClipmapConfig(), heightSampler, colorSampler);
+        clipmap.Configure(new World.Terrain.ClipmapConfig(), heightSampler, colorSampler);
         ServiceLocator.Instance.Register(clipmap);
 
         logger.Info("GameplayBootstrap: ClipmapRenderer wired.");
