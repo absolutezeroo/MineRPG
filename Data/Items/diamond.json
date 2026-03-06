@@ -1,0 +1,13 @@
+{
+  "id": "diamond",
+  "displayName": "Diamond",
+  "description": "A precious gemstone, used to craft the strongest tools.",
+  "category": "material",
+  "rarity": "rare",
+  "maxStackSize": 64,
+  "hasDurability": false,
+  "iconAtlasId": "items/diamond",
+  "sellValue": 50,
+  "buyValue": 150,
+  "tags": ["gem", "crafting"]
+}

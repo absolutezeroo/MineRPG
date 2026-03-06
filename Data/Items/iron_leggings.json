@@ -1,0 +1,21 @@
+{
+  "id": "iron_leggings",
+  "displayName": "Iron Leggings",
+  "description": "Iron leggings that protect the legs.",
+  "category": "armor",
+  "rarity": "common",
+  "maxStackSize": 1,
+  "hasDurability": true,
+  "maxDurability": 225,
+  "iconAtlasId": "items/iron_leggings",
+  "sellValue": 25,
+  "buyValue": 75,
+  "tags": [],
+  "armor": {
+    "slot": "leggings",
+    "defense": 5.0,
+    "toughness": 0.0,
+    "weight": 4.0,
+    "resistances": []
+  }
+}

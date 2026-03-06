@@ -1,0 +1,10 @@
+{
+  "id": "oak_planks",
+  "type": "shapeless",
+  "category": "building",
+  "ingredients": [
+    { "itemId": "oak_log", "quantity": 1 }
+  ],
+  "outputItemId": "oak_planks",
+  "outputQuantity": 4
+}

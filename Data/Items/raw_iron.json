@@ -1,0 +1,13 @@
+{
+  "id": "raw_iron",
+  "displayName": "Raw Iron",
+  "description": "Unrefined iron ore, ready for smelting.",
+  "category": "material",
+  "rarity": "common",
+  "maxStackSize": 64,
+  "hasDurability": false,
+  "iconAtlasId": "items/raw_iron",
+  "sellValue": 3,
+  "buyValue": 10,
+  "tags": ["ore", "crafting"]
+}

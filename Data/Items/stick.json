@@ -1,0 +1,13 @@
+{
+  "id": "stick",
+  "displayName": "Stick",
+  "description": "A basic crafting component made from wood.",
+  "category": "material",
+  "rarity": "common",
+  "maxStackSize": 64,
+  "hasDurability": false,
+  "iconAtlasId": "items/stick",
+  "sellValue": 0,
+  "buyValue": 1,
+  "tags": ["wood", "crafting"]
+}

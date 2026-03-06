@@ -1,0 +1,21 @@
+{
+  "id": "iron_chestplate",
+  "displayName": "Iron Chestplate",
+  "description": "Solid iron protection for the torso.",
+  "category": "armor",
+  "rarity": "common",
+  "maxStackSize": 1,
+  "hasDurability": true,
+  "maxDurability": 240,
+  "iconAtlasId": "items/iron_chestplate",
+  "sellValue": 30,
+  "buyValue": 90,
+  "tags": [],
+  "armor": {
+    "slot": "chestplate",
+    "defense": 6.0,
+    "toughness": 0.0,
+    "weight": 5.0,
+    "resistances": []
+  }
+}
