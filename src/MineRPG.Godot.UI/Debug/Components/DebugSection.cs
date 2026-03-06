@@ -12,14 +12,13 @@ public sealed partial class DebugSection : VBoxContainer
     private readonly string _title;
     private readonly bool _startExpanded;
 
-    private VBoxContainer _content = null!;
     private Button _headerButton = null!;
     private bool _isExpanded;
 
     /// <summary>
     /// The content container where child controls should be added.
     /// </summary>
-    public VBoxContainer Content => _content;
+    public VBoxContainer Content { get; private set; } = null!;
 
     /// <summary>
     /// Creates a debug section.
@@ -53,10 +52,10 @@ public sealed partial class DebugSection : VBoxContainer
         _headerButton.Pressed += OnHeaderPressed;
         AddChild(_headerButton);
 
-        _content = new VBoxContainer();
-        _content.Visible = _isExpanded;
-        _content.AddThemeConstantOverride("separation", 2);
-        AddChild(_content);
+        Content = new VBoxContainer();
+        Content.Visible = _isExpanded;
+        Content.AddThemeConstantOverride("separation", 2);
+        AddChild(Content);
 
         AddThemeConstantOverride("separation", 2);
     }
@@ -64,7 +63,7 @@ public sealed partial class DebugSection : VBoxContainer
     private void OnHeaderPressed()
     {
         _isExpanded = !_isExpanded;
-        _content.Visible = _isExpanded;
+        Content.Visible = _isExpanded;
         _headerButton.Text = GetHeaderText();
     }
 

@@ -24,7 +24,6 @@ public sealed partial class DebugManager : Control
     private PipelineMetrics _pipelineMetrics = null!;
     private OptimizationFlags _optimizationFlags = null!;
 
-    private PerformanceSampler _sampler = null!;
     private Camera3D? _camera;
 
     // Lazily created modules — null until first toggle
@@ -42,7 +41,7 @@ public sealed partial class DebugManager : Control
     /// <summary>
     /// The performance sampler owned by this manager.
     /// </summary>
-    public PerformanceSampler Sampler => _sampler;
+    public PerformanceSampler Sampler { get; private set; } = null!;
 
     /// <summary>
     /// Sets the camera reference for modules that need look direction.
@@ -63,7 +62,7 @@ public sealed partial class DebugManager : Control
 
         locator.TryGet(out _chunkDebugProvider);
 
-        _sampler = new PerformanceSampler();
+        Sampler = new PerformanceSampler();
 
         SetAnchorsPreset(LayoutPreset.FullRect);
         MouseFilter = MouseFilterEnum.Ignore;
@@ -141,9 +140,9 @@ public sealed partial class DebugManager : Control
         }
 
         FrameTimeBreakdown breakdown = new();
-        _sampler.Sample(delta, breakdown);
+        Sampler.Sample(delta, breakdown);
 
-        _sampler.UpdateResourceMetrics(
+        Sampler.UpdateResourceMetrics(
             _performanceMonitor.ActiveChunks,
             _performanceMonitor.TotalVertices);
 
@@ -183,7 +182,7 @@ public sealed partial class DebugManager : Control
         if (_debugMenuPanel is null)
         {
             _debugMenuPanel = new DebugMenuPanel(
-                _debugData, _sampler, _performanceMonitor,
+                _debugData, Sampler, _performanceMonitor,
                 _pipelineMetrics, _optimizationFlags, _eventBus, _chunkDebugProvider);
             _debugMenuPanel.Name = "DebugMenuPanel";
             AddChild(_debugMenuPanel);
@@ -210,7 +209,7 @@ public sealed partial class DebugManager : Control
     {
         if (_hudPanel is null)
         {
-            _hudPanel = new DebugHudPanel(_debugData, _sampler, _performanceMonitor, _pipelineMetrics);
+            _hudPanel = new DebugHudPanel(_debugData, Sampler, _performanceMonitor, _pipelineMetrics);
             _hudPanel.Name = "DebugHudPanel";
             _hudPanel.SetCamera(_camera);
             AddChild(_hudPanel);
@@ -271,7 +270,7 @@ public sealed partial class DebugManager : Control
     {
         if (_perfGraphPanel is null)
         {
-            _perfGraphPanel = new PerformanceGraphPanel(_sampler);
+            _perfGraphPanel = new PerformanceGraphPanel(Sampler);
             _perfGraphPanel.Name = "PerformanceGraphPanel";
             AddChild(_perfGraphPanel);
             _logger.Debug("DebugManager: PerformanceGraphPanel created.");

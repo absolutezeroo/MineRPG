@@ -15,12 +15,7 @@ public sealed class PerformanceSampler
     private const double MillisecondsPerSecond = 1000.0;
     private const double MemorySnapshotIntervalSeconds = 1.0;
 
-    private readonly FrameTimeTracker _frameTimeTracker;
-    private readonly SpikeDetector _spikeDetector;
-    private readonly MemoryMetrics _memoryMetrics;
-
     private double _memorySnapshotAccumulator;
-    private long _frameNumber;
     private long _lastActiveChunks;
     private long _lastTotalVertices;
 
@@ -29,30 +24,30 @@ public sealed class PerformanceSampler
     /// </summary>
     public PerformanceSampler()
     {
-        _frameTimeTracker = new FrameTimeTracker();
-        _spikeDetector = new SpikeDetector();
-        _memoryMetrics = new MemoryMetrics();
+        FrameTimeTracker = new FrameTimeTracker();
+        SpikeDetector = new SpikeDetector();
+        MemoryMetrics = new MemoryMetrics();
     }
 
     /// <summary>
     /// The frame time tracker with history and statistics.
     /// </summary>
-    public FrameTimeTracker FrameTimeTracker => _frameTimeTracker;
+    public FrameTimeTracker FrameTimeTracker { get; }
 
     /// <summary>
     /// The spike detector with spike history.
     /// </summary>
-    public SpikeDetector SpikeDetector => _spikeDetector;
+    public SpikeDetector SpikeDetector { get; }
 
     /// <summary>
     /// The memory metrics snapshot (updated periodically).
     /// </summary>
-    public MemoryMetrics MemoryMetrics => _memoryMetrics;
+    public MemoryMetrics MemoryMetrics { get; }
 
     /// <summary>
     /// The current frame number (monotonically increasing).
     /// </summary>
-    public long FrameNumber => _frameNumber;
+    public long FrameNumber { get; private set; }
 
     /// <summary>
     /// Samples a frame. Call once per frame from DebugManager._Process.
@@ -61,17 +56,17 @@ public sealed class PerformanceSampler
     /// <param name="breakdown">Per-component timing breakdown for this frame.</param>
     public void Sample(double deltaSeconds, FrameTimeBreakdown breakdown)
     {
-        _frameNumber++;
+        FrameNumber++;
         double frameTimeMs = deltaSeconds * MillisecondsPerSecond;
 
-        _frameTimeTracker.Record(frameTimeMs);
-        _spikeDetector.Evaluate(frameTimeMs, _frameNumber, breakdown);
+        FrameTimeTracker.Record(frameTimeMs);
+        SpikeDetector.Evaluate(frameTimeMs, FrameNumber, breakdown);
 
         _memorySnapshotAccumulator += deltaSeconds;
 
         if (_memorySnapshotAccumulator >= MemorySnapshotIntervalSeconds)
         {
-            _memoryMetrics.Snapshot(_lastActiveChunks, _lastTotalVertices);
+            MemoryMetrics.Snapshot(_lastActiveChunks, _lastTotalVertices);
             _memorySnapshotAccumulator = 0;
         }
     }
@@ -93,11 +88,11 @@ public sealed class PerformanceSampler
     /// </summary>
     public void Reset()
     {
-        _frameTimeTracker.Buffer.Clear();
-        _spikeDetector.ClearHistory();
-        _memoryMetrics.Snapshot(0, 0);
+        FrameTimeTracker.Buffer.Clear();
+        SpikeDetector.ClearHistory();
+        MemoryMetrics.Snapshot(0, 0);
         _memorySnapshotAccumulator = 0;
-        _frameNumber = 0;
+        FrameNumber = 0;
     }
 }
 #endif
