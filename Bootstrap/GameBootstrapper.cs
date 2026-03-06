@@ -6,7 +6,6 @@ using MineRPG.Core.Events;
 using MineRPG.Core.Interfaces;
 using MineRPG.Core.Interfaces.Settings;
 using MineRPG.Core.Logging;
-
 using MineRPG.Game.Bootstrap.Debug;
 using MineRPG.Game.Bootstrap.Settings;
 
@@ -20,38 +19,41 @@ namespace MineRPG.Game.Bootstrap;
 /// </summary>
 public sealed partial class GameBootstrapper : Node
 {
-    /// <summary>
-    /// Called when the node enters the scene tree. Initializes bootstrap services.
-    /// </summary>
-    public override void _Ready()
-    {
-        string dataRoot = ProjectSettings.GlobalizePath("res://Data");
-        DataPath.SetRoot(dataRoot);
+	/// <summary>
+	/// Called when the node enters the scene tree. Initializes bootstrap services.
+	/// </summary>
+	public override void _Ready()
+	{
+		string dataRoot = ProjectSettings.GlobalizePath("res://Data");
+		DataPath.SetRoot(dataRoot);
 
-        ServiceLocator locator = new();
-        ServiceLocator.SetInstance(locator);
+		ServiceLocator locator = new();
+		ServiceLocator.SetInstance(locator);
 
-        ConsoleLogger logger = new() { MinLevel = LogLevel.Debug };
-        locator.Register<ILogger>(logger);
+		ConsoleLogger logger = new()
+		{
+			MinLevel = LogLevel.Debug,
+		};
+		locator.Register<ILogger>(logger);
 
-        EventBus eventBus = new(logger);
-        locator.Register<IEventBus>(eventBus);
+		EventBus eventBus = new(logger);
+		locator.Register<IEventBus>(eventBus);
 
-        WorldRepository worldRepository = new(logger);
-        locator.Register(worldRepository);
+		WorldRepository worldRepository = new(logger);
+		locator.Register(worldRepository);
 
-        JsonSettingsRepository settingsRepo = new(logger);
-        locator.Register<ISettingsRepository>(settingsRepo);
+		JsonSettingsRepository settingsRepo = new(logger);
+		locator.Register<ISettingsRepository>(settingsRepo);
 
-        SettingsData settingsData = settingsRepo.Load();
-        locator.Register(settingsData);
+		SettingsData settingsData = settingsRepo.Load();
+		locator.Register(settingsData);
 
-        KeybindApplicator.Apply(settingsData, logger);
+		KeybindApplicator.Apply(settingsData, logger);
 
 #if DEBUG
-        DebugInputRegistrar.RegisterAll(logger);
+		DebugInputRegistrar.RegisterAll(logger);
 #endif
 
-        logger.Info("GameBootstrapper: Bootstrap initialization complete.");
-    }
+		logger.Info("GameBootstrapper: Bootstrap initialization complete.");
+	}
 }

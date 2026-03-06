@@ -425,9 +425,9 @@ CraftRPG.RPG/
 │   ├── ReputationTracker.cs
 │   └── FactionRegistry.cs
 └── Buffs/
-    ├── BuffDefinition.cs         # Data : durée, effet, stacking, icône
-    ├── BuffInstance.cs            # Runtime avec timer
-    └── BuffContainer.cs          # Gère les buffs actifs sur une entité
+	├── BuffDefinition.cs         # Data : durée, effet, stacking, icône
+	├── BuffInstance.cs            # Runtime avec timer
+	└── BuffContainer.cs          # Gère les buffs actifs sur une entité
 ```
 
 #### 3. `CraftRPG.World` — Class Library → dépend de `Core`
@@ -619,7 +619,7 @@ CraftRPG.Godot.UI/
 │   ├── UISlotPool.cs             # Recycling des éléments UI listes
 │   └── DragDropManager.cs
 └── ViewModels/
-    ├── InventoryViewModel.cs     # Observe Inventory, expose pour l'UI
+	├── InventoryViewModel.cs     # Observe Inventory, expose pour l'UI
     ├── StatsViewModel.cs
     └── QuestViewModel.cs
 ```
