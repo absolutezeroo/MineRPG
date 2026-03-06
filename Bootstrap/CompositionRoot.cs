@@ -16,6 +16,8 @@ using MineRPG.Godot.World;
 using MineRPG.Godot.World.Chunks;
 using MineRPG.Godot.World.Rendering;
 using MineRPG.Godot.World.Storage;
+using MineRPG.RPG.Inventory;
+using MineRPG.RPG.Items;
 using MineRPG.World.Blocks;
 using MineRPG.World.Chunks;
 using MineRPG.World.Chunks.Serialization;
@@ -160,8 +162,26 @@ public static class CompositionRoot
         DebugDataProvider debugDataProvider = new(playerData, chunkManager, biomeSelector, performanceMonitor);
         locator.Register<IDebugDataProvider>(debugDataProvider);
 
-        HotbarController hotbarController = new(playerData);
+        ItemRegistry itemRegistry = new();
+        IReadOnlyList<ItemDefinition> itemDefinitions = dataLoader.LoadAll<ItemDefinition>("Items");
+
+        for (int i = 0; i < itemDefinitions.Count; i++)
+        {
+            itemRegistry.Register(itemDefinitions[i]);
+        }
+
+        itemRegistry.Freeze();
+        locator.Register<ItemRegistry>(itemRegistry);
+
+        logger.Info("CompositionRoot: Loaded {0} item definitions.", itemDefinitions.Count);
+
+        PlayerInventory playerInventory = new(itemRegistry);
+        playerData.Inventory = playerInventory;
+        locator.Register<PlayerInventory>(playerInventory);
+
+        HotbarController hotbarController = new(playerData, itemRegistry);
         locator.Register<IHotbarController>(hotbarController);
+        locator.Register<HotbarController>(hotbarController);
 
         ISettingsRepository settingsRepo = locator.Get<ISettingsRepository>();
         SettingsData settingsData = locator.Get<SettingsData>();

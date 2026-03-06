@@ -1,0 +1,13 @@
+{
+  "id": "raw_copper",
+  "displayName": "Raw Copper",
+  "description": "Unrefined copper ore, ready for smelting.",
+  "category": "material",
+  "rarity": "common",
+  "maxStackSize": 64,
+  "hasDurability": false,
+  "iconAtlasId": "items/raw_copper",
+  "sellValue": 2,
+  "buyValue": 8,
+  "tags": ["ore", "crafting"]
+}

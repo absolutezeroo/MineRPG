@@ -4,7 +4,9 @@
   "flags": 1,
   "hardness": 2.0,
   "requiredToolType": "axe",
-  "minimumToolTier": 0,
+  "requiredHarvestLevel": 0,
+  "dropItemId": "oak_log",
+  "dropCount": 1,
   "textures": {
     "top": "wood_log",
     "bottom": "wood_log_top",

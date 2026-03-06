@@ -15,6 +15,7 @@ namespace MineRPG.Game.Bootstrap.Gameplay;
 /// Implements progressive block mining and block placement.
 /// Lives in MineRPG.Game where all project references are available.
 /// Mining advances each physics frame while the attack button is held.
+/// Reads the equipped tool from <see cref="HotbarController"/> each tick.
 /// </summary>
 public sealed class BlockInteractionService : IBlockInteractionService
 {
@@ -24,20 +25,17 @@ public sealed class BlockInteractionService : IBlockInteractionService
     /// <summary>Half-height of the player capsule on Y axis.</summary>
     private const float PlayerHalfHeight = 0.9f;
 
+    /// <summary>Default RPG modifier when no stat system is connected.</summary>
+    private const float DefaultMiningSpeedModifier = 1f;
+
     private readonly IVoxelRaycaster _raycaster;
     private readonly WorldNode _worldNode;
     private readonly BlockRegistry _blockRegistry;
+    private readonly HotbarController _hotbarController;
     private readonly PlayerData _playerData;
     private readonly MiningState _miningState;
     private readonly IEventBus _eventBus;
     private readonly ILogger _logger;
-
-    /// <summary>Default RPG modifier when no stat system is connected.</summary>
-    private const float DefaultMiningSpeedModifier = 1f;
-
-    private string _equippedToolType;
-    private int _equippedToolTier;
-    private float _toolSpeedMultiplier;
 
     private float _currentMineTime;
     private bool _currentIsCorrectTool;
@@ -48,47 +46,29 @@ public sealed class BlockInteractionService : IBlockInteractionService
     /// <param name="raycaster">Voxel raycaster for block hit detection.</param>
     /// <param name="worldNode">World node for breaking and placing blocks.</param>
     /// <param name="blockRegistry">Block definition registry.</param>
+    /// <param name="hotbarController">Hotbar controller for reading the equipped tool.</param>
     /// <param name="playerData">Player state container.</param>
     /// <param name="miningState">Mining progress state tracker.</param>
     /// <param name="eventBus">Event bus for publishing mining events.</param>
-    /// <param name="equippedTool">Currently equipped tool, or null for bare hands.</param>
     /// <param name="logger">Logger instance.</param>
     public BlockInteractionService(
         IVoxelRaycaster raycaster,
         WorldNode worldNode,
         BlockRegistry blockRegistry,
+        HotbarController hotbarController,
         PlayerData playerData,
         MiningState miningState,
         IEventBus eventBus,
-        ToolDefinition? equippedTool,
         ILogger logger)
     {
         _raycaster = raycaster;
         _worldNode = worldNode;
         _blockRegistry = blockRegistry;
+        _hotbarController = hotbarController;
         _playerData = playerData;
         _miningState = miningState;
         _eventBus = eventBus;
         _logger = logger;
-
-        _equippedToolType = equippedTool?.ToolType ?? "";
-        _equippedToolTier = equippedTool?.ToolTier ?? 0;
-        _toolSpeedMultiplier = equippedTool?.SpeedMultiplier ?? 1f;
-    }
-
-    /// <summary>
-    /// Updates the currently equipped tool. Call this when the player
-    /// equips or unequips a tool. Pass null for bare hands.
-    /// Cancels any active mining operation since the tool changed.
-    /// </summary>
-    /// <param name="tool">The new tool definition, or null for bare hands.</param>
-    public void UpdateEquippedTool(ToolDefinition? tool)
-    {
-        CancelMining();
-
-        _equippedToolType = tool?.ToolType ?? "";
-        _equippedToolTier = tool?.ToolTier ?? 0;
-        _toolSpeedMultiplier = tool?.SpeedMultiplier ?? 1f;
     }
 
     /// <inheritdoc />
@@ -118,6 +98,12 @@ public sealed class BlockInteractionService : IBlockInteractionService
         int hitY = result.HitPosition.Y;
         int hitZ = result.HitPosition.Z;
 
+        // Read the equipped tool each tick (player can change slot at any time)
+        ToolProperties? tool = _hotbarController.GetSelectedToolProperties();
+        string equippedToolType = tool?.ToolType.ToString().ToLowerInvariant() ?? "";
+        int equippedToolTier = tool?.HarvestLevel ?? 0;
+        float toolSpeed = tool?.MiningSpeed ?? 1f;
+
         if (!_miningState.IsTargeting(hitX, hitY, hitZ))
         {
             if (_miningState.IsActive)
@@ -128,11 +114,11 @@ public sealed class BlockInteractionService : IBlockInteractionService
             _miningState.Start(hitX, hitY, hitZ);
 
             _currentIsCorrectTool = MiningCalculator.IsCorrectTool(
-                block, _equippedToolType, _equippedToolTier);
+                block, equippedToolType, equippedToolTier);
 
             _currentMineTime = MiningCalculator.ComputeMineTime(
-                block, _equippedToolType, _equippedToolTier,
-                _toolSpeedMultiplier, DefaultMiningSpeedModifier);
+                block, equippedToolType, equippedToolTier,
+                toolSpeed, DefaultMiningSpeedModifier);
 
             _logger.Debug(
                 "Mining started at ({0},{1},{2}), block={3}, mineTime={4:F2}s, correctTool={5}",
@@ -155,6 +141,9 @@ public sealed class BlockInteractionService : IBlockInteractionService
         {
             ushort minedBlockId = result.BlockId;
             _worldNode.BreakBlock(result.HitPosition);
+
+            DropItemsFromBlock(block);
+            DamageEquippedTool();
 
             _eventBus.Publish(new BlockMinedEvent
             {
@@ -209,6 +198,62 @@ public sealed class BlockInteractionService : IBlockInteractionService
 
         _worldNode.PlaceBlock(target, blockId);
         return true;
+    }
+
+    /// <summary>
+    /// Drops items from a broken block into the player's inventory.
+    /// Only drops when the correct tool was used.
+    /// </summary>
+    private void DropItemsFromBlock(BlockDefinition block)
+    {
+        if (string.IsNullOrEmpty(block.DropItemId) || _playerData.Inventory is null)
+        {
+            return;
+        }
+
+        if (!_currentIsCorrectTool)
+        {
+            return;
+        }
+
+        ItemInstance drop = new ItemInstance(block.DropItemId!, block.DropCount);
+        int surplus = _playerData.Inventory.AddItem(drop);
+
+        if (surplus > 0)
+        {
+            _logger.Debug(
+                "Inventory full, {0}x {1} could not be picked up",
+                surplus, block.DropItemId);
+        }
+    }
+
+    /// <summary>
+    /// Damages the currently equipped tool by 1 durability point.
+    /// Removes the tool from the hotbar if it breaks.
+    /// </summary>
+    private void DamageEquippedTool()
+    {
+        ItemInstance? tool = _hotbarController.GetSelectedItem();
+
+        if (tool is null || !tool.HasDurability)
+        {
+            return;
+        }
+
+        tool.DamageDurability(1);
+
+        if (tool.IsBroken)
+        {
+            _playerData.Inventory?.Hotbar.RemoveAt(_playerData.SelectedHotbarSlot, 1);
+
+            _eventBus.Publish(new ToolBrokenEvent
+            {
+                ItemId = tool.DefinitionId,
+                SlotIndex = _playerData.SelectedHotbarSlot,
+            });
+
+            _logger.Info("Tool broken: {0}", tool.DefinitionId);
+        }
     }
 
     private void PublishCancelEvent()

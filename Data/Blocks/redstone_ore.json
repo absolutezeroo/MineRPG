@@ -4,7 +4,9 @@
   "flags": 1,
   "hardness": 3.0,
   "requiredToolType": "pickaxe",
-  "minimumToolTier": 3,
+  "requiredHarvestLevel": 3,
+  "dropItemId": "redstone_dust",
+  "dropCount": 4,
   "textures": {
     "all": "redstone_ore"
   }

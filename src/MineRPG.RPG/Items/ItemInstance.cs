@@ -46,10 +46,16 @@ public sealed class ItemInstance
     /// </summary>
     public int CurrentDurability { get; set; }
 
+    /// <summary>Custom display name set by the player (e.g. anvil rename). Null uses definition name.</summary>
+    public string? CustomName { get; set; }
+
+    /// <summary>Number of times this item has been repaired (increases anvil cost).</summary>
+    public int RepairCost { get; set; }
+
     /// <summary>Enchantments applied to this item instance.</summary>
     public IReadOnlyList<Enchantment> Enchantments => _enchantments;
 
-    /// <summary>Arbitrary key-value data such as renamed items or custom properties.</summary>
+    /// <summary>Arbitrary key-value data such as potion color, book content, or map data.</summary>
     public Dictionary<string, string> CustomData { get; }
 
     /// <summary>Whether this item is broken (durability depleted).</summary>
@@ -78,6 +84,11 @@ public sealed class ItemInstance
         }
 
         if (HasDurability || other.HasDurability)
+        {
+            return false;
+        }
+
+        if (CustomName != null || other.CustomName != null)
         {
             return false;
         }
@@ -135,6 +146,8 @@ public sealed class ItemInstance
         Count -= splitCount;
 
         ItemInstance splitInstance = new ItemInstance(DefinitionId, splitCount, CurrentDurability);
+        splitInstance.CustomName = CustomName;
+        splitInstance.RepairCost = RepairCost;
 
         for (int i = 0; i < _enchantments.Count; i++)
         {

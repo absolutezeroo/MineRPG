@@ -1,0 +1,13 @@
+{
+  "id": "emerald",
+  "displayName": "Emerald",
+  "description": "A rare green gemstone, valued by villagers as currency.",
+  "category": "material",
+  "rarity": "rare",
+  "maxStackSize": 64,
+  "hasDurability": false,
+  "iconAtlasId": "items/emerald",
+  "sellValue": 40,
+  "buyValue": 120,
+  "tags": ["gem", "currency"]
+}

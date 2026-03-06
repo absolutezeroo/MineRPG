@@ -1,0 +1,13 @@
+{
+  "id": "cobblestone",
+  "displayName": "Cobblestone",
+  "description": "A rough block of stone, useful for building and crafting.",
+  "category": "block",
+  "rarity": "common",
+  "maxStackSize": 64,
+  "hasDurability": false,
+  "iconAtlasId": "items/cobblestone",
+  "sellValue": 1,
+  "buyValue": 2,
+  "tags": ["building", "crafting"]
+}

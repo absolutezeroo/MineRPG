@@ -1,0 +1,13 @@
+{
+  "id": "coal",
+  "displayName": "Coal",
+  "description": "A combustible mineral used as fuel for smelting.",
+  "category": "material",
+  "rarity": "common",
+  "maxStackSize": 64,
+  "hasDurability": false,
+  "iconAtlasId": "items/coal",
+  "sellValue": 2,
+  "buyValue": 5,
+  "tags": ["fuel", "crafting"]
+}

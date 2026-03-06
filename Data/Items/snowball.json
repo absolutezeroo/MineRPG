@@ -1,0 +1,13 @@
+{
+  "id": "snowball",
+  "displayName": "Snowball",
+  "description": "A compact ball of snow that can be thrown.",
+  "category": "misc",
+  "rarity": "common",
+  "maxStackSize": 16,
+  "hasDurability": false,
+  "iconAtlasId": "items/snowball",
+  "sellValue": 0,
+  "buyValue": 1,
+  "tags": ["throwable"]
+}

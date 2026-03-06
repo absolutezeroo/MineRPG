@@ -1,0 +1,13 @@
+{
+  "id": "dirt",
+  "displayName": "Dirt",
+  "description": "A clump of earth.",
+  "category": "block",
+  "rarity": "common",
+  "maxStackSize": 64,
+  "hasDurability": false,
+  "iconAtlasId": "items/dirt",
+  "sellValue": 0,
+  "buyValue": 1,
+  "tags": ["building"]
+}

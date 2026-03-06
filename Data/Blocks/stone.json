@@ -4,7 +4,9 @@
   "flags": 1,
   "hardness": 5.0,
   "requiredToolType": "pickaxe",
-  "minimumToolTier": 1,
+  "requiredHarvestLevel": 1,
+  "dropItemId": "cobblestone",
+  "dropCount": 1,
   "textures": {
     "all": "stone"
   }

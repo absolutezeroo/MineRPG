@@ -4,7 +4,9 @@
   "flags": 1,
   "hardness": 3.0,
   "requiredToolType": "pickaxe",
-  "minimumToolTier": 2,
+  "requiredHarvestLevel": 2,
+  "dropItemId": "raw_iron",
+  "dropCount": 1,
   "textures": {
     "all": "iron_ore"
   }

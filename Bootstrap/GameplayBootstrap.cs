@@ -42,9 +42,11 @@ public sealed partial class GameplayBootstrap : Node
         MiningState miningState = ServiceLocator.Instance.Get<MiningState>();
         IEventBus eventBus = ServiceLocator.Instance.Get<IEventBus>();
 
+        HotbarController hotbarController = ServiceLocator.Instance.Get<HotbarController>();
+
         BlockInteractionService blockInteraction = new(
-            raycaster, worldNode, blockRegistry, playerData,
-            miningState, eventBus, equippedTool: null, logger);
+            raycaster, worldNode, blockRegistry, hotbarController,
+            playerData, miningState, eventBus, logger);
 
         ServiceLocator.Instance.Register<IBlockInteractionService>(blockInteraction);
 

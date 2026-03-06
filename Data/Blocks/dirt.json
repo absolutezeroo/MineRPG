@@ -4,7 +4,9 @@
   "flags": 1,
   "hardness": 0.5,
   "requiredToolType": "shovel",
-  "minimumToolTier": 0,
+  "requiredHarvestLevel": 0,
+  "dropItemId": "dirt",
+  "dropCount": 1,
   "textures": {
     "all": "dirt"
   }
