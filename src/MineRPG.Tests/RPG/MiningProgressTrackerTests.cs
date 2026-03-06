@@ -46,7 +46,7 @@ public sealed class MiningProgressTrackerTests
     {
         MiningProgressTracker tracker = new MiningProgressTracker();
         VoxelPosition3D? brokenBlock = null;
-        tracker.BlockBroken += (pos) => brokenBlock = pos;
+        tracker.BlockBroken += (object? sender, BlockBrokenEventArgs e) => brokenBlock = e.Position;
 
         tracker.StartMining(new VoxelPosition3D(5, 10, 15), 1.0f);
         tracker.UpdateMining(1.5f);
@@ -62,7 +62,7 @@ public sealed class MiningProgressTrackerTests
     {
         MiningProgressTracker tracker = new MiningProgressTracker();
         bool cancelled = false;
-        tracker.MiningCancelled += () => cancelled = true;
+        tracker.MiningCancelled += (object? sender, EventArgs e) => cancelled = true;
 
         tracker.StartMining(new VoxelPosition3D(0, 0, 0), 2.0f);
         tracker.UpdateMining(0.5f);
@@ -89,7 +89,7 @@ public sealed class MiningProgressTrackerTests
     {
         MiningProgressTracker tracker = new MiningProgressTracker();
         float lastProgress = -1f;
-        tracker.ProgressChanged += (p) => lastProgress = p;
+        tracker.ProgressChanged += (object? sender, MiningProgressChangedEventArgs e) => lastProgress = e.Progress;
 
         tracker.StartMining(new VoxelPosition3D(0, 0, 0), 2.0f);
         tracker.UpdateMining(0.5f);

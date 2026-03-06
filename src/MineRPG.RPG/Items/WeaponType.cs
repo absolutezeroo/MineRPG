@@ -3,7 +3,7 @@ namespace MineRPG.RPG.Items;
 /// <summary>
 /// Types of weapons that determine combat behavior and animations.
 /// </summary>
-public enum WeaponType : byte
+public enum WeaponType
 {
     /// <summary>Standard melee slashing weapon.</summary>
     Sword,

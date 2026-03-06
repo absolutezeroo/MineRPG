@@ -3,7 +3,7 @@ namespace MineRPG.RPG.Inventory;
 /// <summary>
 /// Sorting modes for inventory contents.
 /// </summary>
-public enum ItemSortMode : byte
+public enum ItemSortMode
 {
     /// <summary>Sort items alphabetically by display name.</summary>
     ByName,

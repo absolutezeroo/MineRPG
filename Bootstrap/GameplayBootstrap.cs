@@ -57,7 +57,7 @@ public sealed partial class GameplayBootstrap : Node
         logger.Info("GameplayBootstrap: Scene references registered.");
     }
 
-    private void WireFrustumCulling(WorldNode worldNode, ILogger logger)
+    private static void WireFrustumCulling(WorldNode worldNode, ILogger logger)
     {
         FrustumCullingSystem frustumCulling = new();
         frustumCulling.Name = "FrustumCullingSystem";
@@ -88,7 +88,7 @@ public sealed partial class GameplayBootstrap : Node
         logger.Info("GameplayBootstrap: FrustumCullingSystem wired.");
     }
 
-    private void WireOcclusionCuller(WorldNode worldNode, ILogger logger)
+    private static void WireOcclusionCuller(WorldNode worldNode, ILogger logger)
     {
         if (!ServiceLocator.Instance.TryGet<FrustumCullingSystem>(out FrustumCullingSystem? frustumCulling)
             || frustumCulling is null)
@@ -104,7 +104,7 @@ public sealed partial class GameplayBootstrap : Node
         logger.Info("GameplayBootstrap: OcclusionCuller wired.");
     }
 
-    private void WireClipmapRenderer(WorldNode worldNode, ILogger logger)
+    private static void WireClipmapRenderer(WorldNode worldNode, ILogger logger)
     {
         if (!ServiceLocator.Instance.TryGet<OptimizationFlags>(out OptimizationFlags? flags)
             || flags is null || !flags.ClipmapEnabled)

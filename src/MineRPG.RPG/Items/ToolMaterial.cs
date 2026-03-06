@@ -3,7 +3,7 @@ namespace MineRPG.RPG.Items;
 /// <summary>
 /// Material tiers for tools, determining durability and harvest level.
 /// </summary>
-public enum ToolMaterial : byte
+public enum ToolMaterial
 {
     /// <summary>Lowest tier, basic tools.</summary>
     Wood,

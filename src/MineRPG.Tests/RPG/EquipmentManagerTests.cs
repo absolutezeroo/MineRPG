@@ -8,6 +8,8 @@ namespace MineRPG.Tests.RPG;
 
 public sealed class EquipmentManagerTests
 {
+    private static readonly string[] FireResistances = ["fire"];
+
     private static ItemRegistry CreateArmorRegistry()
     {
         ItemRegistry registry = new ItemRegistry();
@@ -23,7 +25,7 @@ public sealed class EquipmentManagerTests
                 Defense = 2.0f,
                 Toughness = 0f,
                 Weight = 2.0f,
-                Resistances = new[] { "fire" },
+                Resistances = FireResistances,
             },
         });
 
@@ -168,7 +170,7 @@ public sealed class EquipmentManagerTests
         ItemRegistry registry = CreateArmorRegistry();
         EquipmentManager manager = CreateManager(registry);
 
-        bool canEquip = manager.CanEquip(
+        bool canEquip = EquipmentManager.CanEquip(
             ArmorSlotType.Helmet,
             registry.Get("iron_helmet"));
 
@@ -179,9 +181,8 @@ public sealed class EquipmentManagerTests
     public void CanEquip_WithWrongSlot_ReturnsFalse()
     {
         ItemRegistry registry = CreateArmorRegistry();
-        EquipmentManager manager = CreateManager(registry);
 
-        bool canEquip = manager.CanEquip(
+        bool canEquip = EquipmentManager.CanEquip(
             ArmorSlotType.Boots,
             registry.Get("iron_helmet"));
 

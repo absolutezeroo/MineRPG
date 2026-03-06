@@ -8,6 +8,7 @@ using MineRPG.Core.Events.Definitions;
 using MineRPG.Core.Logging;
 using MineRPG.Core.Math;
 using MineRPG.World.Chunks;
+using MineRPG.World.Events;
 using MineRPG.World.Meshing;
 using MineRPG.World.Spatial;
 

@@ -3,7 +3,7 @@ namespace MineRPG.RPG.Items;
 /// <summary>
 /// Types of consumable items that determine usage behavior and effects.
 /// </summary>
-public enum ConsumableType : byte
+public enum ConsumableType
 {
     /// <summary>Food that restores hunger and saturation.</summary>
     Food,
