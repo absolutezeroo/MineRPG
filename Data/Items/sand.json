@@ -1,0 +1,13 @@
+{
+  "id": "sand",
+  "displayName": "Sand",
+  "description": "Fine grains of sand, used for glass and concrete.",
+  "category": "block",
+  "rarity": "common",
+  "maxStackSize": 64,
+  "hasDurability": false,
+  "iconAtlasId": "items/sand",
+  "sellValue": 0,
+  "buyValue": 1,
+  "tags": ["building", "crafting"]
+}

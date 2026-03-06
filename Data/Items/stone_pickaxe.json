@@ -1,0 +1,21 @@
+{
+  "id": "stone_pickaxe",
+  "displayName": "Stone Pickaxe",
+  "description": "A sturdy pickaxe crafted from cobblestone.",
+  "category": "tool",
+  "rarity": "common",
+  "maxStackSize": 1,
+  "hasDurability": true,
+  "maxDurability": 131,
+  "iconAtlasId": "items/stone_pickaxe",
+  "sellValue": 5,
+  "buyValue": 15,
+  "tags": [],
+  "tool": {
+    "toolType": "pickaxe",
+    "material": "stone",
+    "miningSpeed": 4.0,
+    "harvestLevel": 1,
+    "effectiveOn": ["stone", "cobblestone", "ore", "iron_ore", "copper_ore"]
+  }
+}

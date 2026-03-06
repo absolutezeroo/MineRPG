@@ -24,7 +24,7 @@ public static class MiningCalculator
     /// Computes the total mining time in seconds for the given block and tool parameters.
     /// Returns <see cref="float.MaxValue"/> for indestructible blocks (Hardness &lt; 0).
     /// Follows Minecraft-style mechanics: bare hands can break any non-indestructible block.
-    /// The wrong-tool penalty only applies to blocks that require a tool (MinimumToolTier &gt; 0)
+    /// The wrong-tool penalty only applies to blocks that require a tool (RequiredHarvestLevel &gt; 0)
     /// when the player lacks the correct tool type. Tool speed bonus only applies when
     /// the equipped tool type matches the block's preferred type.
     /// </summary>
@@ -51,10 +51,10 @@ public static class MiningCalculator
         bool hasMatchingToolType = HasMatchingToolType(block, equippedToolType);
 
         // Wrong-tool penalty: only when the block requires a specific tool
-        // (MinimumToolTier > 0) and the player does not have the matching type.
-        // Blocks with MinimumToolTier == 0 (dirt, wood, sand) can always be
+        // (RequiredHarvestLevel > 0) and the player does not have the matching type.
+        // Blocks with RequiredHarvestLevel == 0 (dirt, wood, sand) can always be
         // mined without penalty - the preferred tool just adds a speed bonus.
-        if (block.MinimumToolTier > 0 && !hasMatchingToolType)
+        if (block.RequiredHarvestLevel > 0 && !hasMatchingToolType)
         {
             baseTime *= WrongToolPenalty;
         }
@@ -83,7 +83,7 @@ public static class MiningCalculator
     /// <summary>
     /// Returns true if the equipped tool satisfies the block's requirements for
     /// efficient mining and item drops. Blocks with no RequiredToolType or with
-    /// MinimumToolTier of 0 always return true (bare hands are sufficient for drops).
+    /// RequiredHarvestLevel of 0 always return true (bare hands are sufficient for drops).
     /// </summary>
     /// <param name="block">The block definition to check.</param>
     /// <param name="equippedToolType">The type string of the equipped tool.</param>
@@ -101,13 +101,13 @@ public static class MiningCalculator
 
         // Blocks that don't require a minimum tool tier can be harvested
         // with anything - bare hands, wrong tool, etc.
-        if (block.MinimumToolTier <= 0)
+        if (block.RequiredHarvestLevel <= 0)
         {
             return true;
         }
 
         return string.Equals(equippedToolType, block.RequiredToolType, StringComparison.OrdinalIgnoreCase)
-            && equippedToolTier >= block.MinimumToolTier;
+            && equippedToolTier >= block.RequiredHarvestLevel;
     }
 
     /// <summary>

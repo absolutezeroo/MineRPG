@@ -105,7 +105,7 @@ public sealed partial class BlockInspectorPanel : Control
         {
             _builder.AppendLine();
             _builder.Append("Tool: ").Append(definition.RequiredToolType)
-                .Append(" (tier ").Append(definition.MinimumToolTier).Append(')');
+                .Append(" (harvestLevel ").Append(definition.RequiredHarvestLevel).Append(')');
         }
 
         if (definition.LootTableRef is not null)

@@ -1,0 +1,21 @@
+{
+  "id": "wooden_pickaxe",
+  "displayName": "Wooden Pickaxe",
+  "description": "A basic pickaxe crafted from wood.",
+  "category": "tool",
+  "rarity": "common",
+  "maxStackSize": 1,
+  "hasDurability": true,
+  "maxDurability": 59,
+  "iconAtlasId": "items/wooden_pickaxe",
+  "sellValue": 2,
+  "buyValue": 8,
+  "tags": [],
+  "tool": {
+    "toolType": "pickaxe",
+    "material": "wood",
+    "miningSpeed": 2.0,
+    "harvestLevel": 1,
+    "effectiveOn": ["stone", "cobblestone", "ore"]
+  }
+}

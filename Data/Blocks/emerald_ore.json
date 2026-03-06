@@ -4,7 +4,9 @@
   "flags": 1,
   "hardness": 3.0,
   "requiredToolType": "pickaxe",
-  "minimumToolTier": 3,
+  "requiredHarvestLevel": 3,
+  "dropItemId": "emerald",
+  "dropCount": 1,
   "textures": {
     "all": "emerald_ore"
   }

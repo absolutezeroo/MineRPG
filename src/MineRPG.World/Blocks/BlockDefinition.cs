@@ -34,11 +34,12 @@ public sealed class BlockDefinition
     public string? RequiredToolType { get; init; }
 
     /// <summary>
-    /// Minimum tool tier needed for the correct-tool bonus.
-    /// 0 = hand, 1 = wood, 2 = stone, 3 = iron, 4 = diamond.
+    /// Required harvest level for efficient mining and loot drops.
+    /// Aligned with ToolProperties.HarvestLevel:
+    /// 0 = wood, 1 = stone, 2 = iron, 3 = diamond, 4 = netherite.
     /// </summary>
-    [JsonProperty("minimumToolTier")]
-    public int MinimumToolTier { get; init; }
+    [JsonProperty("requiredHarvestLevel")]
+    public int RequiredHarvestLevel { get; init; }
 
     /// <summary>Per-face texture configuration.</summary>
     [JsonProperty("textures")]
@@ -47,6 +48,14 @@ public sealed class BlockDefinition
     /// <summary>Reference key into the loot table registry.</summary>
     [JsonProperty("lootTableRef")]
     public string? LootTableRef { get; init; }
+
+    /// <summary>Item ID dropped when the block is broken. Null means no drop.</summary>
+    [JsonProperty("dropItemId")]
+    public string? DropItemId { get; init; }
+
+    /// <summary>Number of items dropped when the block is broken.</summary>
+    [JsonProperty("dropCount")]
+    public int DropCount { get; init; } = 1;
 
     /// <summary>Red tint component (0..1).</summary>
     [JsonProperty("tintR")]

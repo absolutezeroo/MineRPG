@@ -1,0 +1,13 @@
+{
+  "id": "lapis_lazuli",
+  "displayName": "Lapis Lazuli",
+  "description": "A deep blue mineral used for enchanting.",
+  "category": "material",
+  "rarity": "uncommon",
+  "maxStackSize": 64,
+  "hasDurability": false,
+  "iconAtlasId": "items/lapis_lazuli",
+  "sellValue": 5,
+  "buyValue": 15,
+  "tags": ["gem", "enchanting"]
+}

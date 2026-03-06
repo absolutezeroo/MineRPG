@@ -6,7 +6,7 @@ namespace MineRPG.RPG.Inventory;
 /// Generic inventory container with a fixed number of slots.
 /// Used for player inventories, chests, merchants, and crafting stations.
 /// </summary>
-public sealed class Inventory : IInventory
+public sealed partial class Inventory : IInventory
 {
     private readonly InventorySlot[] _slots;
     private readonly ItemRegistry _itemRegistry;
@@ -268,100 +268,6 @@ public sealed class Inventory : IInventory
         RaiseSlotChanged(fromSlot, fromItem, toItem);
         RaiseSlotChanged(toSlot, toItem, fromItem);
         RaiseInventoryChanged();
-    }
-
-    /// <inheritdoc />
-    public bool Contains(string definitionId, int quantity)
-    {
-        return CountItem(definitionId) >= quantity;
-    }
-
-    /// <summary>
-    /// Counts the total quantity of items with the given definition ID.
-    /// </summary>
-    /// <param name="definitionId">The item definition ID to count.</param>
-    /// <returns>Total count across all slots.</returns>
-    public int CountItem(string definitionId)
-    {
-        int total = 0;
-
-        for (int i = 0; i < _slots.Length; i++)
-        {
-            if (!_slots[i].IsEmpty && _slots[i].Item!.DefinitionId == definitionId)
-            {
-                total += _slots[i].Item!.Count;
-            }
-        }
-
-        return total;
-    }
-
-    /// <summary>
-    /// Finds the first slot containing the specified item.
-    /// </summary>
-    /// <param name="definitionId">The item definition ID to find.</param>
-    /// <returns>Slot index, or -1 if not found.</returns>
-    public int FindFirstSlot(string definitionId)
-    {
-        for (int i = 0; i < _slots.Length; i++)
-        {
-            if (!_slots[i].IsEmpty && _slots[i].Item!.DefinitionId == definitionId)
-            {
-                return i;
-            }
-        }
-
-        return -1;
-    }
-
-    /// <summary>
-    /// Finds the first empty slot.
-    /// </summary>
-    /// <returns>Slot index, or -1 if all slots are occupied.</returns>
-    public int FindFirstEmptySlot()
-    {
-        for (int i = 0; i < _slots.Length; i++)
-        {
-            if (_slots[i].IsEmpty)
-            {
-                return i;
-            }
-        }
-
-        return -1;
-    }
-
-    /// <summary>
-    /// Checks whether all slots are occupied.
-    /// </summary>
-    /// <returns>True if every slot contains an item.</returns>
-    public bool IsFull()
-    {
-        for (int i = 0; i < _slots.Length; i++)
-        {
-            if (_slots[i].IsEmpty)
-            {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    /// <inheritdoc />
-    public IReadOnlyList<ItemInstance> GetAll()
-    {
-        List<ItemInstance> items = new();
-
-        for (int i = 0; i < _slots.Length; i++)
-        {
-            if (!_slots[i].IsEmpty)
-            {
-                items.Add(_slots[i].Item!);
-            }
-        }
-
-        return items;
     }
 
     /// <summary>

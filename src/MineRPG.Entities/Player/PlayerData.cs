@@ -1,3 +1,5 @@
+using MineRPG.RPG.Inventory;
+
 namespace MineRPG.Entities.Player;
 
 /// <summary>
@@ -55,6 +57,12 @@ public sealed class PlayerData
     /// <summary>Current fly speed in blocks per second. Adjustable at runtime.</summary>
     public float CurrentFlySpeed { get; set; }
 
-    /// <summary>Block ID currently selected in the hotbar.</summary>
+    /// <summary>Block ID currently selected in the hotbar (legacy, used for placement).</summary>
     public ushort SelectedBlockId { get; set; } = DefaultSelectedBlockId;
+
+    /// <summary>The player's inventory system. Null until initialized by CompositionRoot.</summary>
+    public PlayerInventory? Inventory { get; set; }
+
+    /// <summary>The index of the currently selected hotbar slot (0-8).</summary>
+    public int SelectedHotbarSlot { get; set; }
 }

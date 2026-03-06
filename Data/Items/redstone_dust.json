@@ -1,0 +1,13 @@
+{
+  "id": "redstone_dust",
+  "displayName": "Redstone Dust",
+  "description": "A fine red powder with unique conductive properties.",
+  "category": "material",
+  "rarity": "uncommon",
+  "maxStackSize": 64,
+  "hasDurability": false,
+  "iconAtlasId": "items/redstone_dust",
+  "sellValue": 4,
+  "buyValue": 12,
+  "tags": ["crafting", "redstone"]
+}
