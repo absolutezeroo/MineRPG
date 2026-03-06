@@ -1,10 +1,8 @@
-using System;
 using System.Text;
 
 using Godot;
 
 using MineRPG.Core.DI;
-using MineRPG.Core.Interfaces;
 using MineRPG.Core.Interfaces.Gameplay;
 using MineRPG.Core.Logging;
 
@@ -13,7 +11,7 @@ namespace MineRPG.Godot.UI.HUD;
 /// <summary>
 /// Minecraft-style F3 debug overlay. Displays grouped info in semi-transparent
 /// dark panels: Position, World, and Performance sections.
-/// Uses a reused StringBuilder per section to minimize per-frame allocations.
+/// Text formatting is delegated to <see cref="DebugOverlayFormatter"/>.
 /// </summary>
 public sealed partial class DebugOverlayNode : Control
 {
@@ -23,13 +21,10 @@ public sealed partial class DebugOverlayNode : Control
     private const float PanelPaddingX = 6f;
     private const float PanelPaddingY = 4f;
     private const float SectionSpacing = 6f;
-    private const float LineHeight = 18f;
+    private const float PanelBackgroundAlpha = 0.45f;
     private const float ShadowColorAlpha = 0.75f;
     private const int ShadowOffsetPixels = 1;
     private const int FontSize = 14;
-    private const double MillisecondsPerSecond = 1000.0;
-    private const double BytesPerMegabyte = 1024.0 * 1024.0;
-    private const float PanelBackgroundAlpha = 0.45f;
 
     private static readonly Color PanelColor = new(0f, 0f, 0f, PanelBackgroundAlpha);
     private static readonly Color TextColor = new(1f, 1f, 1f, 1f);
@@ -70,14 +65,13 @@ public sealed partial class DebugOverlayNode : Control
         _leftColumn.MouseFilter = MouseFilterEnum.Ignore;
         AddChild(_leftColumn);
 
-        CreatePositionSection();
+        _positionLabel = CreateSection("--- Position ---");
         AddSpacer();
-        CreateWorldSection();
+        _worldLabel = CreateSection("--- World ---");
         AddSpacer();
-        CreatePerformanceSection();
+        _performanceLabel = CreateSection("--- Performance ---");
 
         Visible = false;
-
         _logger.Info("DebugOverlayNode ready.");
     }
 
@@ -102,131 +96,32 @@ public sealed partial class DebugOverlayNode : Control
             return;
         }
 
-        UpdatePositionSection();
-        UpdateWorldSection();
-        UpdatePerformanceSection();
-    }
-
-    private void CreatePositionSection()
-    {
-        PanelContainer positionPanel = CreatePanel();
-        _leftColumn.AddChild(positionPanel);
-
-        VBoxContainer positionContent = new();
-        positionContent.MouseFilter = MouseFilterEnum.Ignore;
-        positionPanel.AddChild(positionContent);
-
-        Label positionHeader = CreateHeaderLabel("--- Position ---");
-        positionContent.AddChild(positionHeader);
-
-        _positionLabel = CreateDataLabel();
-        positionContent.AddChild(_positionLabel);
-    }
-
-    private void CreateWorldSection()
-    {
-        PanelContainer worldPanel = CreatePanel();
-        _leftColumn.AddChild(worldPanel);
-
-        VBoxContainer worldContent = new();
-        worldContent.MouseFilter = MouseFilterEnum.Ignore;
-        worldPanel.AddChild(worldContent);
-
-        Label worldHeader = CreateHeaderLabel("--- World ---");
-        worldContent.AddChild(worldHeader);
-
-        _worldLabel = CreateDataLabel();
-        worldContent.AddChild(_worldLabel);
-    }
-
-    private void CreatePerformanceSection()
-    {
-        PanelContainer performancePanel = CreatePanel();
-        _leftColumn.AddChild(performancePanel);
-
-        VBoxContainer performanceContent = new();
-        performanceContent.MouseFilter = MouseFilterEnum.Ignore;
-        performancePanel.AddChild(performanceContent);
-
-        Label performanceHeader = CreateHeaderLabel("--- Performance ---");
-        performanceContent.AddChild(performanceHeader);
-
-        _performanceLabel = CreateDataLabel();
-        performanceContent.AddChild(_performanceLabel);
-    }
-
-    private void UpdatePositionSection()
-    {
-        float playerX = _debugData.PlayerX;
-        float playerY = _debugData.PlayerY;
-        float playerZ = _debugData.PlayerZ;
-
-        Vector3 lookDirection = _camera is not null && _camera.IsInsideTree()
-            ? -_camera.GlobalTransform.Basis.Z
-            : Vector3.Zero;
-
-        float yaw = MathF.Atan2(-lookDirection.X, -lookDirection.Z) * 180f / MathF.PI;
-        float pitch = MathF.Asin(lookDirection.Y) * 180f / MathF.PI;
-
-        string facing = GetCardinalDirection(yaw);
-
-        _positionBuilder.Clear();
-        _positionBuilder.Append("XYZ: ")
-            .Append(playerX.ToString("F3")).Append(" / ")
-            .Append(playerY.ToString("F3")).Append(" / ")
-            .Append(playerZ.ToString("F3")).AppendLine();
-        _positionBuilder.Append("Block: ")
-            .Append((int)MathF.Floor(playerX)).Append(' ')
-            .Append((int)MathF.Floor(playerY)).Append(' ')
-            .Append((int)MathF.Floor(playerZ)).AppendLine();
-        _positionBuilder.Append("Chunk: ")
-            .Append(_debugData.ChunkX).Append(' ')
-            .Append(_debugData.ChunkZ).AppendLine();
-        _positionBuilder.Append("Facing: ").Append(facing)
-            .Append(" (").Append(yaw.ToString("F1")).Append(" / ")
-            .Append(pitch.ToString("F1")).Append(')');
-
+        DebugOverlayFormatter.FormatPositionSection(_positionBuilder, _debugData, _camera);
         _positionLabel.Text = _positionBuilder.ToString();
-    }
 
-    private void UpdateWorldSection()
-    {
-        _worldBuilder.Clear();
-        _worldBuilder.Append("Biome: ").Append(_debugData.CurrentBiome).AppendLine();
-        _worldBuilder.Append("Chunks loaded: ").Append(_debugData.LoadedChunkCount).AppendLine();
-        _worldBuilder.Append("Chunks visible: ").Append(_debugData.VisibleChunkCount).AppendLine();
-        _worldBuilder.Append("Chunks queued: ").Append(_debugData.ChunksInQueue).AppendLine();
-        _worldBuilder.Append("Render distance: ").Append(_debugData.RenderDistance);
-
+        DebugOverlayFormatter.FormatWorldSection(_worldBuilder, _debugData);
         _worldLabel.Text = _worldBuilder.ToString();
+
+        DebugOverlayFormatter.FormatPerformanceSection(_performanceBuilder, _debugData);
+        _performanceLabel.Text = _performanceBuilder.ToString();
     }
 
-    private void UpdatePerformanceSection()
+    private Label CreateSection(string headerText)
     {
-        double framesPerSecond = Engine.GetFramesPerSecond();
-        double frameTimeMs = framesPerSecond > 0
-            ? MillisecondsPerSecond / framesPerSecond
-            : 0;
-        ulong memoryBytes = OS.GetStaticMemoryUsage();
-        double memoryMegabytes = memoryBytes / BytesPerMegabyte;
-        ulong drawCalls = RenderingServer.GetRenderingInfo(
-            RenderingServer.RenderingInfo.TotalObjectsInFrame);
-        ulong vertexCount = RenderingServer.GetRenderingInfo(
-            RenderingServer.RenderingInfo.TotalPrimitivesInFrame);
+        PanelContainer panel = CreatePanel();
+        _leftColumn.AddChild(panel);
 
-        _performanceBuilder.Clear();
-        _performanceBuilder.Append("FPS: ").Append(framesPerSecond)
-            .Append(" (").Append(frameTimeMs.ToString("F1")).Append(" ms)").AppendLine();
-        _performanceBuilder.Append("Draw calls: ").Append(drawCalls).AppendLine();
-        _performanceBuilder.Append("Vertices: ").Append(vertexCount).AppendLine();
-        _performanceBuilder.Append("Mesh avg: ")
-            .Append(_debugData.AverageMeshTimeMs.ToString("F2")).Append(" ms").AppendLine();
-        _performanceBuilder.Append("Memory: ")
-            .Append(memoryMegabytes.ToString("F1")).Append(" MB").AppendLine();
-        _performanceBuilder.Append("Pool: ").Append(_debugData.PoolActiveCount)
-            .Append(" active / ").Append(_debugData.PoolIdleCount).Append(" idle");
+        VBoxContainer content = new();
+        content.MouseFilter = MouseFilterEnum.Ignore;
+        panel.AddChild(content);
 
-        _performanceLabel.Text = _performanceBuilder.ToString();
+        Label header = CreateHeaderLabel(headerText);
+        content.AddChild(header);
+
+        Label dataLabel = CreateDataLabel();
+        content.AddChild(dataLabel);
+
+        return dataLabel;
     }
 
     private static PanelContainer CreatePanel()
@@ -280,48 +175,5 @@ public sealed partial class DebugOverlayNode : Control
         spacer.CustomMinimumSize = new Vector2(0, SectionSpacing);
         spacer.MouseFilter = MouseFilterEnum.Ignore;
         _leftColumn.AddChild(spacer);
-    }
-
-    private static string GetCardinalDirection(float yaw)
-    {
-        // Normalize to 0-360
-        float normalized = ((yaw % 360f) + 360f) % 360f;
-
-        if (normalized >= 337.5f || normalized < 22.5f)
-        {
-            return "South (+Z)";
-        }
-
-        if (normalized < 67.5f)
-        {
-            return "Southwest";
-        }
-
-        if (normalized < 112.5f)
-        {
-            return "West (-X)";
-        }
-
-        if (normalized < 157.5f)
-        {
-            return "Northwest";
-        }
-
-        if (normalized < 202.5f)
-        {
-            return "North (-Z)";
-        }
-
-        if (normalized < 247.5f)
-        {
-            return "Northeast";
-        }
-
-        if (normalized < 292.5f)
-        {
-            return "East (+X)";
-        }
-
-        return "Southeast";
     }
 }

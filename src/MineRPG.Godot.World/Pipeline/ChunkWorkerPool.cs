@@ -1,8 +1,6 @@
 using System;
-using System.Buffers;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -21,48 +19,36 @@ namespace MineRPG.Godot.World.Pipeline;
 /// <summary>
 /// Manages a fixed set of long-running worker tasks that consume work items
 /// from three priority queues: remesh (highest), generation, and save (lowest).
-///
-/// Thread safety: all queues and dedup dictionaries are concurrent.
-/// Workers run until the shutdown token is cancelled, at which point they
-/// drain remaining saves before exiting.
+/// Delegates processing to <see cref="GenerationWorkProcessor"/> and
+/// <see cref="RemeshWorkProcessor"/>.
 /// </summary>
 internal sealed class ChunkWorkerPool : IDisposable
 {
     private readonly ConcurrentQueue<RemeshWork> _remeshQueue = new();
     private readonly ConcurrentQueue<ChunkEntry> _generationQueue = new();
-
     private readonly ConcurrentDictionary<ChunkCoord, CancellationTokenSource> _pendingCts = new();
 
     private readonly SemaphoreSlim _workSignal;
     private readonly CancellationTokenSource _shutdownCts;
     private readonly Task[] _workers;
 
-    private readonly IChunkManager _chunkManager;
-    private readonly IWorldGenerator _generator;
-    private readonly IChunkMeshBuilder _meshBuilder;
     private readonly IEventBus _eventBus;
     private readonly ILogger _logger;
     private readonly ChunkPersistenceService? _persistence;
-    private readonly PerformanceMonitor? _performanceMonitor;
 
-    /// <summary>
-    /// Gets the block-edit result queue (high priority, drained without budget).
-    /// </summary>
+    private readonly GenerationWorkProcessor _generationProcessor;
+    private readonly RemeshWorkProcessor _remeshProcessor;
+
+    /// <summary>Gets the block-edit result queue (high priority, drained without budget).</summary>
     public ConcurrentQueue<ChunkEntry> BlockEditResultQueue { get; } = new();
 
-    /// <summary>
-    /// Gets the initial-load result queue (drained within frame budget).
-    /// </summary>
+    /// <summary>Gets the initial-load result queue (drained within frame budget).</summary>
     public ConcurrentQueue<ChunkEntry> LoadResultQueue { get; } = new();
 
-    /// <summary>
-    /// Gets the pending remesh dedup dictionary.
-    /// </summary>
+    /// <summary>Gets the pending remesh dedup dictionary.</summary>
     public ConcurrentDictionary<ChunkCoord, byte> PendingRemeshes { get; } = new();
 
-    /// <summary>
-    /// Gets the block-edit remesh dedup dictionary.
-    /// </summary>
+    /// <summary>Gets the block-edit remesh dedup dictionary.</summary>
     public ConcurrentDictionary<ChunkCoord, byte> BlockEditRemeshes { get; } = new();
 
     /// <summary>
@@ -71,14 +57,10 @@ internal sealed class ChunkWorkerPool : IDisposable
     /// </summary>
     public ConcurrentDictionary<ChunkCoord, byte> StaleEdits { get; } = new();
 
-    /// <summary>
-    /// Gets the save queue for enqueueing chunk saves.
-    /// </summary>
+    /// <summary>Gets the save queue for enqueueing chunk saves.</summary>
     public ConcurrentQueue<SaveWork> SaveQueue { get; } = new();
 
-    /// <summary>
-    /// Gets the total pending work item count across all queues.
-    /// </summary>
+    /// <summary>Gets the total pending work item count across all queues.</summary>
     public int PendingWorkCount =>
         BlockEditResultQueue.Count + LoadResultQueue.Count
         + _generationQueue.Count + _remeshQueue.Count + SaveQueue.Count;
@@ -89,7 +71,7 @@ internal sealed class ChunkWorkerPool : IDisposable
     /// <param name="chunkManager">Chunk manager for neighbor lookups.</param>
     /// <param name="generator">World generator for terrain creation.</param>
     /// <param name="meshBuilder">Mesh builder for chunk meshing.</param>
-    /// <param name="eventBus">Event bus for publishing save events (queued for main-thread flush).</param>
+    /// <param name="eventBus">Event bus for publishing save events.</param>
     /// <param name="logger">Logger for error reporting.</param>
     /// <param name="persistence">Optional persistence service for saves.</param>
     /// <param name="performanceMonitor">Optional performance metrics recorder.</param>
@@ -102,13 +84,17 @@ internal sealed class ChunkWorkerPool : IDisposable
         ChunkPersistenceService? persistence,
         PerformanceMonitor? performanceMonitor)
     {
-        _chunkManager = chunkManager;
-        _generator = generator;
-        _meshBuilder = meshBuilder;
         _eventBus = eventBus;
         _logger = logger;
         _persistence = persistence;
-        _performanceMonitor = performanceMonitor;
+
+        _generationProcessor = new GenerationWorkProcessor(
+            chunkManager, generator, meshBuilder, logger,
+            persistence, performanceMonitor, LoadResultQueue, _pendingCts);
+
+        _remeshProcessor = new RemeshWorkProcessor(
+            chunkManager, meshBuilder, logger,
+            performanceMonitor, PendingRemeshes, BlockEditRemeshes);
 
         int workerCount = Math.Max(1, System.Environment.ProcessorCount - 1);
         _shutdownCts = new CancellationTokenSource();
@@ -195,7 +181,6 @@ internal sealed class ChunkWorkerPool : IDisposable
 
     /// <summary>
     /// Flushes all dirty chunks to the save queue and shuts down workers.
-    /// Blocks until workers finish or the timeout expires.
     /// </summary>
     /// <param name="dirtyChunks">Dirty chunk entries to save before shutdown.</param>
     public void Shutdown(IEnumerable<ChunkEntry> dirtyChunks)
@@ -261,116 +246,19 @@ internal sealed class ChunkWorkerPool : IDisposable
 
             if (_remeshQueue.TryDequeue(out RemeshWork remeshWork))
             {
-                ProcessRemeshWork(remeshWork);
+                _remeshProcessor.Process(remeshWork);
                 continue;
             }
 
             if (_generationQueue.TryDequeue(out ChunkEntry? genEntry))
             {
-                ProcessGenerationWork(genEntry);
+                _generationProcessor.Process(genEntry);
                 continue;
             }
 
             if (SaveQueue.TryDequeue(out SaveWork saveWork))
             {
                 ProcessSaveWork(saveWork);
-            }
-        }
-    }
-
-    private void ProcessRemeshWork(RemeshWork work)
-    {
-        ushort[] buffer = ArrayPool<ushort>.Shared.Rent(ChunkData.TotalBlocks);
-
-        try
-        {
-            work.Entry.Data.CopyBlocksUnderReadLock(buffer);
-
-            ChunkData snapshotData = new(work.Coord);
-            snapshotData.LoadFromSpan(buffer);
-
-            work.Entry.SubChunks = snapshotData.ComputeSubChunkInfo();
-
-            ChunkData?[] neighbors = _chunkManager.GetNeighborData(work.Coord);
-
-            long meshStart = Stopwatch.GetTimestamp();
-            ChunkMeshResult mesh = _meshBuilder.Build(snapshotData, neighbors, CancellationToken.None);
-            _performanceMonitor?.RecordMeshTime(Stopwatch.GetTimestamp() - meshStart);
-            _performanceMonitor?.IncrementChunksMeshed();
-
-            work.Entry.PendingMesh = mesh;
-            work.Entry.SetState(ChunkState.Ready);
-            work.TargetQueue.Enqueue(work.Entry);
-        }
-        catch (Exception exception)
-        {
-            PendingRemeshes.TryRemove(work.Coord, out _);
-            BlockEditRemeshes.TryRemove(work.Coord, out _);
-            _logger.Error("Remesh failed for {0}: {1}", exception, work.Coord, exception.Message);
-        }
-        finally
-        {
-            ArrayPool<ushort>.Shared.Return(buffer);
-        }
-    }
-
-    private void ProcessGenerationWork(ChunkEntry entry)
-    {
-        _pendingCts.TryGetValue(entry.Coord, out CancellationTokenSource? cts);
-        CancellationToken token = cts?.Token ?? CancellationToken.None;
-
-        try
-        {
-            if (token.IsCancellationRequested)
-            {
-                return;
-            }
-
-            bool isLoaded = _persistence?.TryLoad(entry.Coord, entry.Data) ?? false;
-
-            if (!isLoaded)
-            {
-                _generator.Generate(entry, token);
-
-                if (token.IsCancellationRequested)
-                {
-                    return;
-                }
-            }
-
-            entry.SetState(ChunkState.Generated);
-            _performanceMonitor?.IncrementChunksGenerated();
-            entry.RecomputeSubChunkInfo();
-            entry.SetState(ChunkState.Meshing);
-
-            long meshStart = Stopwatch.GetTimestamp();
-            ChunkData?[] neighbors = _chunkManager.GetNeighborData(entry.Coord);
-            ChunkMeshResult mesh = _meshBuilder.Build(entry.Data, neighbors, token);
-            _performanceMonitor?.RecordMeshTime(Stopwatch.GetTimestamp() - meshStart);
-            _performanceMonitor?.IncrementChunksMeshed();
-
-            if (token.IsCancellationRequested)
-            {
-                return;
-            }
-
-            entry.PendingMesh = mesh;
-            entry.SetState(ChunkState.Ready);
-            LoadResultQueue.Enqueue(entry);
-        }
-        catch (OperationCanceledException)
-        {
-            // Expected when chunk is no longer needed
-        }
-        catch (Exception exception)
-        {
-            _logger.Error("Chunk generation failed for {0}: {1}", exception, entry.Coord, exception.Message);
-        }
-        finally
-        {
-            if (_pendingCts.TryRemove(entry.Coord, out CancellationTokenSource? removedCts))
-            {
-                removedCts.Dispose();
             }
         }
     }
