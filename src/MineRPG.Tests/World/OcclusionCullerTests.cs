@@ -1,5 +1,3 @@
-using System;
-
 using FluentAssertions;
 
 using MineRPG.Core.Math;
@@ -38,7 +36,7 @@ public sealed class OcclusionCullerTests
         // Player chunk is transparent (they're standing in it)
         culler.SetMatrix(playerChunk, ChunkVisibilityMatrix.AllVisible);
 
-        culler.Update(playerChunk, 16, ReadOnlySpan<FrustumPlane>.Empty);
+        culler.Update(playerChunk, 16);
 
         culler.IsChunkVisible(playerChunk).Should().BeTrue(
             "player's chunk should always be visible");
@@ -59,7 +57,7 @@ public sealed class OcclusionCullerTests
             }
         }
 
-        culler.Update(playerChunk, 16, ReadOnlySpan<FrustumPlane>.Empty);
+        culler.Update(playerChunk, 16);
 
         culler.IsChunkVisible(new ChunkCoord(1, 0)).Should().BeTrue();
         culler.IsChunkVisible(new ChunkCoord(0, 1)).Should().BeTrue();
@@ -89,7 +87,7 @@ public sealed class OcclusionCullerTests
             culler.SetMatrix(new ChunkCoord(2, z), ChunkVisibilityMatrix.Opaque);
         }
 
-        culler.Update(playerChunk, renderDistance, ReadOnlySpan<FrustumPlane>.Empty);
+        culler.Update(playerChunk, renderDistance);
 
         // Chunks behind the opaque wall should not be visible
         culler.IsChunkVisible(new ChunkCoord(3, 0)).Should().BeFalse(
@@ -123,7 +121,7 @@ public sealed class OcclusionCullerTests
             }
         }
 
-        culler.Update(playerChunk, 4, ReadOnlySpan<FrustumPlane>.Empty);
+        culler.Update(playerChunk, 4);
 
         // Chunks beyond render distance should not be in visible set
         culler.IsChunkVisible(new ChunkCoord(5, 0)).Should().BeFalse(

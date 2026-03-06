@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
@@ -99,11 +98,7 @@ public sealed class OcclusionCuller
     /// </summary>
     /// <param name="playerChunk">The player's current chunk coordinate.</param>
     /// <param name="renderDistance">The current render distance for BFS bounds.</param>
-    /// <param name="frustumPlanes">Frustum planes for combined frustum+BFS culling.</param>
-    public void Update(
-        ChunkCoord playerChunk,
-        int renderDistance,
-        ReadOnlySpan<FrustumPlane> frustumPlanes)
+    public void Update(ChunkCoord playerChunk, int renderDistance)
     {
         bool playerMoved = playerChunk != _lastPlayerChunk;
 
@@ -115,13 +110,10 @@ public sealed class OcclusionCuller
         _lastPlayerChunk = playerChunk;
         _isDirty = false;
 
-        RunBfs(playerChunk, renderDistance, frustumPlanes);
+        RunBfs(playerChunk, renderDistance);
     }
 
-    private void RunBfs(
-        ChunkCoord playerChunk,
-        int renderDistance,
-        ReadOnlySpan<FrustumPlane> frustumPlanes)
+    private void RunBfs(ChunkCoord playerChunk, int renderDistance)
     {
         _visibleChunks.Clear();
         _bfsQueue.Clear();
@@ -131,14 +123,10 @@ public sealed class OcclusionCuller
         _visibleChunks.Add(playerChunk);
 
         // Seed: propagate from player chunk to all 4 neighbors
-        EnqueueNeighbor(playerChunk, ChunkVisibilityMatrix.FaceNorth, renderDistance,
-            frustumPlanes, ChunkVisibilityMatrix.AllVisible);
-        EnqueueNeighbor(playerChunk, ChunkVisibilityMatrix.FaceSouth, renderDistance,
-            frustumPlanes, ChunkVisibilityMatrix.AllVisible);
-        EnqueueNeighbor(playerChunk, ChunkVisibilityMatrix.FaceEast, renderDistance,
-            frustumPlanes, ChunkVisibilityMatrix.AllVisible);
-        EnqueueNeighbor(playerChunk, ChunkVisibilityMatrix.FaceWest, renderDistance,
-            frustumPlanes, ChunkVisibilityMatrix.AllVisible);
+        EnqueueNeighbor(playerChunk, ChunkVisibilityMatrix.FaceNorth, renderDistance);
+        EnqueueNeighbor(playerChunk, ChunkVisibilityMatrix.FaceSouth, renderDistance);
+        EnqueueNeighbor(playerChunk, ChunkVisibilityMatrix.FaceEast, renderDistance);
+        EnqueueNeighbor(playerChunk, ChunkVisibilityMatrix.FaceWest, renderDistance);
 
         while (_bfsQueue.Count > 0)
         {
@@ -160,18 +148,12 @@ public sealed class OcclusionCuller
                     continue;
                 }
 
-                EnqueueNeighbor(current.Coord, exitFace, renderDistance,
-                    frustumPlanes, matrix);
+                EnqueueNeighbor(current.Coord, exitFace, renderDistance);
             }
         }
     }
 
-    private void EnqueueNeighbor(
-        ChunkCoord fromCoord,
-        int exitFace,
-        int renderDistance,
-        ReadOnlySpan<FrustumPlane> frustumPlanes,
-        ChunkVisibilityMatrix fromMatrix)
+    private void EnqueueNeighbor(ChunkCoord fromCoord, int exitFace, int renderDistance)
     {
         ChunkCoord neighborCoord = GetNeighborCoord(fromCoord, exitFace);
         int entryFace = ChunkVisibilityMatrix.OppositeFace(exitFace);
@@ -191,18 +173,6 @@ public sealed class OcclusionCuller
         if (distance > renderDistance)
         {
             return;
-        }
-
-        // Frustum check: skip chunks outside the camera frustum
-        if (frustumPlanes.Length > 0)
-        {
-            int worldX = neighborCoord.X * ChunkData.SizeX;
-            int worldZ = neighborCoord.Z * ChunkData.SizeZ;
-
-            if (!FrustumCuller.IsChunkVisible(frustumPlanes, worldX, worldZ))
-            {
-                return;
-            }
         }
 
         // Guard against runaway BFS

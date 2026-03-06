@@ -166,7 +166,7 @@ public sealed partial class FrustumCullingSystem : Node
                 renderDistance = scheduler.CurrentRenderDistance;
             }
 
-            _occlusionCuller!.Update(playerChunk, renderDistance, visiblePlanes);
+            _occlusionCuller!.Update(playerChunk, renderDistance);
         }
 
         int visibleChunks = 0;

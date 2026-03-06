@@ -100,7 +100,7 @@ public sealed class BlockInteractionService : IBlockInteractionService
 
         // Read the equipped tool each tick (player can change slot at any time)
         ToolProperties? tool = _hotbarController.GetSelectedToolProperties();
-        string equippedToolType = tool?.ToolType.ToString().ToLowerInvariant() ?? "";
+        string equippedToolType = tool?.ToolType.ToString().ToUpperInvariant() ?? "";
         int equippedToolTier = tool?.HarvestLevel ?? 0;
         float toolSpeed = tool?.MiningSpeed ?? 1f;
 
