@@ -149,6 +149,26 @@ public sealed partial class FrustumCullingSystem : Node
         bool useOcclusionCulling = _occlusionCuller is not null
             && (_optimizationFlags is null || _optimizationFlags.OcclusionCullingEnabled);
 
+        if (useOcclusionCulling)
+        {
+            Vector3 camPos = _camera!.GlobalPosition;
+            ChunkCoord2D camChunk2D = VoxelMath.WorldToChunk(
+                (int)MathF.Floor(camPos.X), (int)MathF.Floor(camPos.Z),
+                ChunkData.SizeX, ChunkData.SizeZ);
+            ChunkCoord playerChunk = new(camChunk2D.ChunkX, camChunk2D.ChunkZ);
+
+            int renderDistance = ChunkLoadingScheduler.DefaultRenderDistance;
+
+            if (ServiceLocator.Instance.TryGet<ChunkLoadingScheduler>(
+                    out ChunkLoadingScheduler? scheduler)
+                && scheduler is not null)
+            {
+                renderDistance = scheduler.CurrentRenderDistance;
+            }
+
+            _occlusionCuller!.Update(playerChunk, renderDistance, visiblePlanes);
+        }
+
         int visibleChunks = 0;
         int totalChunks = 0;
         int visibleSubChunks = 0;

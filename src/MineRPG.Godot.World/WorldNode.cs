@@ -35,6 +35,8 @@ public sealed partial class WorldNode : Node3D
     private ChunkLoadingScheduler? _scheduler;
     private WorldBlockEditor _blockEditor = null!;
     private ChunkCoord _lastKnownPlayerChunk = new(int.MinValue, int.MinValue);
+    private FrustumCullingSystem? _frustumCulling;
+    private OcclusionCuller? _occlusionCuller;
 
 #if DEBUG
     private ChunkBorderRenderer? _chunkBorderRenderer;
@@ -138,6 +140,7 @@ public sealed partial class WorldNode : Node3D
         node.Visible = true;
         AddChild(node);
         _chunkNodes[coord] = node;
+        _frustumCulling?.Invalidate();
         return node;
     }
 
@@ -163,6 +166,8 @@ public sealed partial class WorldNode : Node3D
 
         NodePool.Return(node);
         _chunkNodes.Remove(coord);
+        _frustumCulling?.Invalidate();
+        _occlusionCuller?.RemoveMatrix(coord);
     }
 
     /// <summary>
@@ -187,6 +192,18 @@ public sealed partial class WorldNode : Node3D
     /// <param name="node">The node to return.</param>
     public void ReturnChunkNodeToPool(ChunkNode node) => NodePool.Return(node);
 
+    /// <summary>
+    /// Sets the frustum culling system for invalidation on chunk changes.
+    /// </summary>
+    /// <param name="system">The frustum culling system instance.</param>
+    public void SetFrustumCulling(FrustumCullingSystem system) => _frustumCulling = system;
+
+    /// <summary>
+    /// Sets the occlusion culler for visibility matrix cleanup on chunk removal.
+    /// </summary>
+    /// <param name="occlusionCuller">The occlusion culler instance.</param>
+    public void SetOcclusionCuller(OcclusionCuller occlusionCuller) => _occlusionCuller = occlusionCuller;
+
     /// <summary>Breaks (removes) the block at the given world position.</summary>
     /// <param name="position">The world position of the block to break.</param>
     public void BreakBlock(WorldPosition position) => _blockEditor.BreakBlock(position);
@@ -196,7 +213,16 @@ public sealed partial class WorldNode : Node3D
     /// <param name="blockId">The block type identifier to place.</param>
     public void PlaceBlock(WorldPosition position, ushort blockId) => _blockEditor.PlaceBlock(position, blockId);
 
-    private void OnPlayerPositionUpdated(PlayerPositionUpdatedEvent evt) => UpdatePlayerPosition(evt.X, evt.Z);
+    private void OnPlayerPositionUpdated(PlayerPositionUpdatedEvent evt)
+    {
+        UpdatePlayerPosition(evt.X, evt.Z);
+
+        if (ServiceLocator.Instance.TryGet<ClipmapRenderer>(out ClipmapRenderer? clipmap)
+            && clipmap is not null)
+        {
+            clipmap.UpdatePlayerPosition(evt.X, evt.Z);
+        }
+    }
 
 #if DEBUG
     private void OnDebugToggle(DebugToggleEvent evt)

@@ -9,6 +9,7 @@ using MineRPG.World.Chunks;
 using MineRPG.World.Chunks.Serialization;
 using MineRPG.World.Generation;
 using MineRPG.World.Meshing;
+using MineRPG.World.Spatial;
 
 namespace MineRPG.Godot.World.Pipeline;
 
@@ -90,6 +91,7 @@ internal sealed class GenerationWorkProcessor
             entry.SetState(ChunkState.Generated);
             _performanceMonitor?.IncrementChunksGenerated();
             entry.RecomputeSubChunkInfo();
+            entry.VisibilityMatrix = VisibilityMatrixBuilder.Build(entry.Data, entry.SubChunks);
             entry.SetState(ChunkState.Meshing);
 
             long meshStart = Stopwatch.GetTimestamp();

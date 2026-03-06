@@ -1,5 +1,6 @@
 using Godot;
 
+using MineRPG.Core.Diagnostics;
 using MineRPG.Core.DI;
 using MineRPG.Core.Events;
 using MineRPG.Core.Events.Definitions;
@@ -7,6 +8,7 @@ using MineRPG.Core.Interfaces.Gameplay;
 using MineRPG.Core.Logging;
 using MineRPG.Entities.Player;
 using MineRPG.Godot.World;
+using MineRPG.Godot.World.Rendering;
 using MineRPG.World.Blocks;
 using MineRPG.World.Spatial;
 
@@ -46,8 +48,120 @@ public sealed partial class GameplayBootstrap : Node
 
         ServiceLocator.Instance.Register<IBlockInteractionService>(blockInteraction);
 
+        WireFrustumCulling(worldNode, logger);
+        WireOcclusionCuller(worldNode, logger);
+        WireClipmapRenderer(worldNode, logger);
+
         eventBus.Publish(new GameInitializedEvent());
 
         logger.Info("GameplayBootstrap: Scene references registered.");
+    }
+
+    private void WireFrustumCulling(WorldNode worldNode, ILogger logger)
+    {
+        FrustumCullingSystem frustumCulling = new();
+        frustumCulling.Name = "FrustumCullingSystem";
+        worldNode.AddChild(frustumCulling);
+
+        Camera3D? camera = FindCamera(worldNode);
+
+        if (camera is not null)
+        {
+            frustumCulling.SetCamera(camera);
+        }
+        else
+        {
+            logger.Warning("GameplayBootstrap: Camera3D not found for FrustumCullingSystem.");
+        }
+
+        frustumCulling.SetWorldNode(worldNode);
+
+        if (ServiceLocator.Instance.TryGet<OptimizationFlags>(out OptimizationFlags? flags)
+            && flags is not null)
+        {
+            frustumCulling.SetOptimizationFlags(flags);
+        }
+
+        ServiceLocator.Instance.Register(frustumCulling);
+        worldNode.SetFrustumCulling(frustumCulling);
+
+        logger.Info("GameplayBootstrap: FrustumCullingSystem wired.");
+    }
+
+    private void WireOcclusionCuller(WorldNode worldNode, ILogger logger)
+    {
+        if (!ServiceLocator.Instance.TryGet<FrustumCullingSystem>(out FrustumCullingSystem? frustumCulling)
+            || frustumCulling is null)
+        {
+            return;
+        }
+
+        OcclusionCuller occlusionCuller = new();
+        ServiceLocator.Instance.Register(occlusionCuller);
+        frustumCulling.SetOcclusionCuller(occlusionCuller);
+        worldNode.SetOcclusionCuller(occlusionCuller);
+
+        logger.Info("GameplayBootstrap: OcclusionCuller wired.");
+    }
+
+    private void WireClipmapRenderer(WorldNode worldNode, ILogger logger)
+    {
+        if (!ServiceLocator.Instance.TryGet<OptimizationFlags>(out OptimizationFlags? flags)
+            || flags is null || !flags.ClipmapEnabled)
+        {
+            return;
+        }
+
+        if (!ServiceLocator.Instance.TryGet<MineRPG.World.Generation.TerrainSampler>(
+                out MineRPG.World.Generation.TerrainSampler? terrainSampler)
+            || terrainSampler is null)
+        {
+            logger.Warning("GameplayBootstrap: TerrainSampler not found, skipping ClipmapRenderer.");
+            return;
+        }
+
+        ClipmapRenderer clipmap = new();
+        clipmap.Name = "ClipmapRenderer";
+        worldNode.AddChild(clipmap);
+
+        MineRPG.World.Terrain.ClipmapGenerator.HeightSampler heightSampler =
+            (float worldX, float worldZ) =>
+            {
+                MineRPG.World.Generation.TerrainColumn column =
+                    terrainSampler.SampleColumn((int)worldX, (int)worldZ);
+                return column.SurfaceY;
+            };
+
+        MineRPG.World.Terrain.ClipmapGenerator.ColorSampler colorSampler =
+            (float worldX, float worldZ, out float r, out float g, out float b) =>
+            {
+                r = 0.486f;
+                g = 0.741f;
+                b = 0.420f;
+            };
+
+        clipmap.Configure(new MineRPG.World.Terrain.ClipmapConfig(), heightSampler, colorSampler);
+        ServiceLocator.Instance.Register(clipmap);
+
+        logger.Info("GameplayBootstrap: ClipmapRenderer wired.");
+    }
+
+    private static Camera3D? FindCamera(WorldNode worldNode)
+    {
+        Camera3D? camera = worldNode.GetViewport()?.GetCamera3D();
+
+        if (camera is not null)
+        {
+            return camera;
+        }
+
+        Node? playerNode = worldNode.GetTree().Root.FindChild("PlayerNode", true, false);
+
+        if (playerNode is not null)
+        {
+            camera = playerNode.FindChild("Camera3D", true, false) as Camera3D;
+        }
+
+        return camera;
     }
 }
