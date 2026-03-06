@@ -27,6 +27,9 @@ public sealed partial class ControlsTabPanel : OptionsTabPanel
         new("attack", "Break Block"),
         new("interact", "Place Block"),
         new("debug_toggle", "Debug Overlay"),
+        new("toggle_fly", "Toggle Fly"),
+        new("fly_speed_up", "Fly Speed Up"),
+        new("fly_speed_down", "Fly Speed Down"),
     ];
 
     private const int RebindButtonFontSize = 14;

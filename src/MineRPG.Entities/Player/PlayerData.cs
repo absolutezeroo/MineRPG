@@ -16,6 +16,7 @@ public sealed class PlayerData
     public PlayerData(PlayerMovementSettings settings)
     {
         MovementSettings = settings;
+        CurrentFlySpeed = settings.FlySpeed;
     }
 
     /// <summary>Movement tuning parameters for this player.</summary>
@@ -47,6 +48,12 @@ public sealed class PlayerData
 
     /// <summary>Whether the player is currently sprinting.</summary>
     public bool IsSprinting { get; set; }
+
+    /// <summary>Whether the player is currently in fly mode.</summary>
+    public bool IsFlying { get; set; }
+
+    /// <summary>Current fly speed in blocks per second. Adjustable at runtime.</summary>
+    public float CurrentFlySpeed { get; set; }
 
     /// <summary>Block ID currently selected in the hotbar.</summary>
     public ushort SelectedBlockId { get; set; } = DefaultSelectedBlockId;

@@ -35,6 +35,7 @@ public sealed partial class DebugManager : Control
     private BiomeOverlayPanel? _biomeOverlayPanel;
 
     private IChunkDebugProvider? _chunkDebugProvider;
+    private global::Godot.Environment? _cachedEnvironment;
     private bool _chunkBorderVisible;
     private bool _anyModuleVisible;
 
@@ -64,10 +65,21 @@ public sealed partial class DebugManager : Control
 
         Sampler = new PerformanceSampler();
 
-        SetAnchorsPreset(LayoutPreset.FullRect);
+        // CanvasLayer children don't get FullRect from a parent Container,
+        // so size from viewport directly for child panels to anchor correctly.
+        Size = GetViewportRect().Size;
+        GetViewport().SizeChanged += OnViewportSizeChanged;
         MouseFilter = MouseFilterEnum.Ignore;
 
+        _eventBus.Subscribe<OptimizationFlagChangedEvent>(OnOptimizationFlagChanged);
+
         _logger.Debug("DebugManager ready.");
+    }
+
+    /// <inheritdoc />
+    public override void _ExitTree()
+    {
+        _eventBus?.Unsubscribe<OptimizationFlagChangedEvent>(OnOptimizationFlagChanged);
     }
 
     /// <inheritdoc />
@@ -325,6 +337,41 @@ public sealed partial class DebugManager : Control
             (_blockInspectorPanel is not null && _blockInspectorPanel.Visible) ||
             (_perfGraphPanel is not null && _perfGraphPanel.Visible) ||
             (_biomeOverlayPanel is not null && _biomeOverlayPanel.Visible);
+    }
+
+    private void OnViewportSizeChanged()
+    {
+        Size = GetViewportRect().Size;
+    }
+
+    private void OnOptimizationFlagChanged(OptimizationFlagChangedEvent evt)
+    {
+        ApplyRenderingFlags();
+    }
+
+    private void ApplyRenderingFlags()
+    {
+        // Wireframe mode
+        Viewport viewport = GetViewport();
+        viewport.DebugDraw = _optimizationFlags.WireframeModeEnabled
+            ? Viewport.DebugDrawEnum.Wireframe
+            : Viewport.DebugDrawEnum.Disabled;
+
+        // Volumetric fog
+        if (_cachedEnvironment is null)
+        {
+            Node? worldEnv = GetTree().Root.FindChild("WorldEnvironment", true, false);
+
+            if (worldEnv is WorldEnvironment env)
+            {
+                _cachedEnvironment = env.Environment;
+            }
+        }
+
+        if (_cachedEnvironment is not null)
+        {
+            _cachedEnvironment.VolumetricFogEnabled = _optimizationFlags.FogEnabled;
+        }
     }
 }
 #endif

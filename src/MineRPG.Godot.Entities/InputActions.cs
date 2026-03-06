@@ -38,4 +38,13 @@ public static class InputActions
 
     /// <summary>The debug overlay toggle input action.</summary>
     public static readonly StringName DebugToggle = new("debug_toggle");
+
+    /// <summary>Toggle fly mode input action.</summary>
+    public static readonly StringName ToggleFly = new("toggle_fly");
+
+    /// <summary>Increase fly speed input action.</summary>
+    public static readonly StringName FlySpeedUp = new("fly_speed_up");
+
+    /// <summary>Decrease fly speed input action.</summary>
+    public static readonly StringName FlySpeedDown = new("fly_speed_down");
 }

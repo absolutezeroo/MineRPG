@@ -1,9 +1,11 @@
 #if DEBUG
 using Godot;
 
+using MineRPG.Core.DI;
 using MineRPG.Core.Diagnostics;
 using MineRPG.Core.Events;
 using MineRPG.Core.Interfaces.Gameplay;
+using MineRPG.Core.Logging;
 using MineRPG.Godot.UI.Debug.Tabs;
 
 namespace MineRPG.Godot.UI.Debug;
@@ -12,8 +14,9 @@ namespace MineRPG.Godot.UI.Debug;
 /// F1 debug menu panel. Displays a side panel with tabbed content for
 /// rendering toggles, world controls, performance metrics, biome info,
 /// entity controls, and system information.
+/// Uses Control base (not PanelContainer) so anchors control sizing directly.
 /// </summary>
-public sealed partial class DebugMenuPanel : PanelContainer
+public sealed partial class DebugMenuPanel : Control
 {
     private const int TabCount = 6;
 
@@ -42,6 +45,15 @@ public sealed partial class DebugMenuPanel : PanelContainer
     private StyleBoxFlat _tabInactiveStyle = null!;
     private int _activeTab;
 
+    private ILogger _logger = null!;
+    private bool _sizeLogged;
+
+    // Diagnostic references
+    private PanelContainer _panel = null!;
+    private VBoxContainer _root = null!;
+    private ScrollContainer _scroll = null!;
+    private VBoxContainer _contentArea = null!;
+
     /// <summary>
     /// Creates the debug menu panel.
     /// </summary>
@@ -66,25 +78,40 @@ public sealed partial class DebugMenuPanel : PanelContainer
     /// <inheritdoc />
     public override void _Ready()
     {
-        CustomMinimumSize = new Vector2(DebugTheme.MenuPanelWidth, 0);
-        SetAnchorsPreset(LayoutPreset.LeftWide);
-        AddThemeStyleboxOverride("panel", DebugTheme.CreatePanelStyle());
-        MouseFilter = MouseFilterEnum.Stop;
+        _logger = ServiceLocator.Instance.Get<ILogger>();
 
-        VBoxContainer root = new();
-        root.AddThemeConstantOverride("separation", 4);
-        AddChild(root);
+        // Size directly from viewport — parent Control under CanvasLayer has size 0
+        Rect2 viewportRect = GetViewportRect();
+        Position = Vector2.Zero;
+        Size = new Vector2(DebugTheme.MenuPanelWidth, viewportRect.Size.Y);
+        MouseFilter = MouseFilterEnum.Stop;
+        GetViewport().SizeChanged += () =>
+        {
+            Size = new Vector2(DebugTheme.MenuPanelWidth, GetViewportRect().Size.Y);
+        };
+
+        // PanelContainer child: fills Control via FullRect, provides background + margins
+        _panel = new PanelContainer();
+        _panel.SetAnchorsPreset(LayoutPreset.FullRect);
+        _panel.AddThemeStyleboxOverride("panel", DebugTheme.CreatePanelStyle());
+        _panel.MouseFilter = MouseFilterEnum.Ignore;
+        AddChild(_panel);
+
+        // Root layout — managed by PanelContainer, NO anchors
+        _root = new VBoxContainer();
+        _root.AddThemeConstantOverride("separation", 4);
+        _panel.AddChild(_root);
 
         // Title
         Label title = new();
         title.Text = "Debug Menu (F1)";
         DebugTheme.ApplyLabelStyle(title, DebugTheme.TextAccent, DebugTheme.FontSizeTitle);
-        root.AddChild(title);
+        _root.AddChild(title);
 
         // Tab bar
         HBoxContainer tabBar = new();
         tabBar.AddThemeConstantOverride("separation", 2);
-        root.AddChild(tabBar);
+        _root.AddChild(tabBar);
 
         _tabActiveStyle = DebugTheme.CreateTabActiveStyle();
         _tabInactiveStyle = DebugTheme.CreateTabInactiveStyle();
@@ -106,23 +133,28 @@ public sealed partial class DebugMenuPanel : PanelContainer
 
         // Separator
         HSeparator separator = new();
-        root.AddChild(separator);
+        _root.AddChild(separator);
 
-        // Content area
-        VBoxContainer contentArea = new();
-        contentArea.SizeFlagsHorizontal = SizeFlags.ExpandFill;
-        contentArea.SizeFlagsVertical = SizeFlags.ExpandFill;
-        root.AddChild(contentArea);
+        // Scrollable content area (doc: ScrollContainer with single VBoxContainer child)
+        _scroll = new ScrollContainer();
+        _scroll.SizeFlagsVertical = SizeFlags.ExpandFill;
+        _scroll.HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled;
+        _root.AddChild(_scroll);
+
+        _contentArea = new VBoxContainer();
+        _contentArea.SizeFlagsHorizontal = SizeFlags.ExpandFill;
+        _contentArea.SizeFlagsVertical = SizeFlags.ExpandFill;
+        _scroll.AddChild(_contentArea);
 
         _tabs = new IDebugTab[TabCount];
         _tabContents = new Control[TabCount];
 
-        AddTab(contentArea, 0, new RenderingTab(_optimizationFlags, _eventBus, _performanceMonitor));
-        AddTab(contentArea, 1, new WorldTab(_debugData, _performanceMonitor));
-        AddTab(contentArea, 2, new PerformanceTab(_sampler, _performanceMonitor, _pipelineMetrics));
-        AddTab(contentArea, 3, new BiomeTab(_debugData, _chunkDebugProvider));
-        AddTab(contentArea, 4, new EntitiesTab(_debugData));
-        AddTab(contentArea, 5, new SystemTab(_sampler, _performanceMonitor));
+        AddTab(_contentArea, 0, new RenderingTab(_optimizationFlags, _eventBus, _performanceMonitor));
+        AddTab(_contentArea, 1, new WorldTab(_debugData, _performanceMonitor));
+        AddTab(_contentArea, 2, new PerformanceTab(_sampler, _performanceMonitor, _pipelineMetrics));
+        AddTab(_contentArea, 3, new BiomeTab(_debugData, _chunkDebugProvider));
+        AddTab(_contentArea, 4, new EntitiesTab(_debugData));
+        AddTab(_contentArea, 5, new SystemTab(_sampler, _performanceMonitor));
 
         SwitchToTab(0);
     }
@@ -131,7 +163,11 @@ public sealed partial class DebugMenuPanel : PanelContainer
     /// Updates the active tab display. Called by DebugManager.
     /// </summary>
     /// <param name="delta">Frame delta time in seconds.</param>
-    public void UpdateDisplay(double delta) => _tabs[_activeTab].UpdateDisplay(delta);
+    public void UpdateDisplay(double delta)
+    {
+        LogDiagnosticSizes();
+        _tabs[_activeTab].UpdateDisplay(delta);
+    }
 
     private void AddTab(VBoxContainer parent, int index, Control tabControl)
     {
@@ -154,6 +190,30 @@ public sealed partial class DebugMenuPanel : PanelContainer
                 "normal",
                 i == index ? _tabActiveStyle : _tabInactiveStyle);
         }
+    }
+
+    private void LogDiagnosticSizes()
+    {
+        if (_sizeLogged)
+        {
+            return;
+        }
+
+        _sizeLogged = true;
+        Control? parentControl = GetParent() as Control;
+        _logger.Debug(
+            "DebugMenuPanel DIAG: Parent={0} ParentSize={1} Viewport={2}",
+            GetParent().Name, parentControl?.Size ?? Vector2.Zero, GetViewportRect().Size);
+        _logger.Debug(
+            "DebugMenuPanel DIAG: Self={0} Panel={1} Root={2}",
+            Size, _panel.Size, _root.Size);
+        _logger.Debug(
+            "DebugMenuPanel DIAG: Scroll={0} Content={1} Children={2}",
+            _scroll.Size, _contentArea.Size, _contentArea.GetChildCount());
+        _logger.Debug(
+            "DebugMenuPanel DIAG: Tab0.Vis={0} Tab0.Size={1} Tab0.Children={2}",
+            _tabContents[0].Visible, _tabContents[0].Size,
+            ((Node)_tabContents[0]).GetChildCount());
     }
 }
 #endif

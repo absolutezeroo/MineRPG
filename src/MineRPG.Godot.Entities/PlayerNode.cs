@@ -30,6 +30,9 @@ public sealed partial class PlayerNode : CharacterBody3D
     /// </summary>
     private const float PhysicsSafeMargin = 0.01f;
 
+    /// <summary>Floor snap length for walking mode. Disabled in fly mode.</summary>
+    private const float DefaultFloorSnapLength = 0.1f;
+
     [Export] private Camera3D _camera = null!;
 
     private PlayerData _playerData = null!;
@@ -51,7 +54,7 @@ public sealed partial class PlayerNode : CharacterBody3D
         // CharacterBody3D physics tuning for voxel terrain
         SafeMargin = PhysicsSafeMargin;
         FloorConstantSpeed = true;
-        FloorSnapLength = 0.1f;
+        FloorSnapLength = DefaultFloorSnapLength;
         FloorStopOnSlope = true;
 
         // Resolve camera -- [Export] NodePath may not auto-resolve on private fields
@@ -91,7 +94,8 @@ public sealed partial class PlayerNode : CharacterBody3D
             return;
         }
 
-        if (@event is InputEventMouseMotion mouseMotion && _isMouseCaptured)
+        if (@event is InputEventMouseMotion mouseMotion &&
+            Input.MouseMode == Input.MouseModeEnum.Captured)
         {
             float sensitivity = _playerData.MovementSettings.MouseSensitivity;
             _playerData.CameraYaw -= mouseMotion.Relative.X * sensitivity;
@@ -111,10 +115,13 @@ public sealed partial class PlayerNode : CharacterBody3D
             }
         }
 
-        if (@event.IsActionPressed(InputActions.Interact))
+        if (@event.IsActionPressed(InputActions.Interact) &&
+            Input.MouseMode == Input.MouseModeEnum.Captured)
         {
             TryPlaceBlock();
         }
+
+        HandleFlyInput(@event);
     }
 
     /// <inheritdoc />
@@ -127,23 +134,32 @@ public sealed partial class PlayerNode : CharacterBody3D
 
         float deltaTime = (float)delta;
 
-        PlayerMovementSettings settings = _playerData.MovementSettings;
-
-        if (!IsOnFloor())
+        if (_playerData.IsFlying)
         {
-            Velocity = new Vector3(Velocity.X,
-                Velocity.Y - settings.Gravity * deltaTime,
-                Velocity.Z);
+            ProcessFlyMovement();
+        }
+        else
+        {
+            ProcessWalkMovement(deltaTime);
         }
 
-        if (Input.IsActionJustPressed(InputActions.Jump) && IsOnFloor())
+        MoveAndSlide();
+
+        _playerData.PositionX = Position.X;
+        _playerData.PositionY = Position.Y;
+        _playerData.PositionZ = Position.Z;
+
+        PublishPositionIfMoved();
+
+        // Only mine when mouse is captured - debug menu uses visible mouse
+        if (Input.MouseMode == Input.MouseModeEnum.Captured)
         {
-            Velocity = new Vector3(Velocity.X, settings.JumpVelocity, Velocity.Z);
+            TickMiningInput(deltaTime);
         }
+    }
 
-        _playerData.IsSprinting = Input.IsActionPressed(InputActions.Sprint);
-        float speed = _playerData.IsSprinting ? settings.SprintSpeed : settings.WalkSpeed;
-
+    private static Vector2 ReadHorizontalInput()
+    {
         Vector2 inputDirection = Vector2.Zero;
 
         if (Input.IsActionPressed(InputActions.MoveForward))
@@ -166,7 +182,29 @@ public sealed partial class PlayerNode : CharacterBody3D
             inputDirection.X += 1;
         }
 
-        inputDirection = inputDirection.Normalized();
+        return inputDirection.Normalized();
+    }
+
+    private void ProcessWalkMovement(float deltaTime)
+    {
+        PlayerMovementSettings settings = _playerData.MovementSettings;
+
+        if (!IsOnFloor())
+        {
+            Velocity = new Vector3(Velocity.X,
+                Velocity.Y - settings.Gravity * deltaTime,
+                Velocity.Z);
+        }
+
+        if (Input.IsActionJustPressed(InputActions.Jump) && IsOnFloor())
+        {
+            Velocity = new Vector3(Velocity.X, settings.JumpVelocity, Velocity.Z);
+        }
+
+        _playerData.IsSprinting = Input.IsActionPressed(InputActions.Sprint);
+        float speed = _playerData.IsSprinting ? settings.SprintSpeed : settings.WalkSpeed;
+
+        Vector2 inputDirection = ReadHorizontalInput();
 
         float yaw = _playerData.CameraYaw;
         Vector3 forward = new(-MathF.Sin(yaw), 0, -MathF.Cos(yaw));
@@ -177,15 +215,75 @@ public sealed partial class PlayerNode : CharacterBody3D
             moveDirection.X * speed,
             Velocity.Y,
             moveDirection.Z * speed);
+    }
 
-        MoveAndSlide();
+    private void ProcessFlyMovement()
+    {
+        float speed = _playerData.CurrentFlySpeed;
+        Vector2 inputDirection = ReadHorizontalInput();
 
-        _playerData.PositionX = Position.X;
-        _playerData.PositionY = Position.Y;
-        _playerData.PositionZ = Position.Z;
+        float yaw = _playerData.CameraYaw;
+        Vector3 forward = new(-MathF.Sin(yaw), 0, -MathF.Cos(yaw));
+        Vector3 right = new(MathF.Cos(yaw), 0, -MathF.Sin(yaw));
+        Vector3 moveDirection = forward * -inputDirection.Y + right * inputDirection.X;
 
-        PublishPositionIfMoved();
-        TickMiningInput(deltaTime);
+        float verticalSpeed = 0f;
+
+        if (Input.IsActionPressed(InputActions.Jump))
+        {
+            verticalSpeed = speed;
+        }
+
+        if (Input.IsActionPressed(InputActions.Sprint))
+        {
+            verticalSpeed = -speed;
+        }
+
+        Velocity = new Vector3(
+            moveDirection.X * speed,
+            verticalSpeed,
+            moveDirection.Z * speed);
+    }
+
+    private void HandleFlyInput(InputEvent @event)
+    {
+        if (@event.IsActionPressed(InputActions.ToggleFly))
+        {
+            _playerData.IsFlying = !_playerData.IsFlying;
+            FloorSnapLength = _playerData.IsFlying ? 0f : DefaultFloorSnapLength;
+
+            if (_playerData.IsFlying)
+            {
+                Velocity = new Vector3(Velocity.X, 0f, Velocity.Z);
+            }
+
+            _logger.Info("Fly mode {0} (speed: {1})",
+                _playerData.IsFlying ? "ON" : "OFF",
+                _playerData.CurrentFlySpeed);
+            return;
+        }
+
+        if (!_playerData.IsFlying)
+        {
+            return;
+        }
+
+        if (@event.IsActionPressed(InputActions.FlySpeedUp))
+        {
+            PlayerMovementSettings settings = _playerData.MovementSettings;
+            _playerData.CurrentFlySpeed = MathF.Min(
+                _playerData.CurrentFlySpeed + settings.FlySpeedStep,
+                settings.MaxFlySpeed);
+            _logger.Info("Fly speed: {0}", _playerData.CurrentFlySpeed);
+        }
+        else if (@event.IsActionPressed(InputActions.FlySpeedDown))
+        {
+            PlayerMovementSettings settings = _playerData.MovementSettings;
+            _playerData.CurrentFlySpeed = MathF.Max(
+                _playerData.CurrentFlySpeed - settings.FlySpeedStep,
+                settings.MinFlySpeed);
+            _logger.Info("Fly speed: {0}", _playerData.CurrentFlySpeed);
+        }
     }
 
     private void OnWorldReady(WorldReadyEvent evt)

@@ -27,6 +27,18 @@ public sealed class PlayerMovementSettings
     /// <summary>Default number of hotbar slots.</summary>
     private const int DefaultHotbarSize = 9;
 
+    /// <summary>Default fly speed in blocks per second.</summary>
+    private const float DefaultFlySpeed = 10.0f;
+
+    /// <summary>Minimum fly speed in blocks per second.</summary>
+    private const float DefaultMinFlySpeed = 1.0f;
+
+    /// <summary>Maximum fly speed in blocks per second.</summary>
+    private const float DefaultMaxFlySpeed = 50.0f;
+
+    /// <summary>Speed increment per key press in blocks per second.</summary>
+    private const float DefaultFlySpeedStep = 2.0f;
+
     /// <summary>Walk speed in blocks per second.</summary>
     public float WalkSpeed { get; init; } = DefaultWalkSpeed;
 
@@ -47,4 +59,16 @@ public sealed class PlayerMovementSettings
 
     /// <summary>Number of slots in the player hotbar.</summary>
     public int HotbarSize { get; init; } = DefaultHotbarSize;
+
+    /// <summary>Default fly speed in blocks per second.</summary>
+    public float FlySpeed { get; init; } = DefaultFlySpeed;
+
+    /// <summary>Minimum fly speed in blocks per second.</summary>
+    public float MinFlySpeed { get; init; } = DefaultMinFlySpeed;
+
+    /// <summary>Maximum fly speed in blocks per second.</summary>
+    public float MaxFlySpeed { get; init; } = DefaultMaxFlySpeed;
+
+    /// <summary>Speed change per key press in blocks per second.</summary>
+    public float FlySpeedStep { get; init; } = DefaultFlySpeedStep;
 }
