@@ -40,7 +40,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Todos\" />
+    <Content Include="Todos\OPTIMISATION_ROADMAP.md" />
   </ItemGroup>
 
 </Project>

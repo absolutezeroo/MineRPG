@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Threading;
@@ -17,6 +18,7 @@ namespace MineRPG.Godot.World.Pipeline;
 /// <summary>
 /// Processes chunk generation work items: loads from persistence or generates
 /// new terrain, meshes the result, and enqueues it for the main thread.
+/// Supports LOD downsampling and vertex packing when optimization flags are enabled.
 /// </summary>
 internal sealed class GenerationWorkProcessor
 {
@@ -26,8 +28,12 @@ internal sealed class GenerationWorkProcessor
     private readonly ILogger _logger;
     private readonly ChunkPersistenceService? _persistence;
     private readonly PerformanceMonitor? _performanceMonitor;
+    private readonly OptimizationFlags? _optimizationFlags;
     private readonly ConcurrentQueue<ChunkEntry> _loadResultQueue;
     private readonly ConcurrentDictionary<ChunkCoord, CancellationTokenSource> _pendingCts;
+
+    private volatile int _playerChunkX;
+    private volatile int _playerChunkZ;
 
     /// <summary>
     /// Creates a generation work processor.
@@ -38,6 +44,7 @@ internal sealed class GenerationWorkProcessor
     /// <param name="logger">Logger for error reporting.</param>
     /// <param name="persistence">Optional persistence for loading saved chunks.</param>
     /// <param name="performanceMonitor">Optional performance metrics recorder.</param>
+    /// <param name="optimizationFlags">Optional optimization flags for LOD and packing.</param>
     /// <param name="loadResultQueue">Queue to deliver completed entries.</param>
     /// <param name="pendingCts">Shared pending cancellation token dictionary.</param>
     public GenerationWorkProcessor(
@@ -47,6 +54,7 @@ internal sealed class GenerationWorkProcessor
         ILogger logger,
         ChunkPersistenceService? persistence,
         PerformanceMonitor? performanceMonitor,
+        OptimizationFlags? optimizationFlags,
         ConcurrentQueue<ChunkEntry> loadResultQueue,
         ConcurrentDictionary<ChunkCoord, CancellationTokenSource> pendingCts)
     {
@@ -56,13 +64,26 @@ internal sealed class GenerationWorkProcessor
         _logger = logger;
         _persistence = persistence;
         _performanceMonitor = performanceMonitor;
+        _optimizationFlags = optimizationFlags;
         _loadResultQueue = loadResultQueue;
         _pendingCts = pendingCts;
     }
 
     /// <summary>
+    /// Updates the known player chunk position used for LOD distance calculations.
+    /// Called from the main thread before enqueueing generation work.
+    /// </summary>
+    /// <param name="chunkX">The player's current chunk X coordinate.</param>
+    /// <param name="chunkZ">The player's current chunk Z coordinate.</param>
+    public void UpdatePlayerChunk(int chunkX, int chunkZ)
+    {
+        _playerChunkX = chunkX;
+        _playerChunkZ = chunkZ;
+    }
+
+    /// <summary>
     /// Processes a single generation work item. Loads from persistence or generates,
-    /// then meshes and enqueues the result.
+    /// then meshes and enqueues the result. Applies LOD and packing if enabled.
     /// </summary>
     /// <param name="entry">The chunk entry to generate.</param>
     public void Process(ChunkEntry entry)
@@ -95,15 +116,59 @@ internal sealed class GenerationWorkProcessor
             entry.VisibilityMatrix = VisibilityMatrixBuilder.Build(entry.Data, entry.SubChunks);
             entry.SetState(ChunkState.Meshing);
 
+            // Determine LOD level based on distance
+            ChunkData meshSourceData = entry.Data;
+
+            if (_optimizationFlags is null || _optimizationFlags.LodEnabled)
+            {
+                ChunkCoord playerChunk = new(_playerChunkX, _playerChunkZ);
+                int distance = entry.Coord.ChebyshevDistance(playerChunk);
+                entry.CurrentLod = LodPolicy.GetInitialLod(distance);
+            }
+
+            // Downsample if LOD > 0
+            if (entry.CurrentLod != LodLevel.Lod0 && (_optimizationFlags is null || _optimizationFlags.LodEnabled))
+            {
+                int factor = LodPolicy.GetDownsampleFactor(entry.CurrentLod);
+                ushort[] downsampledBuffer = ArrayPool<ushort>.Shared.Rent(ChunkDownsampler.GetOutputSize(factor));
+
+                try
+                {
+                    ChunkDownsampler.Downsample(
+                        entry.Data, factor, downsampledBuffer,
+                        out int outSizeX, out int outSizeY, out int outSizeZ);
+
+                    meshSourceData = ChunkDownsampler.Expand(
+                        entry.Coord, downsampledBuffer, outSizeX, outSizeY, outSizeZ, factor);
+                }
+                finally
+                {
+                    ArrayPool<ushort>.Shared.Return(downsampledBuffer);
+                }
+            }
+
             long meshStart = Stopwatch.GetTimestamp();
             ChunkData?[] neighbors = _chunkManager.GetNeighborData(entry.Coord);
-            ChunkMeshResult mesh = _meshBuilder.Build(entry.Data, neighbors, token);
+            ChunkMeshResult mesh = _meshBuilder.Build(meshSourceData, neighbors, token);
             _performanceMonitor?.RecordMeshTime(Stopwatch.GetTimestamp() - meshStart);
             _performanceMonitor?.IncrementChunksMeshed();
 
             if (token.IsCancellationRequested)
             {
                 return;
+            }
+
+            // Scale vertex positions for LOD meshes
+            if (entry.CurrentLod != LodLevel.Lod0)
+            {
+                int factor = LodPolicy.GetDownsampleFactor(entry.CurrentLod);
+                mesh = MeshScaler.ScaleResult(mesh, factor);
+            }
+
+            // Pack vertices for memory-efficient transport
+            if (_optimizationFlags is null || _optimizationFlags.VertexPackingEnabled)
+            {
+                mesh = MeshPackHelper.PackResult(mesh);
             }
 
             entry.PendingMesh = mesh;
@@ -126,4 +191,5 @@ internal sealed class GenerationWorkProcessor
             }
         }
     }
+
 }

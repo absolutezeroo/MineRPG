@@ -1,5 +1,6 @@
 using System;
 
+using MineRPG.Core.Math;
 using MineRPG.World.Chunks;
 
 namespace MineRPG.World.Meshing;
@@ -162,5 +163,65 @@ public static class ChunkDownsampler
         int outY = ChunkData.SizeY / factor;
         int outZ = ChunkData.SizeZ / factor;
         return outX * outY * outZ;
+    }
+
+    /// <summary>
+    /// Creates a standard-size <see cref="ChunkData"/> filled with expanded downsampled blocks.
+    /// Each downsampled block is written to all positions in its factor-sized region
+    /// to avoid spurious internal faces when meshing.
+    /// </summary>
+    /// <param name="coord">The chunk coordinate.</param>
+    /// <param name="downsampled">The downsampled block array from <see cref="Downsample"/>.</param>
+    /// <param name="outSizeX">The output X dimension from <see cref="Downsample"/>.</param>
+    /// <param name="outSizeY">The output Y dimension from <see cref="Downsample"/>.</param>
+    /// <param name="outSizeZ">The output Z dimension from <see cref="Downsample"/>.</param>
+    /// <param name="factor">The downsampling factor used.</param>
+    /// <returns>A full-size ChunkData with expanded blocks.</returns>
+    public static ChunkData Expand(
+        ChunkCoord coord,
+        ushort[] downsampled,
+        int outSizeX,
+        int outSizeY,
+        int outSizeZ,
+        int factor)
+    {
+        ChunkData expandedChunk = new(coord);
+
+        for (int outY = 0; outY < outSizeY; outY++)
+        {
+            for (int outZ = 0; outZ < outSizeZ; outZ++)
+            {
+                for (int outX = 0; outX < outSizeX; outX++)
+                {
+                    int srcIndex = outX + outZ * outSizeX + outY * outSizeX * outSizeZ;
+                    ushort blockId = downsampled[srcIndex];
+
+                    if (blockId == 0)
+                    {
+                        continue;
+                    }
+
+                    for (int dy = 0; dy < factor; dy++)
+                    {
+                        for (int dz = 0; dz < factor; dz++)
+                        {
+                            for (int dx = 0; dx < factor; dx++)
+                            {
+                                int worldX = outX * factor + dx;
+                                int worldY = outY * factor + dy;
+                                int worldZ = outZ * factor + dz;
+
+                                if (ChunkData.IsInBounds(worldX, worldY, worldZ))
+                                {
+                                    expandedChunk.SetBlock(worldX, worldY, worldZ, blockId);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return expandedChunk;
     }
 }

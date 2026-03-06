@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 
 using MineRPG.Core.DataLoading;
+using MineRPG.Core.Diagnostics;
 using MineRPG.Core.DI;
 using MineRPG.Core.Events;
 using MineRPG.Core.Events.Definitions;
@@ -9,9 +10,11 @@ using MineRPG.Core.Logging;
 using MineRPG.Core.Math;
 using MineRPG.World.Chunks;
 using MineRPG.World.Events;
+using MineRPG.World.Meshing;
 using MineRPG.World.Spatial;
 
 using MineRPG.Godot.World.Chunks;
+using MineRPG.Godot.World.Rendering;
 
 namespace MineRPG.Godot.World.Pipeline;
 
@@ -29,6 +32,9 @@ internal sealed class ChunkResultDrainer
     private readonly ILogger _logger;
     private readonly WorldNode _worldNode;
     private readonly PreloadProgress? _preloadProgress;
+    private readonly OptimizationFlags? _optimizationFlags;
+    private RegionManager? _regionManager;
+    private RegionLayerBuilder? _regionLayerBuilder;
 
     /// <summary>
     /// Creates a result drainer.
@@ -39,13 +45,15 @@ internal sealed class ChunkResultDrainer
     /// <param name="logger">Logger for diagnostics.</param>
     /// <param name="worldNode">World node for chunk node creation.</param>
     /// <param name="preloadProgress">Optional preload progress tracker.</param>
+    /// <param name="optimizationFlags">Optional optimization flags for batching.</param>
     public ChunkResultDrainer(
         ChunkWorkerPool workerPool,
         IChunkManager chunkManager,
         IEventBus eventBus,
         ILogger logger,
         WorldNode worldNode,
-        PreloadProgress? preloadProgress)
+        PreloadProgress? preloadProgress,
+        OptimizationFlags? optimizationFlags = null)
     {
         _workerPool = workerPool;
         _chunkManager = chunkManager;
@@ -53,6 +61,7 @@ internal sealed class ChunkResultDrainer
         _logger = logger;
         _worldNode = worldNode;
         _preloadProgress = preloadProgress;
+        _optimizationFlags = optimizationFlags;
     }
 
     /// <summary>
@@ -102,7 +111,22 @@ internal sealed class ChunkResultDrainer
         ChunkNode chunkNode = _worldNode.GetOrCreateChunkNode(entry.Coord);
         chunkNode.ApplyMesh(entry.PendingMesh!);
         chunkNode.SubChunkMetadata = entry.SubChunks;
+        entry.LastMeshResult = entry.PendingMesh;
         entry.PendingMesh = null;
+
+        // Region batching: hide individual chunk and rebuild the region's combined mesh
+        if (_optimizationFlags is not null && _optimizationFlags.DrawCallBatchingEnabled
+            && entry.CurrentLod == LodLevel.Lod0)
+        {
+            EnsureRegionManager();
+
+            if (_regionManager is not null && _regionLayerBuilder is not null)
+            {
+                ChunkRegion region = _regionManager.GetOrCreateRegion(entry.Coord);
+                chunkNode.Visible = false;
+                _regionLayerBuilder.RebuildRegion(region);
+            }
+        }
 
         if (entry.VisibilityMatrix.HasValue
             && ServiceLocator.Instance.TryGet<OcclusionCuller>(out OcclusionCuller? culler)
@@ -148,6 +172,25 @@ internal sealed class ChunkResultDrainer
                 _workerPool.BlockEditRemeshes.TryAdd(entry.Coord, 0);
                 _workerPool.EnqueueBlockEditRemesh(staleEntry, entry.Coord);
             }
+        }
+    }
+
+    /// <summary>
+    /// Lazily resolves the RegionManager from ServiceLocator.
+    /// RegionManager is created by GameplayBootstrap after the scheduler is ready.
+    /// </summary>
+    private void EnsureRegionManager()
+    {
+        if (_regionManager is not null)
+        {
+            return;
+        }
+
+        if (ServiceLocator.Instance.TryGet<RegionManager>(out RegionManager? manager)
+            && manager is not null)
+        {
+            _regionManager = manager;
+            _regionLayerBuilder = new RegionLayerBuilder(_chunkManager);
         }
     }
 

@@ -75,6 +75,7 @@ internal sealed class ChunkWorkerPool : IDisposable
     /// <param name="logger">Logger for error reporting.</param>
     /// <param name="persistence">Optional persistence service for saves.</param>
     /// <param name="performanceMonitor">Optional performance metrics recorder.</param>
+    /// <param name="optimizationFlags">Optional optimization flags for LOD and packing.</param>
     public ChunkWorkerPool(
         IChunkManager chunkManager,
         IWorldGenerator generator,
@@ -82,7 +83,8 @@ internal sealed class ChunkWorkerPool : IDisposable
         IEventBus eventBus,
         ILogger logger,
         ChunkPersistenceService? persistence,
-        PerformanceMonitor? performanceMonitor)
+        PerformanceMonitor? performanceMonitor,
+        OptimizationFlags? optimizationFlags = null)
     {
         _eventBus = eventBus;
         _logger = logger;
@@ -90,11 +92,11 @@ internal sealed class ChunkWorkerPool : IDisposable
 
         _generationProcessor = new GenerationWorkProcessor(
             chunkManager, generator, meshBuilder, logger,
-            persistence, performanceMonitor, LoadResultQueue, _pendingCts);
+            persistence, performanceMonitor, optimizationFlags, LoadResultQueue, _pendingCts);
 
         _remeshProcessor = new RemeshWorkProcessor(
             chunkManager, meshBuilder, logger,
-            performanceMonitor, PendingRemeshes, BlockEditRemeshes);
+            performanceMonitor, optimizationFlags, PendingRemeshes, BlockEditRemeshes);
 
         int workerCount = Math.Max(1, System.Environment.ProcessorCount - 1);
         _shutdownCts = new CancellationTokenSource();
@@ -105,6 +107,17 @@ internal sealed class ChunkWorkerPool : IDisposable
         {
             _workers[i] = Task.Run(() => WorkerLoopAsync(_shutdownCts.Token));
         }
+    }
+
+    /// <summary>
+    /// Updates the known player chunk position used for LOD distance calculations.
+    /// Called from the main thread before enqueueing generation work.
+    /// </summary>
+    /// <param name="chunkX">The player's current chunk X coordinate.</param>
+    /// <param name="chunkZ">The player's current chunk Z coordinate.</param>
+    public void UpdatePlayerChunk(int chunkX, int chunkZ)
+    {
+        _generationProcessor.UpdatePlayerChunk(chunkX, chunkZ);
     }
 
     /// <summary>

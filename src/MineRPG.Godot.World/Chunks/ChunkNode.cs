@@ -22,6 +22,9 @@ public sealed partial class ChunkNode : Node3D
     private static Material? _sharedMaterial;
     private static Material? _sharedWaterMaterial;
 
+    /// <summary>Gets the shared opaque terrain material for use by region batching.</summary>
+    public static Material? SharedMaterial => _sharedMaterial;
+
     private StaticBody3D _staticBody = null!;
     private CollisionShape3D _collisionShape = null!;
     private ILogger _logger = null!;
@@ -120,14 +123,14 @@ public sealed partial class ChunkNode : Node3D
 
             int surfaceIndex = 0;
 
-            if (!subChunkMesh.Opaque.IsEmpty)
+            if (subChunkMesh.HasOpaque)
             {
                 instance.SetSurfaceOverrideMaterial(
                     surfaceIndex, _sharedMaterial ?? CreateFallbackMaterial());
                 surfaceIndex++;
             }
 
-            if (!subChunkMesh.Liquid.IsEmpty)
+            if (subChunkMesh.HasLiquid)
             {
                 instance.SetSurfaceOverrideMaterial(
                     surfaceIndex, _sharedWaterMaterial ?? CreateFallbackMaterial());
@@ -166,14 +169,14 @@ public sealed partial class ChunkNode : Node3D
 
         int surfaceIndex = 0;
 
-        if (!subChunkMesh.Opaque.IsEmpty)
+        if (subChunkMesh.HasOpaque)
         {
             instance.SetSurfaceOverrideMaterial(
                 surfaceIndex, _sharedMaterial ?? CreateFallbackMaterial());
             surfaceIndex++;
         }
 
-        if (!subChunkMesh.Liquid.IsEmpty)
+        if (subChunkMesh.HasLiquid)
         {
             instance.SetSurfaceOverrideMaterial(
                 surfaceIndex, _sharedWaterMaterial ?? CreateFallbackMaterial());

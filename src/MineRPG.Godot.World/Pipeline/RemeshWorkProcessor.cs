@@ -16,6 +16,7 @@ namespace MineRPG.Godot.World.Pipeline;
 /// <summary>
 /// Processes chunk remesh work items: snapshots block data, rebuilds the mesh,
 /// and enqueues the result for the main thread.
+/// Respects the chunk's current LOD level and applies vertex packing if enabled.
 /// </summary>
 internal sealed class RemeshWorkProcessor
 {
@@ -23,6 +24,7 @@ internal sealed class RemeshWorkProcessor
     private readonly IChunkMeshBuilder _meshBuilder;
     private readonly ILogger _logger;
     private readonly PerformanceMonitor? _performanceMonitor;
+    private readonly OptimizationFlags? _optimizationFlags;
     private readonly ConcurrentDictionary<ChunkCoord, byte> _pendingRemeshes;
     private readonly ConcurrentDictionary<ChunkCoord, byte> _blockEditRemeshes;
 
@@ -33,6 +35,7 @@ internal sealed class RemeshWorkProcessor
     /// <param name="meshBuilder">Mesh builder for chunk meshing.</param>
     /// <param name="logger">Logger for error reporting.</param>
     /// <param name="performanceMonitor">Optional performance metrics recorder.</param>
+    /// <param name="optimizationFlags">Optional optimization flags for LOD and packing.</param>
     /// <param name="pendingRemeshes">Shared dedup dictionary for pending remeshes.</param>
     /// <param name="blockEditRemeshes">Shared dedup dictionary for block-edit remeshes.</param>
     public RemeshWorkProcessor(
@@ -40,6 +43,7 @@ internal sealed class RemeshWorkProcessor
         IChunkMeshBuilder meshBuilder,
         ILogger logger,
         PerformanceMonitor? performanceMonitor,
+        OptimizationFlags? optimizationFlags,
         ConcurrentDictionary<ChunkCoord, byte> pendingRemeshes,
         ConcurrentDictionary<ChunkCoord, byte> blockEditRemeshes)
     {
@@ -47,13 +51,14 @@ internal sealed class RemeshWorkProcessor
         _meshBuilder = meshBuilder;
         _logger = logger;
         _performanceMonitor = performanceMonitor;
+        _optimizationFlags = optimizationFlags;
         _pendingRemeshes = pendingRemeshes;
         _blockEditRemeshes = blockEditRemeshes;
     }
 
     /// <summary>
     /// Processes a single remesh work item. Snapshots data, computes sub-chunks,
-    /// builds mesh, and enqueues the result.
+    /// builds mesh, applies LOD scaling and packing, and enqueues the result.
     /// </summary>
     /// <param name="work">The remesh work item to process.</param>
     public void Process(RemeshWork work)
@@ -70,12 +75,49 @@ internal sealed class RemeshWorkProcessor
             work.Entry.SubChunks = snapshotData.ComputeSubChunkInfo();
             work.Entry.VisibilityMatrix = VisibilityMatrixBuilder.Build(snapshotData, work.Entry.SubChunks);
 
+            // Use downsampled data if LOD > 0
+            ChunkData meshSourceData = snapshotData;
+            LodLevel currentLod = work.Entry.CurrentLod;
+
+            if (currentLod != LodLevel.Lod0 && (_optimizationFlags is null || _optimizationFlags.LodEnabled))
+            {
+                int factor = LodPolicy.GetDownsampleFactor(currentLod);
+                ushort[] downsampledBuffer = ArrayPool<ushort>.Shared.Rent(ChunkDownsampler.GetOutputSize(factor));
+
+                try
+                {
+                    ChunkDownsampler.Downsample(
+                        snapshotData, factor, downsampledBuffer,
+                        out int outSizeX, out int outSizeY, out int outSizeZ);
+
+                    meshSourceData = ChunkDownsampler.Expand(
+                        work.Coord, downsampledBuffer, outSizeX, outSizeY, outSizeZ, factor);
+                }
+                finally
+                {
+                    ArrayPool<ushort>.Shared.Return(downsampledBuffer);
+                }
+            }
+
             ChunkData?[] neighbors = _chunkManager.GetNeighborData(work.Coord);
 
             long meshStart = Stopwatch.GetTimestamp();
-            ChunkMeshResult mesh = _meshBuilder.Build(snapshotData, neighbors, CancellationToken.None);
+            ChunkMeshResult mesh = _meshBuilder.Build(meshSourceData, neighbors, CancellationToken.None);
             _performanceMonitor?.RecordMeshTime(Stopwatch.GetTimestamp() - meshStart);
             _performanceMonitor?.IncrementChunksMeshed();
+
+            // Scale vertex positions for LOD meshes
+            if (currentLod != LodLevel.Lod0)
+            {
+                int factor = LodPolicy.GetDownsampleFactor(currentLod);
+                mesh = MeshScaler.ScaleResult(mesh, factor);
+            }
+
+            // Pack vertices for memory-efficient transport
+            if (_optimizationFlags is null || _optimizationFlags.VertexPackingEnabled)
+            {
+                mesh = MeshPackHelper.PackResult(mesh);
+            }
 
             work.Entry.PendingMesh = mesh;
             work.Entry.SetState(ChunkState.Ready);
@@ -92,4 +134,5 @@ internal sealed class RemeshWorkProcessor
             ArrayPool<ushort>.Shared.Return(buffer);
         }
     }
+
 }

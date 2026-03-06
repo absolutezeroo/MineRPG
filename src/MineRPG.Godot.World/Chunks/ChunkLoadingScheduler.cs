@@ -46,6 +46,7 @@ public sealed partial class ChunkLoadingScheduler : Node
     private WorldNode _worldNode = null!;
     private PerformanceMonitor? _performanceMonitor;
     private ChunkPersistenceService? _persistence;
+    private OptimizationFlags? _optimizationFlags;
 
     private readonly List<ChunkEntry> _loadBuffer = new();
     private readonly List<ChunkCoord> _unloadBuffer = new();
@@ -76,6 +77,11 @@ public sealed partial class ChunkLoadingScheduler : Node
             _performanceMonitor.SetRenderDistance(CurrentRenderDistance);
         }
 
+        if (ServiceLocator.Instance.TryGet<OptimizationFlags>(out OptimizationFlags? flags))
+        {
+            _optimizationFlags = flags;
+        }
+
         PreloadProgress? preloadProgress = null;
 
         if (ServiceLocator.Instance.TryGet<PreloadProgress>(out PreloadProgress? progress))
@@ -84,9 +90,11 @@ public sealed partial class ChunkLoadingScheduler : Node
         }
 
         _workerPool = new ChunkWorkerPool(
-            _chunkManager, generator, meshBuilder, _eventBus, _logger, _persistence, _performanceMonitor);
+            _chunkManager, generator, meshBuilder, _eventBus, _logger,
+            _persistence, _performanceMonitor, _optimizationFlags);
         _resultDrainer = new ChunkResultDrainer(
-            _workerPool, _chunkManager, _eventBus, _logger, _worldNode, preloadProgress);
+            _workerPool, _chunkManager, _eventBus, _logger, _worldNode,
+            preloadProgress, _optimizationFlags);
         _nodeCleaner = new ChunkNodeCleaner(_worldNode);
         _distanceEvaluator = new ChunkDistanceEvaluator(_chunkManager);
 
@@ -177,7 +185,12 @@ public sealed partial class ChunkLoadingScheduler : Node
         _performanceMonitor?.SetRenderDistance(CurrentRenderDistance);
     }
 
-    private void OnPlayerChunkChanged(PlayerChunkChangedEvent evt) => UpdateLoadedChunks(evt.NewChunk);
+    private void OnPlayerChunkChanged(PlayerChunkChangedEvent evt)
+    {
+        _workerPool.UpdatePlayerChunk(evt.NewChunk.X, evt.NewChunk.Z);
+        UpdateLoadedChunks(evt.NewChunk);
+        UpdateChunkLods(evt.NewChunk);
+    }
 
     private void UpdateLoadedChunks(ChunkCoord center)
     {
@@ -203,14 +216,7 @@ public sealed partial class ChunkLoadingScheduler : Node
             return;
         }
 
-        OptimizationFlags? flags = null;
-
-        if (ServiceLocator.Instance.TryGet<OptimizationFlags>(out OptimizationFlags? f))
-        {
-            flags = f;
-        }
-
-        if (flags is null || !flags.PriorityLoadingEnabled)
+        if (_optimizationFlags is null || !_optimizationFlags.PriorityLoadingEnabled)
         {
             return;
         }
@@ -257,9 +263,45 @@ public sealed partial class ChunkLoadingScheduler : Node
 
         _chunkManager.Remove(coord);
 
+        if (ServiceLocator.Instance.TryGet<MineRPG.Godot.World.Rendering.RegionManager>(
+                out MineRPG.Godot.World.Rendering.RegionManager? regionManager)
+            && regionManager is not null)
+        {
+            regionManager.RemoveChunk(coord);
+        }
+
         if (_worldNode.TryExtractChunkNode(coord, out ChunkNode? node) && node is not null)
         {
             _nodeCleaner.Enqueue(coord, node);
+        }
+    }
+
+    private void UpdateChunkLods(ChunkCoord playerChunk)
+    {
+        if (_optimizationFlags is null || !_optimizationFlags.LodEnabled)
+        {
+            return;
+        }
+
+        foreach (ChunkEntry entry in _chunkManager.GetAll())
+        {
+            if (entry.State < ChunkState.Ready || entry.State == ChunkState.Unloading)
+            {
+                continue;
+            }
+
+            int distance = entry.Coord.ChebyshevDistance(playerChunk);
+            LodLevel newLod = LodPolicy.GetLodWithHysteresis(distance, entry.CurrentLod);
+
+            if (newLod != entry.CurrentLod)
+            {
+                entry.CurrentLod = newLod;
+
+                if (_workerPool.PendingRemeshes.TryAdd(entry.Coord, 0))
+                {
+                    _workerPool.EnqueueRemesh(entry, entry.Coord, _workerPool.LoadResultQueue);
+                }
+            }
         }
     }
 

@@ -52,6 +52,7 @@ public sealed partial class GameplayBootstrap : Node
 
         WireFrustumCulling(worldNode, logger);
         WireOcclusionCuller(worldNode, logger);
+        WireRegionManager(worldNode, logger);
         WireClipmapRenderer(worldNode, logger);
 
         eventBus.Publish(new GameInitializedEvent());
@@ -104,6 +105,22 @@ public sealed partial class GameplayBootstrap : Node
         worldNode.SetOcclusionCuller(occlusionCuller);
 
         logger.Info("GameplayBootstrap: OcclusionCuller wired.");
+    }
+
+    private static void WireRegionManager(WorldNode worldNode, ILogger logger)
+    {
+        if (!ServiceLocator.Instance.TryGet<OptimizationFlags>(out OptimizationFlags? flags)
+            || flags is null || !flags.DrawCallBatchingEnabled)
+        {
+            return;
+        }
+
+        RegionManager regionManager = new();
+        regionManager.Name = "RegionManager";
+        worldNode.AddChild(regionManager);
+        ServiceLocator.Instance.Register(regionManager);
+
+        logger.Info("GameplayBootstrap: RegionManager wired.");
     }
 
     private static void WireClipmapRenderer(WorldNode worldNode, ILogger logger)

@@ -1,3 +1,5 @@
+using System.Threading;
+
 using MineRPG.Core.Math;
 using MineRPG.World.Meshing;
 using MineRPG.World.Spatial;
@@ -53,6 +55,19 @@ public sealed class ChunkEntry
     /// Computed after generation/remesh on background threads.
     /// </summary>
     public ChunkVisibilityMatrix? VisibilityMatrix { get; set; }
+
+    /// <summary>
+    /// Current LOD level for this chunk. LOD 0 = full detail.
+    /// Updated when the player moves, compared via hysteresis.
+    /// Volatile for cross-thread visibility (written by main thread, read by workers).
+    /// </summary>
+    public volatile LodLevel CurrentLod = LodLevel.Lod0;
+
+    /// <summary>
+    /// Last applied mesh result, kept for region batching rebuilds.
+    /// Null until the first mesh is applied. Written on main thread only.
+    /// </summary>
+    public ChunkMeshResult? LastMeshResult { get; set; }
 
     /// <summary>
     /// Creates a new chunk entry for the given coordinate.

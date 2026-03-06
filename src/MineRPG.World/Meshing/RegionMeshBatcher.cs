@@ -66,7 +66,7 @@ public static class RegionMeshBatcher
         {
             if (subChunkIndex < chunkMeshes[i].SubChunks.Length)
             {
-                MeshData opaque = chunkMeshes[i].SubChunks[subChunkIndex].Opaque;
+                MeshData opaque = ResolveOpaque(chunkMeshes[i].SubChunks[subChunkIndex]);
                 totalVertices += opaque.VertexCount;
                 totalIndices += opaque.IndexCount;
             }
@@ -94,7 +94,7 @@ public static class RegionMeshBatcher
                 continue;
             }
 
-            MeshData opaque = chunkMeshes[i].SubChunks[subChunkIndex].Opaque;
+            MeshData opaque = ResolveOpaque(chunkMeshes[i].SubChunks[subChunkIndex]);
 
             if (opaque.IsEmpty)
             {
@@ -135,5 +135,23 @@ public static class RegionMeshBatcher
         }
 
         return new MeshData(vertices, normals, uvs, uv2s, colors, indices);
+    }
+
+    /// <summary>
+    /// Resolves opaque mesh data from a sub-chunk, unpacking compressed data if needed.
+    /// </summary>
+    private static MeshData ResolveOpaque(SubChunkMesh subChunk)
+    {
+        if (!subChunk.Opaque.IsEmpty)
+        {
+            return subChunk.Opaque;
+        }
+
+        if (subChunk.PackedOpaque is not null && !subChunk.PackedOpaque.IsEmpty)
+        {
+            return VertexPacker.Unpack(subChunk.PackedOpaque.Vertices, subChunk.PackedOpaque.Indices);
+        }
+
+        return MeshData.Empty;
     }
 }

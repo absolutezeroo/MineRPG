@@ -99,6 +99,22 @@ public sealed partial class RenderingTab : VBoxContainer, IDebugTab
             () => _flags.BiomeBlendingEnabled,
             value => SetAndPublish(v => _flags.BiomeBlendingEnabled = v, value, "BiomeBlendingEnabled", true));
 
+        // -- Optimization section --
+        DebugSection optimizationSection = new("Optimization");
+        AddChild(optimizationSection);
+
+        AddToggle(optimizationSection.Content, "Vertex Packing",
+            () => _flags.VertexPackingEnabled,
+            value => SetAndPublish(v => _flags.VertexPackingEnabled = v, value, "VertexPackingEnabled", false));
+
+        AddToggle(optimizationSection.Content, "LOD",
+            () => _flags.LodEnabled,
+            value => SetAndPublish(v => _flags.LodEnabled = v, value, "LodEnabled", false));
+
+        AddToggle(optimizationSection.Content, "Draw Call Batching",
+            () => _flags.DrawCallBatchingEnabled,
+            value => SetAndPublish(v => _flags.DrawCallBatchingEnabled = v, value, "DrawCallBatchingEnabled", false));
+
         // -- Rendering section --
         DebugSection renderSection = new("Rendering");
         AddChild(renderSection);
@@ -177,6 +193,9 @@ public sealed partial class RenderingTab : VBoxContainer, IDebugTab
         _flags.CaveFeaturesEnabled = true;
         _flags.SurfaceRulesEnabled = true;
         _flags.BiomeBlendingEnabled = true;
+        _flags.VertexPackingEnabled = true;
+        _flags.LodEnabled = true;
+        _flags.DrawCallBatchingEnabled = true;
         _flags.FogEnabled = true;
         _flags.WireframeModeEnabled = false;
         _flags.ShowNormalsEnabled = false;

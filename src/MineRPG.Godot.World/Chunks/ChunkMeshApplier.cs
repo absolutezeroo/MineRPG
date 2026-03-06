@@ -8,6 +8,7 @@ namespace MineRPG.Godot.World.Chunks;
 /// <summary>
 /// Converts pure MeshData (float arrays) into Godot ArrayMesh instances.
 /// Supports per-sub-chunk mesh building and combined collision shape generation.
+/// Handles both standard MeshData and PackedMeshData (unpacking as needed).
 /// Called on the main thread by ChunkNode.
 /// </summary>
 public static class ChunkMeshApplier
@@ -19,6 +20,7 @@ public static class ChunkMeshApplier
 
     /// <summary>
     /// Builds a Godot ArrayMesh from a sub-chunk mesh containing opaque and liquid surfaces.
+    /// Unpacks packed data if present.
     /// </summary>
     /// <param name="subChunkMesh">The sub-chunk mesh with opaque and liquid mesh data.</param>
     /// <returns>The assembled ArrayMesh, or null if the sub-chunk is empty.</returns>
@@ -31,22 +33,43 @@ public static class ChunkMeshApplier
 
         ArrayMesh mesh = new();
 
-        if (!subChunkMesh.Opaque.IsEmpty)
+        MeshData opaque = ResolveOpaque(subChunkMesh);
+
+        if (!opaque.IsEmpty)
         {
-            AddSurface(mesh, subChunkMesh.Opaque);
+            AddSurface(mesh, opaque);
         }
 
-        if (!subChunkMesh.Liquid.IsEmpty)
+        MeshData liquid = ResolveLiquid(subChunkMesh);
+
+        if (!liquid.IsEmpty)
         {
-            AddSurface(mesh, subChunkMesh.Liquid);
+            AddSurface(mesh, liquid);
         }
 
         return mesh;
     }
 
     /// <summary>
+    /// Builds a Godot ArrayMesh from a single MeshData (used by region batching).
+    /// </summary>
+    /// <param name="meshData">The mesh data to convert.</param>
+    /// <returns>The assembled ArrayMesh, or null if the mesh data is empty.</returns>
+    public static ArrayMesh? BuildSingle(MeshData meshData)
+    {
+        if (meshData.IsEmpty)
+        {
+            return null;
+        }
+
+        ArrayMesh mesh = new();
+        AddSurface(mesh, meshData);
+        return mesh;
+    }
+
+    /// <summary>
     /// Builds a combined concave polygon collision shape from all sub-chunk opaque meshes.
-    /// Only opaque surfaces generate collision; liquids are excluded.
+    /// Supports both standard and packed mesh data. Only opaque surfaces generate collision.
     /// </summary>
     /// <param name="result">The chunk mesh result containing per-sub-chunk data.</param>
     /// <returns>The combined collision shape, or null if no opaque geometry exists.</returns>
@@ -56,7 +79,7 @@ public static class ChunkMeshApplier
 
         for (int i = 0; i < result.SubChunks.Length; i++)
         {
-            MeshData opaque = result.SubChunks[i].Opaque;
+            MeshData opaque = ResolveOpaque(result.SubChunks[i]);
 
             if (!opaque.IsEmpty)
             {
@@ -74,7 +97,7 @@ public static class ChunkMeshApplier
 
         for (int subChunkIndex = 0; subChunkIndex < result.SubChunks.Length; subChunkIndex++)
         {
-            MeshData opaque = result.SubChunks[subChunkIndex].Opaque;
+            MeshData opaque = ResolveOpaque(result.SubChunks[subChunkIndex]);
 
             if (opaque.IsEmpty)
             {
@@ -99,6 +122,42 @@ public static class ChunkMeshApplier
         ConcavePolygonShape3D shape = new();
         shape.SetFaces(faceVertices);
         return shape;
+    }
+
+    /// <summary>
+    /// Resolves opaque mesh data, unpacking from packed format if necessary.
+    /// </summary>
+    private static MeshData ResolveOpaque(SubChunkMesh subChunk)
+    {
+        if (!subChunk.Opaque.IsEmpty)
+        {
+            return subChunk.Opaque;
+        }
+
+        if (subChunk.PackedOpaque is not null && !subChunk.PackedOpaque.IsEmpty)
+        {
+            return VertexPacker.Unpack(subChunk.PackedOpaque.Vertices, subChunk.PackedOpaque.Indices);
+        }
+
+        return MeshData.Empty;
+    }
+
+    /// <summary>
+    /// Resolves liquid mesh data, unpacking from packed format if necessary.
+    /// </summary>
+    private static MeshData ResolveLiquid(SubChunkMesh subChunk)
+    {
+        if (!subChunk.Liquid.IsEmpty)
+        {
+            return subChunk.Liquid;
+        }
+
+        if (subChunk.PackedLiquid is not null && !subChunk.PackedLiquid.IsEmpty)
+        {
+            return VertexPacker.Unpack(subChunk.PackedLiquid.Vertices, subChunk.PackedLiquid.Indices);
+        }
+
+        return MeshData.Empty;
     }
 
     private static void AddSurface(ArrayMesh mesh, MeshData meshData)
