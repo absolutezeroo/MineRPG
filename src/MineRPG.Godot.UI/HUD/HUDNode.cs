@@ -19,6 +19,7 @@ public sealed partial class HUDNode : CanvasLayer
 {
     private const string HotbarScenePath = "res://Scenes/UI/HUD/Hotbar.tscn";
     private const string PauseMenuScenePath = "res://Scenes/UI/PauseMenu.tscn";
+    private const string InventoryScenePath = "res://Scenes/UI/Inventory.tscn";
 
     [Export] private Camera3D _camera = null!;
 
@@ -54,6 +55,11 @@ public sealed partial class HUDNode : CanvasLayer
         Node pauseMenu = pauseMenuScene.Instantiate();
         pauseMenu.Name = "PauseMenu";
         AddChild(pauseMenu);
+
+        PackedScene inventoryScene = GD.Load<PackedScene>(InventoryScenePath);
+        Node inventory = inventoryScene.Instantiate();
+        inventory.Name = "Inventory";
+        AddChild(inventory);
 
         Callable.From(InjectCamera).CallDeferred();
 

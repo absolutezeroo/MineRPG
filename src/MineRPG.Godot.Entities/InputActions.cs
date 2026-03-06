@@ -39,6 +39,9 @@ public static class InputActions
     /// <summary>The debug overlay toggle input action.</summary>
     public static readonly StringName DebugToggle = new("debug_toggle");
 
+    /// <summary>The inventory toggle input action.</summary>
+    public static readonly StringName InventoryToggle = new("inventory_toggle");
+
     /// <summary>Toggle fly mode input action.</summary>
     public static readonly StringName ToggleFly = new("toggle_fly");
 

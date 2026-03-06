@@ -196,6 +196,9 @@ public static class CompositionRoot
         playerData.Inventory = playerInventory;
         locator.Register<PlayerInventory>(playerInventory);
 
+        CursorItemHolder cursorItemHolder = new();
+        locator.Register<CursorItemHolder>(cursorItemHolder);
+
         HotbarController hotbarController = new(playerData, itemRegistry);
         locator.Register<IHotbarController>(hotbarController);
         locator.Register<HotbarController>(hotbarController);

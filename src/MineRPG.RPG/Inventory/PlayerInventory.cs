@@ -39,7 +39,7 @@ public sealed class PlayerInventory
         };
 
         Armor = new Inventory(armorFilters, itemRegistry);
-        Offhand = new InventorySlot();
+        Offhand = new Inventory(1, itemRegistry);
     }
 
     /// <summary>The 27-slot main inventory.</summary>
@@ -51,8 +51,8 @@ public sealed class PlayerInventory
     /// <summary>The 4-slot armor inventory with slot-type filters.</summary>
     public Inventory Armor { get; }
 
-    /// <summary>The offhand slot for shields, torches, etc.</summary>
-    public InventorySlot Offhand { get; }
+    /// <summary>The single-slot offhand inventory for shields, torches, etc.</summary>
+    public Inventory Offhand { get; }
 
     /// <summary>Currently selected hotbar slot index (0-8).</summary>
     public int SelectedHotbarIndex { get; set; }

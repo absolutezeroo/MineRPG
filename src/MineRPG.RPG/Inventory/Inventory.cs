@@ -302,6 +302,19 @@ public sealed partial class Inventory : IInventory
     /// </summary>
     public void Clear() => ClearAndReturn();
 
+    /// <summary>
+    /// Notifies listeners that a slot's contents have been modified in-place
+    /// (e.g. stack count changed externally). Does not move or replace items.
+    /// </summary>
+    /// <param name="slotIndex">The index of the modified slot.</param>
+    public void NotifySlotChanged(int slotIndex)
+    {
+        ValidateIndex(slotIndex);
+        ItemInstance? current = _slots[slotIndex].Item;
+        RaiseSlotChanged(slotIndex, current, current);
+        RaiseInventoryChanged();
+    }
+
     private void ValidateIndex(int index)
     {
         if (index < 0 || index >= _slots.Length)

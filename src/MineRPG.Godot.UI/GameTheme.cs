@@ -2,6 +2,8 @@ using System;
 
 using Godot;
 
+using MineRPG.RPG.Items;
+
 namespace MineRPG.Godot.UI;
 
 /// <summary>
@@ -81,6 +83,38 @@ public static class GameTheme
 
     /// <summary>Content area background (darker panel interior).</summary>
     public static readonly Color ContentBackground = new(0.14f, 0.12f, 0.10f, 0.85f);
+
+    // -------------------------------------------------------------------------
+    // Item rarity colors
+    // -------------------------------------------------------------------------
+
+    /// <summary>Common item rarity color (white).</summary>
+    public static readonly Color RarityCommon = new(1.0f, 1.0f, 1.0f, 1.0f);
+
+    /// <summary>Uncommon item rarity color (green).</summary>
+    public static readonly Color RarityUncommon = new(0.33f, 0.80f, 0.33f, 1.0f);
+
+    /// <summary>Rare item rarity color (blue).</summary>
+    public static readonly Color RarityRare = new(0.33f, 0.55f, 1.0f, 1.0f);
+
+    /// <summary>Epic item rarity color (purple).</summary>
+    public static readonly Color RarityEpic = new(0.70f, 0.33f, 1.0f, 1.0f);
+
+    /// <summary>Legendary item rarity color (orange/gold).</summary>
+    public static readonly Color RarityLegendary = new(1.0f, 0.65f, 0.0f, 1.0f);
+
+    // -------------------------------------------------------------------------
+    // Inventory slot colors
+    // -------------------------------------------------------------------------
+
+    /// <summary>Inventory slot hover border color.</summary>
+    public static readonly Color SlotHoverBorder = new(0.80f, 0.80f, 0.70f, 0.95f);
+
+    /// <summary>Tooltip panel background (dark, nearly opaque).</summary>
+    public static readonly Color TooltipBackground = new(0.10f, 0.08f, 0.06f, 0.95f);
+
+    /// <summary>Tooltip panel border color.</summary>
+    public static readonly Color TooltipBorder = new(0.35f, 0.30f, 0.25f, 1.0f);
 
     // Hotbar-specific (used in _Draw() directly — cannot go through Theme)
 
@@ -212,6 +246,29 @@ public static class GameTheme
     /// </summary>
     /// <param name="rootControl">The root Control node to apply the theme to.</param>
     public static void Apply(Control rootControl) => rootControl.Theme = Instance;
+
+    // -------------------------------------------------------------------------
+    // Rarity color lookup
+    // -------------------------------------------------------------------------
+
+    /// <summary>
+    /// Returns the display color for the given item rarity tier.
+    /// </summary>
+    /// <param name="rarity">The item rarity.</param>
+    /// <returns>The corresponding UI color.</returns>
+    public static Color GetRarityColor(ItemRarity rarity)
+    {
+        return rarity switch
+        {
+            ItemRarity.Common => RarityCommon,
+            ItemRarity.Uncommon => RarityUncommon,
+            ItemRarity.Rare => RarityRare,
+            ItemRarity.Epic => RarityEpic,
+            ItemRarity.Legendary => RarityLegendary,
+            _ => throw new ArgumentOutOfRangeException(
+                nameof(rarity), rarity, "Unhandled item rarity"),
+        };
+    }
 
     // -------------------------------------------------------------------------
     // Per-instance style factories (for runtime state changes)

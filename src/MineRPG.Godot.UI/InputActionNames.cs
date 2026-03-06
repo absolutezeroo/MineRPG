@@ -15,6 +15,9 @@ public static class InputActionNames
     /// <summary>The pause/escape input action.</summary>
     public static readonly StringName Pause = new("ui_cancel");
 
+    /// <summary>The inventory toggle input action (E key).</summary>
+    public static readonly StringName InventoryToggle = new("inventory_toggle");
+
 #if DEBUG
     /// <summary>Debug menu toggle (F1).</summary>
     public static readonly StringName DebugMenu = new("debug_menu");

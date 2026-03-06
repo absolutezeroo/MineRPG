@@ -1,6 +1,8 @@
 using Godot;
 
 using MineRPG.Core.DI;
+using MineRPG.Core.Events;
+using MineRPG.Core.Events.Definitions;
 using MineRPG.Core.Interfaces;
 using MineRPG.Core.Interfaces.Gameplay;
 using MineRPG.Core.Logging;
@@ -23,12 +25,17 @@ public sealed partial class HotbarNode : Control
     private int _selectedIndex;
     private IHotbarController _hotbar = null!;
     private ILogger _logger = null!;
+    private IEventBus _eventBus = null!;
+    private bool _inventoryOpen;
 
     /// <inheritdoc />
     public override void _Ready()
     {
         _hotbar = ServiceLocator.Instance.Get<IHotbarController>();
         _logger = ServiceLocator.Instance.Get<ILogger>();
+        _eventBus = ServiceLocator.Instance.Get<IEventBus>();
+
+        _eventBus.Subscribe<InventoryToggledEvent>(OnInventoryToggled);
 
         _slotStyleNormal = CreateSlotStyle(isSelected: false);
         _slotStyleSelected = CreateSlotStyle(isSelected: true);
@@ -45,8 +52,19 @@ public sealed partial class HotbarNode : Control
     }
 
     /// <inheritdoc />
+    public override void _ExitTree()
+    {
+        _eventBus.Unsubscribe<InventoryToggledEvent>(OnInventoryToggled);
+    }
+
+    /// <inheritdoc />
     public override void _Input(InputEvent @event)
     {
+        if (_inventoryOpen)
+        {
+            return;
+        }
+
         if (@event is not InputEventMouseButton mouseButton || !mouseButton.Pressed)
         {
             return;
@@ -75,6 +93,8 @@ public sealed partial class HotbarNode : Control
         _slots[oldIndex].AddThemeStyleboxOverride("panel", _slotStyleNormal);
         _slots[newIndex].AddThemeStyleboxOverride("panel", _slotStyleSelected);
     }
+
+    private void OnInventoryToggled(InventoryToggledEvent e) => _inventoryOpen = e.IsOpen;
 
     private static StyleBoxFlat CreateSlotStyle(bool isSelected)
     {
