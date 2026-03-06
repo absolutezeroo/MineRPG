@@ -64,13 +64,13 @@ public sealed partial class SystemTab : VBoxContainer, IDebugTab
         AddChild(debugSection);
 
         Label debugInfo = new();
-        debugInfo.Text = "F1 — Debug Menu\n"
-            + "F3 — HUD Overlay\n"
-            + "F4 — Chunk Map\n"
-            + "F5 — Chunk Borders\n"
-            + "F6 — Perf Graphs\n"
-            + "F7 — Biome Overlay\n"
-            + "F8 — Block Inspector";
+        debugInfo.Text = "F1 - Debug Menu\n"
+            + "F3 - HUD Overlay\n"
+            + "F4 - Chunk Map\n"
+            + "F5 - Chunk Borders\n"
+            + "F6 - Perf Graphs\n"
+            + "F7 - Biome Overlay\n"
+            + "F8 - Block Inspector";
         DebugTheme.ApplyLabelStyle(debugInfo, DebugTheme.TextSecondary, DebugTheme.FontSizeSmall);
         debugSection.Content.AddChild(debugInfo);
     }

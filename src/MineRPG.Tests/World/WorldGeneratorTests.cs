@@ -44,7 +44,7 @@ public sealed class WorldGeneratorTests
         // Act
         _generator.Generate(entry, CancellationToken.None);
 
-        // Assert — chunk should contain at least some solid blocks
+        // Assert - chunk should contain at least some solid blocks
         int solidCount = 0;
         for (int y = 0; y < ChunkData.SizeY; y++)
         {
@@ -72,7 +72,7 @@ public sealed class WorldGeneratorTests
         // Act
         _generator.Generate(entry, CancellationToken.None);
 
-        // Assert — y=0 should be bedrock (ID 8) everywhere
+        // Assert - y=0 should be bedrock (ID 8) everywhere
         for (int x = 0; x < ChunkData.SizeX; x++)
         {
             for (int z = 0; z < ChunkData.SizeZ; z++)
@@ -113,10 +113,10 @@ public sealed class WorldGeneratorTests
         using CancellationTokenSource cts = new CancellationTokenSource();
         cts.Cancel();
 
-        // Act — should not throw, but may produce incomplete data
+        // Act - should not throw, but may produce incomplete data
         Action act = () => _generator.Generate(entry, cts.Token);
 
-        // Assert — method should exit gracefully
+        // Assert - method should exit gracefully
         act.Should().NotThrow();
     }
 

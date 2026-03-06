@@ -2,7 +2,7 @@ namespace MineRPG.Core.StateMachine;
 
 /// <summary>
 /// Pushdown automaton. Supports nested states: e.g., player in combat
-/// while inside a dialogue — push dialogue, pop back to combat.
+/// while inside a dialogue - push dialogue, pop back to combat.
 /// </summary>
 public interface IStateMachine
 {

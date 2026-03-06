@@ -55,7 +55,7 @@ public sealed class DensityFunctionTests
         // Act
         float density = densityFunction.GetDensity(TestWorldX, SurfaceY, TestWorldZ, SurfaceY, HighErosion);
 
-        // Assert — at the surface, base density is 0; with high erosion overhang noise is suppressed
+        // Assert - at the surface, base density is 0; with high erosion overhang noise is suppressed
         density.Should().BeApproximately(0f, FloatTolerance,
             "density at the surface should be approximately zero");
     }
@@ -63,7 +63,7 @@ public sealed class DensityFunctionTests
     [Fact]
     public void GetDensity_FarFromSurface_ReturnsBaseDensity()
     {
-        // Arrange — far below surface, outside the overhang band, density = surfaceY - worldY
+        // Arrange - far below surface, outside the overhang band, density = surfaceY - worldY
         DensityFunction densityFunction = new DensityFunction(WorldSeed);
         int worldY = SurfaceY - FarBelowSurfaceOffset;
         float expectedBaseDensity = SurfaceY - worldY;
@@ -71,7 +71,7 @@ public sealed class DensityFunctionTests
         // Act
         float density = densityFunction.GetDensity(TestWorldX, worldY, TestWorldZ, SurfaceY, HighErosion);
 
-        // Assert — outside the overhang band, no noise modulation is applied
+        // Assert - outside the overhang band, no noise modulation is applied
         density.Should().Be(expectedBaseDensity,
             "far from the surface the density should equal the base density without overhang noise");
     }

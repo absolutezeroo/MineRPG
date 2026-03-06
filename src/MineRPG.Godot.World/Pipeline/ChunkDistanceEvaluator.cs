@@ -8,7 +8,7 @@ namespace MineRPG.Godot.World.Pipeline;
 /// <summary>
 /// Determines which chunks need loading and unloading based on the player's
 /// current chunk position and the configured render distance.
-/// Pure logic — no Godot dependency.
+/// Pure logic - no Godot dependency.
 /// </summary>
 internal sealed class ChunkDistanceEvaluator
 {

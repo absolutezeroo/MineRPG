@@ -68,12 +68,10 @@ public sealed partial class DebugMenuPanel : PanelContainer
     {
         CustomMinimumSize = new Vector2(DebugTheme.MenuPanelWidth, 0);
         SetAnchorsPreset(LayoutPreset.LeftWide);
-        SizeFlagsVertical = SizeFlags.ExpandFill;
         AddThemeStyleboxOverride("panel", DebugTheme.CreatePanelStyle());
         MouseFilter = MouseFilterEnum.Stop;
 
         VBoxContainer root = new();
-        root.SetAnchorsPreset(LayoutPreset.FullRect);
         root.AddThemeConstantOverride("separation", 4);
         AddChild(root);
 
@@ -110,16 +108,11 @@ public sealed partial class DebugMenuPanel : PanelContainer
         HSeparator separator = new();
         root.AddChild(separator);
 
-        // Scrollable content area
-        ScrollContainer scroll = new();
-        scroll.SizeFlagsVertical = SizeFlags.ExpandFill;
-        scroll.HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled;
-        root.AddChild(scroll);
-
+        // Content area
         VBoxContainer contentArea = new();
         contentArea.SizeFlagsHorizontal = SizeFlags.ExpandFill;
         contentArea.SizeFlagsVertical = SizeFlags.ExpandFill;
-        scroll.AddChild(contentArea);
+        root.AddChild(contentArea);
 
         _tabs = new IDebugTab[TabCount];
         _tabContents = new Control[TabCount];

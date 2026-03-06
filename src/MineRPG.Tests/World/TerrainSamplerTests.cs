@@ -65,7 +65,7 @@ public sealed class TerrainSamplerTests
         int min = int.MaxValue;
         int max = int.MinValue;
 
-        // Act — sample a wide area to capture terrain variation
+        // Act - sample a wide area to capture terrain variation
         for (int x = 0; x < 500; x += 10)
         {
             for (int z = 0; z < 500; z += 10)
@@ -83,7 +83,7 @@ public sealed class TerrainSamplerTests
             }
         }
 
-        // Assert — should have at least 10 blocks of height variation
+        // Assert - should have at least 10 blocks of height variation
         (max - min).Should().BeGreaterThan(10,
             "terrain should have meaningful height variation");
     }
@@ -108,7 +108,7 @@ public sealed class TerrainSamplerTests
         // Arrange
         TerrainSampler sampler = CreateSampler();
 
-        // Act & Assert — depth suppression should prevent caves near surface
+        // Act & Assert - depth suppression should prevent caves near surface
         for (int x = 0; x < 16; x++)
         {
             for (int z = 0; z < 16; z++)

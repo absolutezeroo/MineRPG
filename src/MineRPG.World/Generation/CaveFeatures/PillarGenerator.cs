@@ -55,7 +55,7 @@ public sealed class PillarGenerator
                 continue;
             }
 
-            // Found air — find the ceiling
+            // Found air - find the ceiling
             int floorY = y;
             int ceilingY = y;
 

@@ -57,7 +57,7 @@ public sealed class TreeDecorator : IDecorator
                         continue;
                     }
 
-                    // Density check — probability per column
+                    // Density check - probability per column
                     if (random.NextDouble() > entry.Density)
                     {
                         continue;

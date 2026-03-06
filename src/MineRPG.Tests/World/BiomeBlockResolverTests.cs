@@ -65,7 +65,7 @@ public sealed class BiomeBlockResolverTests
         // Act
         BiomeBlockResolver.ResolveAll([biome], registry, _logger);
 
-        // Assert — unchanged
+        // Assert - unchanged
         biome.SurfaceBlock.Should().Be(5);
         biome.SubSurfaceBlock.Should().Be(6);
         biome.StoneBlock.Should().Be(7);
@@ -87,10 +87,10 @@ public sealed class BiomeBlockResolverTests
         // Act
         BiomeBlockResolver.ResolveAll([biome], registry, logger);
 
-        // Assert — falls back to numeric ID
+        // Assert - falls back to numeric ID
         biome.SurfaceBlock.Should().Be(42);
 
-        // Assert — warning was logged
+        // Assert - warning was logged
         logger.Received(1).Warning(
             Arg.Is<string>(s => s.Contains("unknown block")),
             Arg.Any<object>(), Arg.Any<object>(), Arg.Any<object>(), Arg.Any<object>());

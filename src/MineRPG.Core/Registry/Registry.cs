@@ -5,7 +5,7 @@ namespace MineRPG.Core.Registry;
 
 /// <summary>
 /// Default implementation of <see cref="IRegistry{TKey,TValue}"/>.
-/// Not thread-safe — registries are populated at startup on the main thread,
+/// Not thread-safe - registries are populated at startup on the main thread,
 /// then only read during gameplay.
 /// </summary>
 public sealed class Registry<TKey, TValue> : IRegistry<TKey, TValue>

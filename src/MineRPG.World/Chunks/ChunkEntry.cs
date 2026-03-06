@@ -21,7 +21,7 @@ public sealed class ChunkEntry
 
     /// <summary>
     /// Pending mesh result waiting to be applied on the main thread.
-    /// Written by background workers, read by main thread — volatile for cross-thread visibility.
+    /// Written by background workers, read by main thread - volatile for cross-thread visibility.
     /// </summary>
     public volatile ChunkMeshResult? PendingMesh;
 

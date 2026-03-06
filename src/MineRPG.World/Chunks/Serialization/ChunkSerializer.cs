@@ -92,7 +92,7 @@ public sealed class ChunkSerializer : IChunkSerializer
         ReadOnlySpan<byte> magic = reader.ReadBytes(MagicSize);
         if (!magic.SequenceEqual(Magic))
         {
-            throw new ChunkSerializationException("Invalid magic bytes — not a chunk file.");
+            throw new ChunkSerializationException("Invalid magic bytes - not a chunk file.");
         }
 
         // Verify version
@@ -127,7 +127,7 @@ public sealed class ChunkSerializer : IChunkSerializer
         byte[] actualCrc = Crc32.Hash(source[..crcOffset]);
         if (!actualCrc.AsSpan().SequenceEqual(expectedCrc))
         {
-            throw new ChunkSerializationException("CRC32 checksum mismatch — data is corrupted.");
+            throw new ChunkSerializationException("CRC32 checksum mismatch - data is corrupted.");
         }
 
         // RLE decode

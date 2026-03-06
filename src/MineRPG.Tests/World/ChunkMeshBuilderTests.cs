@@ -100,7 +100,7 @@ public sealed class ChunkMeshBuilderTests
     [Fact]
     public void Build_IsThreadSafe()
     {
-        // Arrange — fill chunk with a layer of stone
+        // Arrange - fill chunk with a layer of stone
         ChunkData chunk = new ChunkData(ChunkCoord.Zero);
         for (int x = 0; x < ChunkData.SizeX; x++)
         {
@@ -112,7 +112,7 @@ public sealed class ChunkMeshBuilderTests
 
         ChunkData?[] neighbors = new ChunkData?[4];
 
-        // Act — build meshes concurrently from multiple threads
+        // Act - build meshes concurrently from multiple threads
         Task<int>[] tasks = Enumerable.Range(0, 4).Select(_ => Task.Run(() =>
         {
             ChunkMeshResult result = _meshBuilder.Build(chunk, neighbors, CancellationToken.None);
@@ -121,7 +121,7 @@ public sealed class ChunkMeshBuilderTests
 
         Task.WaitAll(tasks);
 
-        // Assert — all should produce the same result
+        // Assert - all should produce the same result
         System.Collections.Generic.List<int> vertexCounts = tasks.Select(t => t.Result).Distinct().ToList();
         vertexCounts.Should().ContainSingle("all threads should produce identical vertex counts");
     }

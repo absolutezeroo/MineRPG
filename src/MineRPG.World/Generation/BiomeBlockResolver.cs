@@ -61,7 +61,7 @@ public static class BiomeBlockResolver
         }
 
         logger.Warning(
-            "BiomeBlockResolver: Biome '{0}' references unknown block '{1}' for {2} — falling back to ID {3}.",
+            "BiomeBlockResolver: Biome '{0}' references unknown block '{1}' for {2} - falling back to ID {3}.",
             biomeId, blockName, fieldName, fallbackId);
         return fallbackId;
     }

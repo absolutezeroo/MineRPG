@@ -5,7 +5,7 @@ using MineRPG.Core.Logging;
 namespace MineRPG.Godot.UI.Options;
 
 /// <summary>
-/// Tabbed options panel. Hosts three tabs — Game, Graphics, Controls —
+/// Tabbed options panel. Hosts three tabs - Game, Graphics, Controls -
 /// and manages tab switching. Accessible from the pause menu.
 /// Built programmatically to match the existing Minecraft-style dark palette.
 /// </summary>

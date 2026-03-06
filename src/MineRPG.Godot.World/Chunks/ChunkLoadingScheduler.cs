@@ -144,7 +144,7 @@ public sealed partial class ChunkLoadingScheduler : Node
 
         if (!_workerPool.PendingRemeshes.TryAdd(coord, 0))
         {
-            // A remesh is already in flight — mark as stale so the drainer
+            // A remesh is already in flight - mark as stale so the drainer
             // re-enqueues after the current mesh is applied.
             _workerPool.StaleEdits.TryAdd(coord, 0);
             return;

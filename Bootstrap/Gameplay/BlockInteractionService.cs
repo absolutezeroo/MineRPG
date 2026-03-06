@@ -203,7 +203,7 @@ public sealed class BlockInteractionService : IBlockInteractionService
 
         if (BlockOverlapsPlayer(target))
         {
-            _logger.Debug("TryPlaceBlock: rejected — block at {0} overlaps player", target);
+            _logger.Debug("TryPlaceBlock: rejected - block at {0} overlaps player", target);
             return false;
         }
 

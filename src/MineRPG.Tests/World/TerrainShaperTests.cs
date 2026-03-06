@@ -70,7 +70,7 @@ public sealed class TerrainShaperTests
     [Fact]
     public void GetHeight_WithHighPeaksAndLowErosion_ProducesHighTerrain()
     {
-        // Arrange — PV=1.0 yields large positive offset; E=-1.0 yields erosionFactor=1.5
+        // Arrange - PV=1.0 yields large positive offset; E=-1.0 yields erosionFactor=1.5
         ClimateParameters parameters = new ClimateParameters(
             InlandContinentalness,
             LowErosion,
@@ -91,14 +91,14 @@ public sealed class TerrainShaperTests
         float peakyHeight = _defaultShaper.GetHeight(in parameters);
         float flatHeight = _defaultShaper.GetHeight(in flatParameters);
 
-        // Assert — peaks with low erosion should be significantly higher than neutral terrain
+        // Assert - peaks with low erosion should be significantly higher than neutral terrain
         peakyHeight.Should().BeGreaterThan(flatHeight);
     }
 
     [Fact]
     public void GetHeight_WithHighErosion_FlattensTerrain()
     {
-        // Arrange — E=1.0 yields erosionFactor=0.2, so PV offset barely matters
+        // Arrange - E=1.0 yields erosionFactor=0.2, so PV offset barely matters
         ClimateParameters highErosionParameters = new ClimateParameters(
             InlandContinentalness,
             HighErosion,
@@ -119,7 +119,7 @@ public sealed class TerrainShaperTests
         float highErosionHeight = _defaultShaper.GetHeight(in highErosionParameters);
         float lowErosionHeight = _defaultShaper.GetHeight(in lowErosionParameters);
 
-        // Assert — high erosion should produce lower terrain than low erosion at the same PV
+        // Assert - high erosion should produce lower terrain than low erosion at the same PV
         highErosionHeight.Should().BeLessThan(lowErosionHeight);
     }
 
@@ -242,7 +242,7 @@ public sealed class TerrainShaperTests
         // Arrange & Act
         TerrainShaper shaper = TerrainShaper.CreateDefault();
 
-        // Assert — should not throw and should produce a reasonable height near sea level
+        // Assert - should not throw and should produce a reasonable height near sea level
         ClimateParameters neutralParameters = new ClimateParameters(
             NeutralValue,
             NeutralValue,

@@ -88,7 +88,7 @@ public sealed class CollectionExtensionsTests
         // Arrange
         List<string> items = new List<string> { "rare", "common" };
 
-        // Act — run many times, dominant item (weight 1000) should always win
+        // Act - run many times, dominant item (weight 1000) should always win
         List<string?> results = Enumerable.Range(0, 100)
             .Select(seed => items.WeightedRandom(
                 i => i == "common" ? 1000f : 0.001f,

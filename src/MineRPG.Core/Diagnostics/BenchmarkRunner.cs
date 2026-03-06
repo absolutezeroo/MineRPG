@@ -6,7 +6,7 @@ namespace MineRPG.Core.Diagnostics;
 /// <summary>
 /// Manages timed benchmark runs. Collects frame times over a configurable
 /// duration and produces a <see cref="BenchmarkReport"/>.
-/// Pure C# — no Godot dependency.
+/// Pure C# - no Godot dependency.
 /// </summary>
 public sealed class BenchmarkRunner
 {

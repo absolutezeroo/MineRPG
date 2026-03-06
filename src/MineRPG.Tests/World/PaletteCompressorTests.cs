@@ -68,7 +68,7 @@ public sealed class PaletteCompressorTests
     [Fact]
     public void Compress_TooManyDistinctTypes_ReturnsNull()
     {
-        // Arrange — more than 256 distinct block types
+        // Arrange - more than 256 distinct block types
         ushort[] blocks = new ushort[ChunkData.TotalBlocks];
         for (int i = 0; i < 257 && i < blocks.Length; i++)
         {

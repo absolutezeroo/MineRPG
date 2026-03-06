@@ -8,7 +8,7 @@ namespace MineRPG.Godot.World.Chunks;
 
 /// <summary>
 /// Periodically snapshots modified chunks and enqueues them for async background saving.
-/// File I/O is entirely off the main thread — this node only copies block data and hands
+/// File I/O is entirely off the main thread - this node only copies block data and hands
 /// save work items to <see cref="ChunkLoadingScheduler"/>'s worker pool.
 /// </summary>
 public sealed partial class ChunkAutosaveScheduler : Node

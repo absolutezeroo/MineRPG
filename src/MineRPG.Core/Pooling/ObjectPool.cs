@@ -64,7 +64,7 @@ public sealed class ObjectPool<T> : IObjectPool<T>
         _reset?.Invoke(item);
 
         // Soft cap: approximate check avoids locking. In highly concurrent
-        // scenarios the pool may briefly exceed maxCapacity — acceptable.
+        // scenarios the pool may briefly exceed maxCapacity - acceptable.
         if (_idleCount >= MaxCapacity)
         {
             return;

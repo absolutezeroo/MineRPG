@@ -6,7 +6,7 @@ namespace MineRPG.Core.Diagnostics;
 /// <summary>
 /// Collects performance metrics for the debug overlay.
 /// Thread-safe: counters use Interlocked, timing uses Stopwatch.
-/// No Godot dependency — lives in Core.
+/// No Godot dependency - lives in Core.
 /// </summary>
 public sealed class PerformanceMonitor
 {

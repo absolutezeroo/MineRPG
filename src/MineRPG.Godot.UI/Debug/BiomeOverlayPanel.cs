@@ -103,12 +103,12 @@ public sealed partial class BiomeOverlayPanel : Control
 
         if (_chunkDebugProvider is not null && _currentMode == 0)
         {
-            // Biome color mode — use BiomeColorMapper
+            // Biome color mode - use BiomeColorMapper
             DrawBiomeMode(playerChunkX, playerChunkZ, mapStartY);
         }
         else
         {
-            // Climate parameter modes — draw gradient grid
+            // Climate parameter modes - draw gradient grid
             DrawClimateMode(playerChunkX, playerChunkZ, mapStartY);
         }
 

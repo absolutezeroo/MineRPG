@@ -54,7 +54,7 @@ public sealed class OreDistributorTests
         // Act
         distributor.Distribute(data, 0, 0, random);
 
-        // Assert — count ore blocks
+        // Assert - count ore blocks
         int oreCount = 0;
 
         for (int x = 0; x < ChunkData.SizeX; x++)
@@ -113,7 +113,7 @@ public sealed class OreDistributorTests
         // Act
         distributor.Distribute(data, 0, 0, random);
 
-        // Assert — no diamonds above Y=20 (some tolerance for vein spread)
+        // Assert - no diamonds above Y=20 (some tolerance for vein spread)
         int highDiamondCount = 0;
 
         for (int x = 0; x < ChunkData.SizeX; x++)
@@ -155,10 +155,10 @@ public sealed class OreDistributorTests
         ChunkData data = new ChunkData(new ChunkCoord(0, 0));
         Random random = new Random(42);
 
-        // Act — should not throw
+        // Act - should not throw
         distributor.Distribute(data, 0, 0, random);
 
-        // Assert — chunk should remain all air (no blocks placed)
+        // Assert - chunk should remain all air (no blocks placed)
         data.GetBlock(0, 0, 0).Should().Be(0);
     }
 }

@@ -138,7 +138,7 @@ public sealed partial class BiomeTab : VBoxContainer, IDebugTab
             return;
         }
 
-        // Sort by count descending — use simple insertion approach
+        // Sort by count descending - use simple insertion approach
         List<KeyValuePair<string, int>> sorted = new(_biomeCounts);
         sorted.Sort((a, b) => b.Value.CompareTo(a.Value));
 

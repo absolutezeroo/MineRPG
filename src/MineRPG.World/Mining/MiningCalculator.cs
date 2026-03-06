@@ -53,7 +53,7 @@ public static class MiningCalculator
         // Wrong-tool penalty: only when the block requires a specific tool
         // (MinimumToolTier > 0) and the player does not have the matching type.
         // Blocks with MinimumToolTier == 0 (dirt, wood, sand) can always be
-        // mined without penalty — the preferred tool just adds a speed bonus.
+        // mined without penalty - the preferred tool just adds a speed bonus.
         if (block.MinimumToolTier > 0 && !hasMatchingToolType)
         {
             baseTime *= WrongToolPenalty;
@@ -100,7 +100,7 @@ public static class MiningCalculator
         }
 
         // Blocks that don't require a minimum tool tier can be harvested
-        // with anything — bare hands, wrong tool, etc.
+        // with anything - bare hands, wrong tool, etc.
         if (block.MinimumToolTier <= 0)
         {
             return true;

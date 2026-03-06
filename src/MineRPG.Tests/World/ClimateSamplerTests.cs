@@ -102,7 +102,7 @@ public sealed class ClimateSamplerTests
         ClimateParameters first = sampler.SampleSurface(0, 0);
         ClimateParameters second = sampler.SampleSurface(1000, 1000);
 
-        // Assert — at least one parameter should differ between distant positions
+        // Assert - at least one parameter should differ between distant positions
         bool anyDifference =
             first.Continentalness != second.Continentalness ||
             first.Erosion != second.Erosion ||

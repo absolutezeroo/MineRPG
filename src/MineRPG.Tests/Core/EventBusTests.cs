@@ -155,7 +155,7 @@ public sealed class EventBusTests
         // Act
         _eventBus.PublishQueued(new TestEvent { Value = 42 });
 
-        // Assert — handler not yet invoked
+        // Assert - handler not yet invoked
         received.Should().Be(0);
     }
 
@@ -201,7 +201,7 @@ public sealed class EventBusTests
         _eventBus.Subscribe<TestEvent>(e => received = e.Value);
         int flushed = _eventBus.FlushQueued();
 
-        // Assert — queued event was drained by Clear
+        // Assert - queued event was drained by Clear
         flushed.Should().Be(0);
         received.Should().Be(0);
     }

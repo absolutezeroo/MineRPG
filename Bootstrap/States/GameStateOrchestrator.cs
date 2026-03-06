@@ -90,7 +90,7 @@ public sealed partial class GameStateOrchestrator : Node, IGameStateController
         if (error != Error.Ok)
         {
             _logger.Error(
-                "GameStateOrchestrator: Failed to load MainMenu scene — {0}",
+                "GameStateOrchestrator: Failed to load MainMenu scene - {0}",
                 error.ToString());
         }
     }
@@ -139,7 +139,7 @@ public sealed partial class GameStateOrchestrator : Node, IGameStateController
         // Re-subscribe on fresh bus
         SubscribeEvents();
 
-        // Transition to LoadingState — it will switch to PlayingState once chunks are preloaded
+        // Transition to LoadingState - it will switch to PlayingState once chunks are preloaded
         string worldSaveDirectory = WorldRepository.GetSavePath(_savesRoot, meta.WorldId);
         LoadingState loadingState = new(
             meta, worldSaveDirectory, GetTree(), _eventBus, _logger, _stateMachine);
@@ -151,7 +151,7 @@ public sealed partial class GameStateOrchestrator : Node, IGameStateController
         if (error != Error.Ok)
         {
             _logger.Error(
-                "GameStateOrchestrator: Failed to load gameplay scene — {0}",
+                "GameStateOrchestrator: Failed to load gameplay scene - {0}",
                 error.ToString());
             return;
         }
@@ -180,7 +180,7 @@ public sealed partial class GameStateOrchestrator : Node, IGameStateController
         if (error != Error.Ok)
         {
             _logger.Error(
-                "GameStateOrchestrator: Failed to load MainMenu scene — {0}",
+                "GameStateOrchestrator: Failed to load MainMenu scene - {0}",
                 error.ToString());
         }
     }

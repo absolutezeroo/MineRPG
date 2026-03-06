@@ -12,7 +12,7 @@ namespace MineRPG.Game.Bootstrap.States;
 /// Game state active while the initial chunk preload is in progress.
 /// Subscribes to <see cref="WorldReadyEvent"/> and transitions to
 /// <see cref="PlayingState"/> when preload completes.
-/// The scene tree is NOT paused during loading — chunk workers must run.
+/// The scene tree is NOT paused during loading - chunk workers must run.
 /// </summary>
 public sealed class LoadingState : IState
 {
@@ -69,7 +69,7 @@ public sealed class LoadingState : IState
 
     private void OnWorldReady(WorldReadyEvent evt)
     {
-        _logger.Info("LoadingState: WorldReadyEvent received — transitioning to PlayingState.");
+        _logger.Info("LoadingState: WorldReadyEvent received - transitioning to PlayingState.");
 
         PlayingState playingState = new(
             _worldMeta,

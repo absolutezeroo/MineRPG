@@ -69,7 +69,7 @@ public static class MathExtensions
         => toMin + (value - fromMin) / (fromMax - fromMin) * (toMax - toMin);
 
     /// <summary>
-    /// Wraps an integer into [0, max) — correct for negative values
+    /// Wraps an integer into [0, max) - correct for negative values
     /// unlike the % operator.
     /// </summary>
     /// <param name="value">The value to wrap.</param>

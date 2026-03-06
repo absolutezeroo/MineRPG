@@ -13,7 +13,7 @@ namespace MineRPG.Godot.UI.Screens;
 /// Rendered on CanvasLayer 128 so it covers all gameplay nodes.
 /// Polls <see cref="PreloadProgress"/> each frame to update the progress bar
 /// and chunk count label. Dismisses itself when <see cref="WorldReadyEvent"/> fires.
-/// All UI built programmatically — no .tscn dependency.
+/// All UI built programmatically - no .tscn dependency.
 /// </summary>
 public sealed partial class LoadingScreenNode : CanvasLayer
 {
@@ -82,7 +82,7 @@ public sealed partial class LoadingScreenNode : CanvasLayer
 
     private void OnWorldReady(WorldReadyEvent evt)
     {
-        _logger.Info("LoadingScreenNode: World ready — dismissing loading screen.");
+        _logger.Info("LoadingScreenNode: World ready - dismissing loading screen.");
         QueueFree();
     }
 

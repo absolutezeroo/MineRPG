@@ -65,7 +65,7 @@ public sealed class DensityFunction
             return baseDensity;
         }
 
-        // Overhang strength is modulated by erosion — low erosion = more overhangs on mountains
+        // Overhang strength is modulated by erosion - low erosion = more overhangs on mountains
         float erosionFactor = Math.Clamp(
             (MinErosionForOverhangs - erosion) / (MinErosionForOverhangs + 1f), 0f, 1f);
 

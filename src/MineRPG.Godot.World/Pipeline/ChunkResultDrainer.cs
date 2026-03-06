@@ -15,7 +15,7 @@ namespace MineRPG.Godot.World.Pipeline;
 
 /// <summary>
 /// Drains completed chunk mesh results from worker queues onto the main thread.
-/// Phase 1: all block-edit results (no budget — player-facing priority).
+/// Phase 1: all block-edit results (no budget - player-facing priority).
 /// Phase 2: initial load results within a frame time budget.
 /// After applying a mesh, schedules neighbor remeshes as needed.
 /// </summary>

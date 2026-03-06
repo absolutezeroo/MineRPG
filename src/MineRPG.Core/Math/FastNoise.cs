@@ -103,7 +103,7 @@ public sealed class FastNoise
     public float Sample3D(float x, float y, float z) => Noise3(x, y, z);
 
     /// <summary>
-    /// Fractional Brownian Motion 2D — sums multiple octaves of noise
+    /// Fractional Brownian Motion 2D - sums multiple octaves of noise
     /// for natural-looking terrain height maps.
     /// </summary>
     /// <param name="x">The X coordinate.</param>
@@ -140,7 +140,7 @@ public sealed class FastNoise
     }
 
     /// <summary>
-    /// Fractional Brownian Motion 3D — for cave density fields.
+    /// Fractional Brownian Motion 3D - for cave density fields.
     /// </summary>
     /// <param name="x">The X coordinate.</param>
     /// <param name="y">The Y coordinate.</param>

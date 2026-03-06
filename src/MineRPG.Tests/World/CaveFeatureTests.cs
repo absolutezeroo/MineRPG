@@ -60,7 +60,7 @@ public sealed class CaveFeatureTests
         // Act
         generator.Generate(data, random);
 
-        // Assert — some stalactite blocks should exist below the ceiling
+        // Assert - some stalactite blocks should exist below the ceiling
         int formationCount = 0;
 
         for (int x = 0; x < ChunkData.SizeX; x++)
@@ -96,7 +96,7 @@ public sealed class CaveFeatureTests
         // Act
         generator.Generate(data, random);
 
-        // Assert — some stalagmite blocks should exist above the floor
+        // Assert - some stalagmite blocks should exist above the floor
         int formationCount = 0;
 
         for (int x = 0; x < ChunkData.SizeX; x++)
@@ -133,7 +133,7 @@ public sealed class CaveFeatureTests
         // Act
         generator.Generate(data, random);
 
-        // Assert — pillars span floor to ceiling
+        // Assert - pillars span floor to ceiling
         int formationCount = 0;
 
         for (int x = 0; x < ChunkData.SizeX; x++)
@@ -164,14 +164,14 @@ public sealed class CaveFeatureTests
         };
         PillarGenerator generator = new PillarGenerator(config, FormationBlockId);
 
-        // Cavity only 5 blocks tall — below the 15-block minimum
+        // Cavity only 5 blocks tall - below the 15-block minimum
         ChunkData data = CreateChunkWithCavity(10, 15);
         Random random = new Random(42);
 
         // Act
         generator.Generate(data, random);
 
-        // Assert — no formations in the small cavity
+        // Assert - no formations in the small cavity
         int formationCount = 0;
 
         for (int x = 0; x < ChunkData.SizeX; x++)
@@ -210,7 +210,7 @@ public sealed class CaveFeatureTests
         // Act
         pipeline.Generate(data, 0, 0, 42);
 
-        // Assert — at least some formations
+        // Assert - at least some formations
         int formationCount = 0;
 
         for (int x = 0; x < ChunkData.SizeX; x++)

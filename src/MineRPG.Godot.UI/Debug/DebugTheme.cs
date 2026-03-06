@@ -6,7 +6,7 @@ namespace MineRPG.Godot.UI.Debug;
 /// <summary>
 /// Single source of truth for all debug UI colors, font sizes, and panel styles.
 /// Methods return pre-configured Godot style objects for consistent debug UI appearance.
-/// Dark, compact, monospace — no animations, instant response.
+/// Dark, compact, monospace - no animations, instant response.
 /// </summary>
 public static class DebugTheme
 {

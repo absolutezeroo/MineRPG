@@ -14,7 +14,7 @@ public interface IObjectPool<T> where T : class
 
     /// <summary>
     /// Retrieve an object from the pool, or create a new one if empty.
-    /// The returned object may contain leftover state — callers must reset it.
+    /// The returned object may contain leftover state - callers must reset it.
     /// </summary>
     /// <returns>An object from the pool or a newly created one.</returns>
     T Rent();

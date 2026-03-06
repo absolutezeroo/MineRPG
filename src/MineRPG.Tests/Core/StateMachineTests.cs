@@ -160,7 +160,7 @@ public sealed class StateMachineTests
         // Act
         _sm.TickAll(0.016f);
 
-        // Assert — all states ticked, bottom-to-top order
+        // Assert - all states ticked, bottom-to-top order
         combat.Log.Should().Contain("Combat:Tick");
         dialogue.Log.Should().Contain("Dialogue:Tick");
         tooltip.Log.Should().Contain("Tooltip:Tick");

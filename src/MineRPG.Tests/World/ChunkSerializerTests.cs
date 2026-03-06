@@ -16,7 +16,7 @@ public sealed class ChunkSerializerTests
     [Fact]
     public void RoundTrip_EmptyChunk_PreservesAllBlocks()
     {
-        // Arrange — all air (0)
+        // Arrange - all air (0)
         ChunkData original = new ChunkData(new ChunkCoord(3, 7));
 
         // Act
@@ -73,7 +73,7 @@ public sealed class ChunkSerializerTests
     [Fact]
     public void RoundTrip_WorstCase_AllUniqueBlocks_PreservesData()
     {
-        // Arrange — alternating block IDs to minimize RLE compression
+        // Arrange - alternating block IDs to minimize RLE compression
         ChunkData original = new ChunkData(new ChunkCoord(0, 0));
         for (int y = 0; y < ChunkData.SizeY; y++)
         {
@@ -99,13 +99,13 @@ public sealed class ChunkSerializerTests
     [Fact]
     public void Serialize_EmptyChunk_CompressesWell()
     {
-        // Arrange — all air → should compress to a single RLE run
+        // Arrange - all air → should compress to a single RLE run
         ChunkData chunk = new ChunkData(new ChunkCoord(0, 0));
 
         // Act
         byte[] bytes = _serializer.Serialize(chunk);
 
-        // Assert — header(22) + 1 RLE pair(4) + CRC(4) = 30 bytes
+        // Assert - header(22) + 1 RLE pair(4) + CRC(4) = 30 bytes
         bytes.Length.Should().BeLessThan(100);
     }
 
@@ -126,7 +126,7 @@ public sealed class ChunkSerializerTests
     [Fact]
     public void Deserialize_InvalidMagic_ThrowsChunkSerializationException()
     {
-        // Arrange — serialize a valid chunk, then corrupt the magic
+        // Arrange - serialize a valid chunk, then corrupt the magic
         ChunkData chunk = new ChunkData(new ChunkCoord(0, 0));
         byte[] bytes = _serializer.Serialize(chunk);
         bytes[0] = (byte)'X';
@@ -142,7 +142,7 @@ public sealed class ChunkSerializerTests
     [Fact]
     public void Deserialize_CorruptedCrc_ThrowsChunkSerializationException()
     {
-        // Arrange — serialize a valid chunk, then flip a byte in the data
+        // Arrange - serialize a valid chunk, then flip a byte in the data
         ChunkData chunk = new ChunkData(new ChunkCoord(0, 0));
         chunk.SetBlock(0, 0, 0, 1);
         byte[] bytes = _serializer.Serialize(chunk);
@@ -161,7 +161,7 @@ public sealed class ChunkSerializerTests
     [Fact]
     public void Deserialize_WrongVersion_ThrowsChunkSerializationException()
     {
-        // Arrange — serialize a valid chunk, then change version byte
+        // Arrange - serialize a valid chunk, then change version byte
         ChunkData chunk = new ChunkData(new ChunkCoord(0, 0));
         byte[] bytes = _serializer.Serialize(chunk);
 
@@ -180,7 +180,7 @@ public sealed class ChunkSerializerTests
     [Fact]
     public void Serialize_Performance_CompletesUnder5ms()
     {
-        // Arrange — realistic terrain chunk
+        // Arrange - realistic terrain chunk
         ChunkData chunk = new ChunkData(new ChunkCoord(0, 0));
         for (int x = 0; x < ChunkData.SizeX; x++)
         {
@@ -212,7 +212,7 @@ public sealed class ChunkSerializerTests
 
         sw.Stop();
 
-        // Assert — average < 5ms
+        // Assert - average < 5ms
         double avgMs = sw.Elapsed.TotalMilliseconds / 100;
         avgMs.Should().BeLessThan(5.0, "serialization should complete under 5ms per chunk");
     }
@@ -254,7 +254,7 @@ public sealed class ChunkSerializerTests
 
         sw.Stop();
 
-        // Assert — average < 3ms
+        // Assert - average < 3ms
         double avgMs = sw.Elapsed.TotalMilliseconds / 100;
         avgMs.Should().BeLessThan(3.0, "deserialization should complete under 3ms per chunk");
     }

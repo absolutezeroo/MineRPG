@@ -44,7 +44,7 @@ public readonly struct ChunkCoord(int x, int z) : IEquatable<ChunkCoord>
     public ChunkCoord West => new(X - 1, Z);
 
     /// <summary>
-    /// Chebyshev (max-norm) distance — matches a square view distance shape.
+    /// Chebyshev (max-norm) distance - matches a square view distance shape.
     /// </summary>
     /// <param name="other">The other chunk coordinate to measure distance to.</param>
     /// <returns>The Chebyshev distance between this chunk and the other.</returns>

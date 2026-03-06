@@ -129,7 +129,7 @@ public sealed class ObjectPoolTests
         pool.Return(b);
         pool.IdleCount.Should().Be(2);
 
-        // Act — pool is at capacity, this should be dropped
+        // Act - pool is at capacity, this should be dropped
         pool.Return(c);
 
         // Assert

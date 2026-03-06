@@ -65,14 +65,14 @@ public sealed partial class PlayerNode : CharacterBody3D
         // Restore saved position and camera orientation from PlayerData.
         // CompositionRoot.Wire() populates PlayerData from the save file before
         // ChangeSceneToFile() is called, so these values are ready.
-        // Velocity is zeroed — restoring mid-air velocity before terrain is meshed
+        // Velocity is zeroed - restoring mid-air velocity before terrain is meshed
         // would cause the player to fall through the world.
         Position = new Vector3(_playerData.PositionX, _playerData.PositionY, _playerData.PositionZ);
         Velocity = Vector3.Zero;
         Rotation = new Vector3(0f, _playerData.CameraYaw, 0f);
         _camera.Rotation = new Vector3(_playerData.CameraPitch, 0f, 0f);
 
-        // Freeze until terrain is preloaded — prevents physics falling before chunks exist.
+        // Freeze until terrain is preloaded - prevents physics falling before chunks exist.
         // Mouse capture is deferred to OnWorldReady so the cursor stays visible during loading.
         ProcessMode = ProcessModeEnum.Disabled;
         _eventBus.Subscribe<WorldReadyEvent>(OnWorldReady);
@@ -208,7 +208,7 @@ public sealed partial class PlayerNode : CharacterBody3D
             Z = Position.Z,
         });
 
-        _logger.Info("PlayerNode: WorldReady — gameplay started at {0}.", Position);
+        _logger.Info("PlayerNode: WorldReady - gameplay started at {0}.", Position);
     }
 
     private void PublishPositionIfMoved()

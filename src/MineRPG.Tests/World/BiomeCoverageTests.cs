@@ -175,7 +175,7 @@ public sealed class BiomeCoverageTests
         BiomeSelector selector = new BiomeSelector(biomes, WorldSeed);
         Random random = new Random(RandomSeed);
 
-        // Act & Assert — every random point in the 6D space must get a biome
+        // Act & Assert - every random point in the 6D space must get a biome
         for (int i = 0; i < SampleCount; i++)
         {
             float continentalness = NextFloatInRange(random, FullRangeMin, FullRangeMax);
@@ -200,13 +200,13 @@ public sealed class BiomeCoverageTests
     [Fact]
     public void Select_ExtremeCorners_AlwaysReturnsBiome()
     {
-        // Arrange — test all 64 corners of the 6D hypercube
+        // Arrange - test all 64 corners of the 6D hypercube
         List<BiomeDefinition> biomes = CreateBiomeSet();
         BiomeSelector selector = new BiomeSelector(biomes, WorldSeed);
         float[] extremeValues = [FullRangeMin, FullRangeMax];
         float[] depthValues = [DepthRangeMin, DepthRangeMax];
 
-        // Act & Assert — each corner of the 6D hypercube must resolve to a biome
+        // Act & Assert - each corner of the 6D hypercube must resolve to a biome
         foreach (float continentalness in extremeValues)
         {
             foreach (float erosion in extremeValues)
@@ -240,7 +240,7 @@ public sealed class BiomeCoverageTests
     [Fact]
     public void Select_RandomPoints_ProducesMultipleBiomes()
     {
-        // Arrange — the biome set should produce variety, not just one biome
+        // Arrange - the biome set should produce variety, not just one biome
         List<BiomeDefinition> biomes = CreateBiomeSet();
         BiomeSelector selector = new BiomeSelector(biomes, WorldSeed);
         Random random = new Random(RandomSeed);
@@ -264,7 +264,7 @@ public sealed class BiomeCoverageTests
             selectedBiomeIds.Add(result.Id);
         }
 
-        // Assert — uniform random sampling should hit multiple biomes
+        // Assert - uniform random sampling should hit multiple biomes
         selectedBiomeIds.Count.Should().BeGreaterThanOrEqualTo(minimumExpectedBiomes,
             "random sampling across the 6D space should produce biome variety");
     }

@@ -87,14 +87,14 @@ public sealed class PlayingState : IState
         if (!ServiceLocator.Instance.TryGet<PlayerData>(out PlayerData? playerData)
             || playerData is null)
         {
-            _logger.Warning("PlayingState: Cannot save player — PlayerData not found.");
+            _logger.Warning("PlayingState: Cannot save player - PlayerData not found.");
             return;
         }
 
         if (!ServiceLocator.Instance.TryGet<PlayerRepository>(out PlayerRepository? repository)
             || repository is null)
         {
-            _logger.Warning("PlayingState: Cannot save player — PlayerRepository not found.");
+            _logger.Warning("PlayingState: Cannot save player - PlayerRepository not found.");
             return;
         }
 

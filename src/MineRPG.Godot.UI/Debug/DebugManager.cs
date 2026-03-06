@@ -26,7 +26,7 @@ public sealed partial class DebugManager : Control
 
     private Camera3D? _camera;
 
-    // Lazily created modules — null until first toggle
+    // Lazily created modules - null until first toggle
     private DebugMenuPanel? _debugMenuPanel;
     private DebugHudPanel? _hudPanel;
     private ChunkMapPanel? _chunkMapPanel;

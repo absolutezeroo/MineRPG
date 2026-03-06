@@ -65,7 +65,7 @@ public sealed class BlockRegistryTests
         BlockRegistry registry = new BlockRegistry(loader, NullLogger.Instance);
         BlockDefinition def = registry.Get(1);
 
-        // Assert — single texture = 1x1 grid, full UV range
+        // Assert - single texture = 1x1 grid, full UV range
         def.FaceUvs[0].Should().BeApproximately(0f, 0.0001f);  // face 0 u0
         def.FaceUvs[1].Should().BeApproximately(0f, 0.0001f);  // face 0 v0
         def.FaceUvs[2].Should().BeApproximately(1f, 0.0001f);  // face 0 u1
@@ -96,7 +96,7 @@ public sealed class BlockRegistryTests
         BlockRegistry registry = new BlockRegistry(loader, NullLogger.Instance);
         BlockDefinition def = registry.Get(3);
 
-        // Assert — top face (index 2) should differ from side faces (index 0)
+        // Assert - top face (index 2) should differ from side faces (index 0)
         float topU0 = def.FaceUvs[2 * 4 + 0];
         float sideU0 = def.FaceUvs[0 * 4 + 0];
         float bottomU0 = def.FaceUvs[3 * 4 + 0];

@@ -57,7 +57,7 @@ public sealed class DecoratorPipelineTests
         pipeline1.DecorateChunk(data, biomeMap, heightMap, 10, 20, 42);
         pipeline2.DecorateChunk(data, biomeMap, heightMap, 10, 20, 42);
 
-        // Assert — same seed produces same random value
+        // Assert - same seed produces same random value
         seeds1.Should().Equal(seeds2);
     }
 

@@ -39,7 +39,7 @@ public sealed class AquiferSamplerTests
         int fluidCount = 0;
         int airCount = 0;
 
-        // Act — sample many positions deep underground
+        // Act - sample many positions deep underground
         for (int x = 0; x < 32; x++)
         {
             for (int z = 0; z < 32; z++)
@@ -57,7 +57,7 @@ public sealed class AquiferSamplerTests
             }
         }
 
-        // Assert — should have a mix of fluid and air
+        // Assert - should have a mix of fluid and air
         (fluidCount + airCount).Should().Be(32 * 32);
     }
 
@@ -83,12 +83,12 @@ public sealed class AquiferSamplerTests
     [Fact]
     public void GetFluidBlock_BelowLavaLevel_ReturnsLava()
     {
-        // Arrange — default lava level is -55, so test very deep
+        // Arrange - default lava level is -55, so test very deep
         AquiferConfig config = new AquiferConfig { LavaLevel = 10 };
         AquiferSampler sampler = new AquiferSampler(config, 42, WaterBlockId, LavaBlockId);
         int lavaCount = 0;
 
-        // Act — sample below lava level
+        // Act - sample below lava level
         for (int x = 0; x < 32; x++)
         {
             for (int z = 0; z < 32; z++)
@@ -102,7 +102,7 @@ public sealed class AquiferSamplerTests
             }
         }
 
-        // Assert — any fluid below lava level should be lava
+        // Assert - any fluid below lava level should be lava
         // Some positions may be dry (barrier/empty) but no water
         lavaCount.Should().BeGreaterOrEqualTo(0);
     }

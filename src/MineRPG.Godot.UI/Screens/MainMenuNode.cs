@@ -10,7 +10,7 @@ namespace MineRPG.Godot.UI.Screens;
 /// <summary>
 /// Root control for the main menu screen.
 /// Minecraft-style: dark dirt-like background, large title, centered buttons.
-/// All children built programmatically — no .tscn dependency.
+/// All children built programmatically - no .tscn dependency.
 /// </summary>
 public sealed partial class MainMenuNode : Control
 {

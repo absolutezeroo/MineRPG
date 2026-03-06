@@ -188,7 +188,7 @@ public sealed class AdvancedWorldGenerator : IWorldGenerator
         if (y < surfaceY - 1
             && _caveCarver.ShouldCarve(worldX, y, worldZ, surfaceY, column.Continentalness))
         {
-            // Carved cave — check aquifer for fluid
+            // Carved cave - check aquifer for fluid
             ushort fluidBlock = _aquiferSampler.GetFluidBlock(worldX, y, worldZ, surfaceY);
 
             if (fluidBlock != 0)

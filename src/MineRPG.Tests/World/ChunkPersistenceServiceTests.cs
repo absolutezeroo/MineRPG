@@ -67,7 +67,7 @@ public sealed class ChunkPersistenceServiceTests
     [Fact]
     public void TryLoad_WhenSaveExists_DeserializesAndReturnsTrue()
     {
-        // Arrange — use real serializer since NSubstitute can't proxy ReadOnlySpan params
+        // Arrange - use real serializer since NSubstitute can't proxy ReadOnlySpan params
         ChunkCoord coord = new ChunkCoord(5, 6);
         ChunkSerializer realSerializer = new ChunkSerializer();
         IChunkStorage storage = Substitute.For<IChunkStorage>();
@@ -93,7 +93,7 @@ public sealed class ChunkPersistenceServiceTests
     [Fact]
     public void TryLoad_WhenDeserializeFails_ReturnsFalse()
     {
-        // Arrange — use real serializer with garbage data to trigger exception
+        // Arrange - use real serializer with garbage data to trigger exception
         ChunkCoord coord = new ChunkCoord(7, 8);
         ChunkSerializer realSerializer = new ChunkSerializer();
         IChunkStorage storage = Substitute.For<IChunkStorage>();

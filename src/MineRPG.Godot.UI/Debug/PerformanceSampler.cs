@@ -8,7 +8,7 @@ namespace MineRPG.Godot.UI.Debug;
 /// <summary>
 /// Aggregates per-frame performance data into diagnostic trackers.
 /// Owned by DebugManager and called once per frame when any debug module is active.
-/// Plain C# class (not a Node) — no scene tree overhead.
+/// Plain C# class (not a Node) - no scene tree overhead.
 /// </summary>
 public sealed class PerformanceSampler
 {

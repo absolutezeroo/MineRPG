@@ -73,14 +73,14 @@ public sealed class HeightSplineTests
         // Act
         float result = spline.Evaluate(0.5f);
 
-        // Assert — should be between 50 and 100
+        // Assert - should be between 50 and 100
         result.Should().BeInRange(50f, 100f);
     }
 
     [Fact]
     public void Evaluate_IsMonotone_WhenControlPointsAreMonotone()
     {
-        // Arrange — Fritsch-Carlson should prevent overshoot
+        // Arrange - Fritsch-Carlson should prevent overshoot
         HeightSpline spline = HeightSpline.CreateDefault(64f, 30f);
 
         // Act & Assert

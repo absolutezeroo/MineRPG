@@ -46,7 +46,7 @@ public sealed class BiomeColumnTests
         BiomeColumn column = new BiomeColumn("plains");
         column.SetBiomeId(1, 5, 2, "forest");
 
-        // Act — block (6, 22, 10) maps to cell (1, 5, 2) with CellSize=4
+        // Act - block (6, 22, 10) maps to cell (1, 5, 2) with CellSize=4
         string result = column.GetBiomeIdAtBlock(6, 22, 10);
 
         // Assert
@@ -82,13 +82,13 @@ public sealed class BiomeColumnTests
         // Act
         column.SetCaveBiome(1, 2, surfaceCellY, "dripstone_caves");
 
-        // Assert — below surface
+        // Assert - below surface
         for (int y = 0; y < surfaceCellY; y++)
         {
             column.GetBiomeId(1, y, 2).Should().Be("dripstone_caves");
         }
 
-        // At and above surface — unchanged
+        // At and above surface - unchanged
         for (int y = surfaceCellY; y < BiomeColumn.CellsY; y++)
         {
             column.GetBiomeId(1, y, 2).Should().Be("plains");

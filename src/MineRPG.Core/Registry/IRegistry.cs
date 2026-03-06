@@ -4,7 +4,7 @@ namespace MineRPG.Core.Registry;
 
 /// <summary>
 /// Generic data-driven registry. The backbone for blocks, items, mobs, skills, etc.
-/// Keyed registration is fail-fast — duplicate keys throw immediately at load time.
+/// Keyed registration is fail-fast - duplicate keys throw immediately at load time.
 /// </summary>
 /// <typeparam name="TKey">The type of the registry key.</typeparam>
 /// <typeparam name="TValue">The type of the registered values.</typeparam>

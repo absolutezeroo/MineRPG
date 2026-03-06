@@ -7,7 +7,7 @@ namespace MineRPG.Network;
 /// <summary>
 /// Abstract transport layer for network communication.
 /// Implementations include ENet (Godot.Network), WebSocket, or loopback for solo mode.
-/// Solo mode runs a local server using the same code path — no special-casing.
+/// Solo mode runs a local server using the same code path - no special-casing.
 /// </summary>
 public interface INetworkTransport
 {

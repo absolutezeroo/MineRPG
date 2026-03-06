@@ -75,7 +75,7 @@ public sealed class JsonDataLoader : IDataLoader
 
         if (!Directory.Exists(resolved))
         {
-            _logger.Warning("DataLoader: Directory '{0}' does not exist — returning empty list.", resolved);
+            _logger.Warning("DataLoader: Directory '{0}' does not exist - returning empty list.", resolved);
             return [];
         }
 
@@ -92,7 +92,7 @@ public sealed class JsonDataLoader : IDataLoader
             }
             catch (Exception ex)
             {
-                // Continue loading remaining files — partial failure is recoverable
+                // Continue loading remaining files - partial failure is recoverable
                 _logger.Error("DataLoader: Failed to load '{0}' as {1}", ex, file, typeof(T).Name);
             }
         }

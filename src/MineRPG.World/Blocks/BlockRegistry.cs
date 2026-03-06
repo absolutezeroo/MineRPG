@@ -49,7 +49,7 @@ public sealed class BlockRegistry
         {
             if (definition.Id == AirBlockId)
             {
-                logger.Warning("BlockRegistry: JSON file defines ID=0 (reserved for Air) — skipping.");
+                logger.Warning("BlockRegistry: JSON file defines ID=0 (reserved for Air) - skipping.");
                 continue;
             }
 

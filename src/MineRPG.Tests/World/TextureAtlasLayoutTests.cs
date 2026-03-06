@@ -51,7 +51,7 @@ public sealed class TextureAtlasLayoutTests
         // Act
         (float u0, float v0, float u1, float v1) = layout.GetUvBounds("stone");
 
-        // Assert — 2x2 grid, first tile at (0,0)
+        // Assert - 2x2 grid, first tile at (0,0)
         u0.Should().BeApproximately(0f, 0.0001f);
         v0.Should().BeApproximately(0f, 0.0001f);
         u1.Should().BeApproximately(0.5f, 0.0001f);
@@ -67,7 +67,7 @@ public sealed class TextureAtlasLayoutTests
         // Act
         (float u0, float v0, float u1, float v1) = layout.GetUvBounds("dirt");
 
-        // Assert — 2x2 grid, second tile at (1,0)
+        // Assert - 2x2 grid, second tile at (1,0)
         u0.Should().BeApproximately(0.5f, 0.0001f);
         v0.Should().BeApproximately(0f, 0.0001f);
         u1.Should().BeApproximately(1f, 0.0001f);
@@ -83,7 +83,7 @@ public sealed class TextureAtlasLayoutTests
         // Act
         (float u0, float v0, float u1, float v1) = layout.GetUvBounds("grass");
 
-        // Assert — 2x2 grid, third tile at (0,1)
+        // Assert - 2x2 grid, third tile at (0,1)
         u0.Should().BeApproximately(0f, 0.0001f);
         v0.Should().BeApproximately(0.5f, 0.0001f);
         u1.Should().BeApproximately(0.5f, 0.0001f);
@@ -127,7 +127,7 @@ public sealed class TextureAtlasLayoutTests
         // Act
         (int col, int row) = layout.GetGridPosition("e");
 
-        // Assert — 3 columns, 5th element is at index 4 -> (1, 1)
+        // Assert - 3 columns, 5th element is at index 4 -> (1, 1)
         col.Should().Be(1);
         row.Should().Be(1);
     }

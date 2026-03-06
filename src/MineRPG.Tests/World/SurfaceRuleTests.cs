@@ -149,7 +149,7 @@ public sealed class SurfaceRuleTests
         // Act
         ushort result = chain.Evaluate(in context);
 
-        // Assert — deep rule should fire first
+        // Assert - deep rule should fire first
         result.Should().Be(50);
     }
 
