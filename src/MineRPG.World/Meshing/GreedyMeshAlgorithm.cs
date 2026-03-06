@@ -9,14 +9,20 @@ namespace MineRPG.World.Meshing;
 /// <summary>
 /// Implements the greedy meshing merge pass. Scans a 2D mask of visible
 /// block faces and merges contiguous same-block faces into larger quads.
-/// Routes each merged quad to the appropriate accumulator (opaque or liquid).
+/// Routes each merged quad to the appropriate sub-chunk accumulator (opaque or liquid).
+///
+/// Height expansion is constrained at sub-chunk Y boundaries (multiples of 16)
+/// when the V axis is Y, ensuring each quad belongs to exactly one sub-chunk.
 ///
 /// All methods are static for hot-path performance.
 /// </summary>
 internal static class GreedyMeshAlgorithm
 {
+    private const int AxisY = 1;
+
     /// <summary>
     /// Performs greedy merging on a pre-built face mask for one slice.
+    /// Routes quads to per-sub-chunk accumulators based on block Y coordinate.
     /// </summary>
     /// <param name="mask">2D mask of visible block IDs (u * vCount layout).</param>
     /// <param name="uCount">Width of the mask.</param>
@@ -32,24 +38,29 @@ internal static class GreedyMeshAlgorithm
     /// <param name="chunk">The chunk being meshed.</param>
     /// <param name="neighbors">Cardinal neighbor chunks.</param>
     /// <param name="blockRegistry">Block registry for definition lookups.</param>
-    /// <param name="opaque">Accumulator for opaque quads.</param>
-    /// <param name="liquid">Accumulator for liquid quads.</param>
+    /// <param name="subChunkAccumulators">Per-sub-chunk accumulator pairs.</param>
     public static void Merge(
         ushort[] mask, int uCount, int vCount,
         int faceDirection, int depthAxis, int uAxis, int vAxis, int slice,
         int normalX, int normalY, int normalZ,
         ChunkData chunk, ChunkData?[] neighbors,
         BlockRegistry blockRegistry,
-        ChunkMeshBuilder.MeshAccumulator opaque,
-        ChunkMeshBuilder.MeshAccumulator liquid)
+        SubChunkAccumulators[] subChunkAccumulators)
     {
         bool[] merged = ArrayPool<bool>.Shared.Rent(uCount * vCount);
         Array.Clear(merged, 0, uCount * vCount);
+
+        bool vAxisIsY = vAxis == AxisY;
 
         try
         {
             for (int vi = 0; vi < vCount; vi++)
             {
+                // When V axis is Y, limit height expansion to the current sub-chunk boundary
+                int maxV = vAxisIsY
+                    ? Math.Min(((vi / SubChunkConstants.SubChunkSize) + 1) * SubChunkConstants.SubChunkSize, vCount)
+                    : vCount;
+
                 for (int ui = 0; ui < uCount; ui++)
                 {
                     int index = ui + vi * uCount;
@@ -73,7 +84,7 @@ internal static class GreedyMeshAlgorithm
                     int height = 1;
                     bool canExpand = true;
 
-                    while (canExpand && vi + height < vCount)
+                    while (canExpand && vi + height < maxV)
                     {
                         for (int k = 0; k < width; k++)
                         {
@@ -100,8 +111,17 @@ internal static class GreedyMeshAlgorithm
                         }
                     }
 
+                    // Determine block Y to route to the correct sub-chunk accumulator
+                    int blockY = vAxisIsY ? vi : slice;
+                    int subChunkIndex = Math.Min(
+                        blockY / SubChunkConstants.SubChunkSize,
+                        SubChunkConstants.SubChunkCount - 1);
+
                     BlockDefinition definition = blockRegistry.Get(blockId);
-                    ChunkMeshBuilder.MeshAccumulator target = definition.IsLiquid ? liquid : opaque;
+                    ChunkMeshBuilder.MeshAccumulator target = definition.IsLiquid
+                        ? subChunkAccumulators[subChunkIndex].Liquid
+                        : subChunkAccumulators[subChunkIndex].Opaque;
+
                     int offset = (normalX + normalY + normalZ) > 0 ? 1 : 0;
 
                     QuadEmitter.Emit(depthAxis, uAxis, vAxis, slice, offset, ui, vi, width, height,

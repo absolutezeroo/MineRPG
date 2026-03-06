@@ -10,16 +10,18 @@ namespace MineRPG.Godot.World.Chunks;
 
 /// <summary>
 /// Godot scene node for one chunk.
-/// Owns the MeshInstance3D and StaticBody3D for terrain collision.
-/// Supports multi-surface meshes: surface 0 = opaque terrain,
-/// surface 1 = translucent liquid (if present).
+/// Owns per-sub-chunk MeshInstance3D nodes for independent frustum culling
+/// and a single StaticBody3D for terrain collision.
+///
+/// Each non-empty sub-chunk (16x16x16 vertical section) gets its own
+/// MeshInstance3D. Empty sub-chunks have no mesh instance. The collision
+/// shape covers all opaque surfaces across all sub-chunks as one shape.
 /// </summary>
 public sealed partial class ChunkNode : Node3D
 {
     private static Material? _sharedMaterial;
     private static Material? _sharedWaterMaterial;
 
-    private MeshInstance3D _meshInstance = null!;
     private StaticBody3D _staticBody = null!;
     private CollisionShape3D _collisionShape = null!;
     private ILogger _logger = null!;
@@ -28,6 +30,12 @@ public sealed partial class ChunkNode : Node3D
     /// Gets the chunk coordinate this node represents.
     /// </summary>
     public ChunkCoord Coord { get; private set; }
+
+    /// <summary>
+    /// Gets the per-sub-chunk MeshInstance3D array for frustum culling.
+    /// Entries may be null for empty sub-chunks.
+    /// </summary>
+    public MeshInstance3D?[] SubChunkMeshInstances { get; } = new MeshInstance3D?[SubChunkConstants.SubChunkCount];
 
     /// <summary>
     /// Sets the shared material used by all chunk mesh instances for opaque terrain.
@@ -47,9 +55,6 @@ public sealed partial class ChunkNode : Node3D
     public override void _Ready()
     {
         _logger = ServiceLocator.Instance.Get<ILogger>();
-
-        _meshInstance = new MeshInstance3D();
-        AddChild(_meshInstance);
 
         _staticBody = new StaticBody3D();
         _collisionShape = new CollisionShape3D();
@@ -72,44 +77,96 @@ public sealed partial class ChunkNode : Node3D
     }
 
     /// <summary>
-    /// Applies the given mesh result to this chunk node, updating the visual mesh and collision shape.
+    /// Applies the given mesh result to this chunk node, creating per-sub-chunk
+    /// MeshInstance3D nodes and a combined collision shape.
     /// </summary>
-    /// <param name="meshResult">The mesh result containing opaque and liquid surfaces.</param>
+    /// <param name="meshResult">The mesh result containing per-sub-chunk data.</param>
     public void ApplyMesh(ChunkMeshResult meshResult)
     {
-        ArrayMesh? mesh = ChunkMeshApplier.Build(meshResult);
-        _meshInstance.Mesh = mesh;
-
-        if (mesh is not null)
+        for (int i = 0; i < SubChunkConstants.SubChunkCount; i++)
         {
+            SubChunkMesh subChunkMesh = meshResult.SubChunks[i];
+
+            if (subChunkMesh.IsEmpty)
+            {
+                ClearSubChunkMesh(i);
+                continue;
+            }
+
+            ArrayMesh? mesh = ChunkMeshApplier.Build(subChunkMesh);
+
+            if (mesh is null)
+            {
+                ClearSubChunkMesh(i);
+                continue;
+            }
+
+            MeshInstance3D instance = GetOrCreateSubChunkMeshInstance(i);
+            instance.Mesh = mesh;
+
             int surfaceIndex = 0;
 
-            if (!meshResult.Opaque.IsEmpty)
+            if (!subChunkMesh.Opaque.IsEmpty)
             {
-                _meshInstance.SetSurfaceOverrideMaterial(
+                instance.SetSurfaceOverrideMaterial(
                     surfaceIndex, _sharedMaterial ?? CreateFallbackMaterial());
                 surfaceIndex++;
             }
 
-            if (!meshResult.Liquid.IsEmpty)
+            if (!subChunkMesh.Liquid.IsEmpty)
             {
-                _meshInstance.SetSurfaceOverrideMaterial(
+                instance.SetSurfaceOverrideMaterial(
                     surfaceIndex, _sharedWaterMaterial ?? CreateFallbackMaterial());
             }
         }
 
-        // Only opaque terrain generates collision
-        ConcavePolygonShape3D? collision = ChunkMeshApplier.BuildCollision(meshResult.Opaque);
+        // Build combined collision from all sub-chunk opaque surfaces
+        ConcavePolygonShape3D? collision = ChunkMeshApplier.BuildCombinedCollision(meshResult);
         _collisionShape.Shape = collision;
     }
 
     /// <summary>
-    /// Clears the mesh and collision shape, resetting this node for pooling.
+    /// Clears all sub-chunk meshes and the collision shape, resetting this node for pooling.
     /// </summary>
     public void ClearMesh()
     {
-        _meshInstance.Mesh = null;
+        for (int i = 0; i < SubChunkConstants.SubChunkCount; i++)
+        {
+            ClearSubChunkMesh(i);
+        }
+
         _collisionShape.Shape = null;
+    }
+
+    private MeshInstance3D GetOrCreateSubChunkMeshInstance(int subChunkIndex)
+    {
+        MeshInstance3D? existing = SubChunkMeshInstances[subChunkIndex];
+
+        if (existing is not null)
+        {
+            return existing;
+        }
+
+        MeshInstance3D instance = new();
+        instance.Name = $"SubChunk_{subChunkIndex}";
+        AddChild(instance);
+        SubChunkMeshInstances[subChunkIndex] = instance;
+        return instance;
+    }
+
+    private void ClearSubChunkMesh(int subChunkIndex)
+    {
+        MeshInstance3D? instance = SubChunkMeshInstances[subChunkIndex];
+
+        if (instance is null)
+        {
+            return;
+        }
+
+        instance.Mesh = null;
+        RemoveChild(instance);
+        instance.QueueFree();
+        SubChunkMeshInstances[subChunkIndex] = null;
     }
 
     private static StandardMaterial3D CreateFallbackMaterial()

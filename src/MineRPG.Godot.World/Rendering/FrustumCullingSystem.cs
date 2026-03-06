@@ -10,8 +10,10 @@ using MineRPG.Godot.World.Chunks;
 namespace MineRPG.Godot.World.Rendering;
 
 /// <summary>
-/// Extracts the camera frustum planes each frame and sets chunk node visibility.
-/// Chunks outside the frustum are hidden to skip rendering (Godot respects Visible=false).
+/// Extracts the camera frustum planes each frame and sets chunk and sub-chunk visibility.
+/// Performs two-level culling:
+/// 1. Chunk-level: hides entire ChunkNodes outside the frustum (including collision).
+/// 2. Sub-chunk-level: hides individual 16x16x16 MeshInstance3Ds within visible chunks.
 /// Uses a position/rotation threshold to avoid recalculating when the camera barely moves.
 /// </summary>
 public sealed partial class FrustumCullingSystem : Node
@@ -35,6 +37,16 @@ public sealed partial class FrustumCullingSystem : Node
     /// Gets the total number of chunk nodes evaluated during the last culling pass.
     /// </summary>
     public int TotalChunks { get; private set; }
+
+    /// <summary>
+    /// Gets the number of sub-chunk mesh instances visible after frustum culling.
+    /// </summary>
+    public int VisibleSubChunks { get; private set; }
+
+    /// <summary>
+    /// Gets the total number of non-empty sub-chunk mesh instances evaluated.
+    /// </summary>
+    public int TotalSubChunks { get; private set; }
 
     /// <summary>
     /// Sets the camera used for frustum extraction.
@@ -104,25 +116,58 @@ public sealed partial class FrustumCullingSystem : Node
         }
 
         Span<FrustumPlane> visiblePlanes = planes[..planeCount];
-        int visible = 0;
-        int total = 0;
+        int visibleChunks = 0;
+        int totalChunks = 0;
+        int visibleSubChunks = 0;
+        int totalSubChunks = 0;
 
         foreach (ChunkNode child in _worldNode!.GetChunkNodes())
         {
-            total++;
+            totalChunks++;
             int worldX = child.Coord.X * ChunkData.SizeX;
             int worldZ = child.Coord.Z * ChunkData.SizeZ;
 
-            bool isVisible = FrustumCuller.IsChunkVisible(visiblePlanes, worldX, worldZ);
-            child.Visible = isVisible;
+            // Level 1: Chunk-level frustum test (16x256x16 AABB)
+            bool isChunkVisible = FrustumCuller.IsChunkVisible(visiblePlanes, worldX, worldZ);
+            child.Visible = isChunkVisible;
 
-            if (isVisible)
+            if (!isChunkVisible)
             {
-                visible++;
+                continue;
+            }
+
+            visibleChunks++;
+
+            // Level 2: Sub-chunk frustum test (16x16x16 AABBs)
+            MeshInstance3D?[] subChunkMeshes = child.SubChunkMeshInstances;
+
+            for (int i = 0; i < subChunkMeshes.Length; i++)
+            {
+                MeshInstance3D? meshInstance = subChunkMeshes[i];
+
+                if (meshInstance is null || meshInstance.Mesh is null)
+                {
+                    continue;
+                }
+
+                totalSubChunks++;
+                int subChunkMinY = i * SubChunkConstants.SubChunkSize;
+
+                bool isSubChunkVisible = FrustumCuller.IsSubChunkVisible(
+                    visiblePlanes, worldX, subChunkMinY, worldZ, SubChunkConstants.SubChunkSize);
+
+                meshInstance.Visible = isSubChunkVisible;
+
+                if (isSubChunkVisible)
+                {
+                    visibleSubChunks++;
+                }
             }
         }
 
-        VisibleChunks = visible;
-        TotalChunks = total;
+        VisibleChunks = visibleChunks;
+        TotalChunks = totalChunks;
+        VisibleSubChunks = visibleSubChunks;
+        TotalSubChunks = totalSubChunks;
     }
 }

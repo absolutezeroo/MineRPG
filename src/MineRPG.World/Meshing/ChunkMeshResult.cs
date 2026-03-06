@@ -1,32 +1,57 @@
+using MineRPG.World.Chunks;
+
 namespace MineRPG.World.Meshing;
 
 /// <summary>
-/// Output of the chunk mesher: separate mesh data for opaque terrain
-/// and translucent liquid faces. Each is rendered as a distinct
-/// surface with its own material.
+/// Output of the chunk mesher: per-sub-chunk mesh data arrays.
+/// Each sub-chunk (16x16x16 vertical section) has separate opaque
+/// and liquid mesh data rendered with distinct materials.
 /// </summary>
 public sealed class ChunkMeshResult
 {
-    /// <summary>Empty mesh result with no geometry.</summary>
-    public static readonly ChunkMeshResult Empty = new(MeshData.Empty, MeshData.Empty);
-
-    /// <summary>Mesh data for opaque terrain faces.</summary>
-    public MeshData Opaque { get; }
-
-    /// <summary>Mesh data for translucent liquid faces.</summary>
-    public MeshData Liquid { get; }
-
-    /// <summary>Whether both opaque and liquid meshes are empty.</summary>
-    public bool IsEmpty => Opaque.IsEmpty && Liquid.IsEmpty;
+    /// <summary>Empty mesh result with no geometry in any sub-chunk.</summary>
+    public static readonly ChunkMeshResult Empty = CreateEmpty();
 
     /// <summary>
-    /// Creates a chunk mesh result with separate opaque and liquid mesh data.
+    /// Per-sub-chunk mesh data. Array length is <see cref="SubChunkConstants.SubChunkCount"/>.
+    /// Empty sub-chunks have <see cref="SubChunkMesh.IsEmpty"/> = true.
     /// </summary>
-    /// <param name="opaque">Opaque terrain mesh data.</param>
-    /// <param name="liquid">Translucent liquid mesh data.</param>
-    public ChunkMeshResult(MeshData opaque, MeshData liquid)
+    public SubChunkMesh[] SubChunks { get; }
+
+    /// <summary>Whether all sub-chunks are empty (no geometry at all).</summary>
+    public bool IsEmpty { get; }
+
+    /// <summary>
+    /// Creates a chunk mesh result with per-sub-chunk mesh data.
+    /// </summary>
+    /// <param name="subChunks">Mesh data per sub-chunk.</param>
+    public ChunkMeshResult(SubChunkMesh[] subChunks)
     {
-        Opaque = opaque;
-        Liquid = liquid;
+        SubChunks = subChunks;
+
+        bool allEmpty = true;
+
+        for (int i = 0; i < subChunks.Length; i++)
+        {
+            if (!subChunks[i].IsEmpty)
+            {
+                allEmpty = false;
+                break;
+            }
+        }
+
+        IsEmpty = allEmpty;
+    }
+
+    private static ChunkMeshResult CreateEmpty()
+    {
+        SubChunkMesh[] empty = new SubChunkMesh[SubChunkConstants.SubChunkCount];
+
+        for (int i = 0; i < empty.Length; i++)
+        {
+            empty[i] = SubChunkMesh.Empty;
+        }
+
+        return new ChunkMeshResult(empty);
     }
 }

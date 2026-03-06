@@ -17,16 +17,17 @@ namespace MineRPG.World.Meshing;
 /// <see cref="AmbientOcclusionCalculator"/>, and quad emission to
 /// <see cref="QuadEmitter"/>.
 ///
-/// Produces separate mesh data for opaque and liquid faces so they
-/// can be rendered with different materials (opaque vs translucent).
+/// Produces per-sub-chunk mesh data so each 16x16x16 vertical section
+/// can be independently frustum-culled. Greedy merging is constrained
+/// at sub-chunk Y boundaries to ensure clean splitting.
 ///
 /// Thread-safe: all state is local to each Build() call.
 /// </summary>
 public sealed class ChunkMeshBuilder : IChunkMeshBuilder
 {
     private const int FaceDirectionCount = 6;
-    private const int InitialOpaqueCapacity = 4096;
-    private const int InitialLiquidCapacity = 512;
+    private const int InitialOpaqueCapacity = 512;
+    private const int InitialLiquidCapacity = 64;
 
     private readonly BlockRegistry _blockRegistry;
 
@@ -40,31 +41,41 @@ public sealed class ChunkMeshBuilder : IChunkMeshBuilder
     }
 
     /// <summary>
-    /// Builds mesh data for a chunk using greedy meshing with per-vertex AO.
+    /// Builds per-sub-chunk mesh data for a chunk using greedy meshing with per-vertex AO.
     /// </summary>
     /// <param name="chunk">The chunk data to mesh.</param>
     /// <param name="neighbors">Data from the 4 cardinal neighbor chunks.</param>
     /// <param name="cancellationToken">Token to cancel the meshing operation.</param>
-    /// <returns>Separate mesh data for opaque and liquid surfaces.</returns>
+    /// <returns>Per-sub-chunk mesh data for opaque and liquid surfaces.</returns>
     public ChunkMeshResult Build(ChunkData chunk, ChunkData?[] neighbors, CancellationToken cancellationToken)
     {
-        MeshAccumulator opaque = new(InitialOpaqueCapacity);
-        MeshAccumulator liquid = new(InitialLiquidCapacity);
+        SubChunkAccumulators[] accumulators = new SubChunkAccumulators[SubChunkConstants.SubChunkCount];
+
+        for (int i = 0; i < SubChunkConstants.SubChunkCount; i++)
+        {
+            accumulators[i] = new SubChunkAccumulators(InitialOpaqueCapacity, InitialLiquidCapacity);
+        }
 
         for (int faceDirection = 0; faceDirection < FaceDirectionCount; faceDirection++)
         {
-            BuildFaceDirection(faceDirection, chunk, neighbors, opaque, liquid);
+            BuildFaceDirection(faceDirection, chunk, neighbors, accumulators);
         }
 
-        return new ChunkMeshResult(opaque.ToMeshData(), liquid.ToMeshData());
+        SubChunkMesh[] subChunks = new SubChunkMesh[SubChunkConstants.SubChunkCount];
+
+        for (int i = 0; i < SubChunkConstants.SubChunkCount; i++)
+        {
+            subChunks[i] = accumulators[i].ToSubChunkMesh();
+        }
+
+        return new ChunkMeshResult(subChunks);
     }
 
     private void BuildFaceDirection(
         int faceDirection,
         ChunkData chunk,
         ChunkData?[] neighbors,
-        MeshAccumulator opaque,
-        MeshAccumulator liquid)
+        SubChunkAccumulators[] subChunkAccumulators)
     {
         MeshCoordHelper.GetAxes(faceDirection, out int depthAxis, out int uAxis, out int vAxis);
         (int normalX, int normalY, int normalZ) = MeshCoordHelper.GetNormal(faceDirection);
@@ -114,7 +125,7 @@ public sealed class ChunkMeshBuilder : IChunkMeshBuilder
                 }
 
                 GreedyMeshAlgorithm.Merge(mask, uCount, vCount, faceDirection, depthAxis, uAxis, vAxis, slice,
-                    normalX, normalY, normalZ, chunk, neighbors, _blockRegistry, opaque, liquid);
+                    normalX, normalY, normalZ, chunk, neighbors, _blockRegistry, subChunkAccumulators);
             }
         }
         finally
