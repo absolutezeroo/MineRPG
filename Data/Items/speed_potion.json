@@ -1,0 +1,29 @@
+{
+  "id": "speed_potion",
+  "displayName": "Potion of Speed",
+  "description": "Grants a burst of speed for 60 seconds.",
+  "category": "consumable",
+  "rarity": "uncommon",
+  "maxStackSize": 16,
+  "hasDurability": false,
+  "iconAtlasId": "items/speed_potion",
+  "sellValue": 25,
+  "buyValue": 75,
+  "tags": ["potion", "magic"],
+  "consumable": {
+    "type": "potion",
+    "useTime": 1.0,
+    "healthRestore": 0,
+    "manaRestore": 0,
+    "hungerRestore": 0,
+    "saturationRestore": 0,
+    "effects": [
+      {
+        "effectId": "speed_boost",
+        "duration": 60.0,
+        "level": 1,
+        "chance": 1.0
+      }
+    ]
+  }
+}

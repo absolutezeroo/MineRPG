@@ -1,0 +1,12 @@
+{
+  "id": "iron_ingot_smelting",
+  "type": "smelting",
+  "category": "smelting",
+  "ingredients": [
+    { "itemId": "raw_iron", "quantity": 1 }
+  ],
+  "outputItemId": "iron_ingot",
+  "outputQuantity": 1,
+  "smeltTime": 10.0,
+  "experienceReward": 0.7
+}

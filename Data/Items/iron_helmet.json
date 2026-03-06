@@ -1,0 +1,21 @@
+{
+  "id": "iron_helmet",
+  "displayName": "Iron Helmet",
+  "description": "An iron helmet that protects the head.",
+  "category": "armor",
+  "rarity": "common",
+  "maxStackSize": 1,
+  "hasDurability": true,
+  "maxDurability": 165,
+  "iconAtlasId": "items/iron_helmet",
+  "sellValue": 20,
+  "buyValue": 60,
+  "tags": [],
+  "armor": {
+    "slot": "helmet",
+    "defense": 2.0,
+    "toughness": 0.0,
+    "weight": 2.0,
+    "resistances": []
+  }
+}

@@ -31,7 +31,7 @@ public interface IInventory
     /// <param name="definitionId">The item definition identifier to remove.</param>
     /// <param name="quantity">The maximum quantity to remove.</param>
     /// <returns>The actual number of items removed.</returns>
-    int Remove(int definitionId, int quantity);
+    int Remove(string definitionId, int quantity);
 
     /// <summary>
     /// Checks whether the inventory contains at least the specified quantity of the given item.
@@ -39,7 +39,7 @@ public interface IInventory
     /// <param name="definitionId">The item definition identifier to search for.</param>
     /// <param name="quantity">The minimum required quantity.</param>
     /// <returns><c>true</c> if the inventory contains enough of the item; otherwise, <c>false</c>.</returns>
-    bool Contains(int definitionId, int quantity);
+    bool Contains(string definitionId, int quantity);
 
     /// <summary>
     /// Returns a read-only snapshot of all non-null item instances in the inventory.

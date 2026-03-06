@@ -1,0 +1,21 @@
+{
+  "id": "iron_pickaxe",
+  "displayName": "Iron Pickaxe",
+  "description": "A sturdy pickaxe forged from iron ingots.",
+  "category": "tool",
+  "rarity": "common",
+  "maxStackSize": 1,
+  "hasDurability": true,
+  "maxDurability": 250,
+  "iconAtlasId": "items/iron_pickaxe",
+  "sellValue": 15,
+  "buyValue": 45,
+  "tags": [],
+  "tool": {
+    "toolType": "pickaxe",
+    "material": "iron",
+    "miningSpeed": 6.0,
+    "harvestLevel": 2,
+    "effectiveOn": ["stone", "cobblestone", "ore", "iron_ore", "gold_ore", "diamond_ore"]
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "setId": "iron_set",
+  "displayName": "Iron Armor Set",
+  "pieces": ["iron_helmet", "iron_chestplate", "iron_leggings", "iron_boots"],
+  "bonuses": [
+    {
+      "requiredPieces": 2,
+      "description": "+10% Mining Speed",
+      "effects": [
+        { "stat": "miningSpeed", "modifierType": "percentAdd", "value": 0.1 }
+      ]
+    },
+    {
+      "requiredPieces": 4,
+      "description": "+5 Defense, +20% Knockback Resistance",
+      "effects": [
+        { "stat": "defense", "modifierType": "flatAdd", "value": 5.0 },
+        { "stat": "knockbackResistance", "modifierType": "percentAdd", "value": 0.2 }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "id": "iron_pickaxe",
+  "type": "shaped",
+  "category": "tools",
+  "pattern": [
+    "III",
+    " S ",
+    " S "
+  ],
+  "patternKey": {
+    "I": "iron_ingot",
+    "S": "stick"
+  },
+  "ingredients": [
+    { "itemId": "iron_ingot", "quantity": 3 },
+    { "itemId": "stick", "quantity": 2 }
+  ],
+  "outputItemId": "iron_pickaxe",
+  "outputQuantity": 1
+}

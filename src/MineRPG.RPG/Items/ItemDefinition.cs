@@ -1,29 +1,66 @@
 namespace MineRPG.RPG.Items;
 
 /// <summary>
-/// Data-driven item definition loaded from Data/Items/*.json.
-/// Registered in an <see cref="MineRPG.Core.Registry.IRegistry{TKey, TValue}"/>.
+/// Immutable definition of an item type, loaded from Data/Items/*.json at startup.
+/// Describes the static properties shared by all instances of this item.
+/// Registered in an <see cref="ItemRegistry"/> keyed by <see cref="Id"/>.
 /// </summary>
 public sealed class ItemDefinition
 {
-    /// <summary>Unique numeric identifier for this item.</summary>
-    public int Id { get; init; }
+    /// <summary>Unique string identifier for this item type.</summary>
+    public string Id { get; init; } = "";
 
-    /// <summary>Display name of the item.</summary>
-    public string Name { get; init; } = "";
+    /// <summary>Localized display name shown in the UI.</summary>
+    public string DisplayName { get; init; } = "";
 
-    /// <summary>Item category such as Weapon, Armor, or Consumable.</summary>
-    public string Type { get; init; } = "";
+    /// <summary>Flavor text describing the item.</summary>
+    public string Description { get; init; } = "";
+
+    /// <summary>Primary category determining behavior and UI grouping.</summary>
+    public ItemCategory Category { get; init; }
 
     /// <summary>Rarity tier used for loot generation and display color coding.</summary>
     public ItemRarity Rarity { get; init; }
 
     /// <summary>Maximum number of items that can be stacked in a single slot.</summary>
-    public int MaxStack { get; init; } = 64;
+    public int MaxStackSize { get; init; } = 64;
 
-    /// <summary>Equipment slot this item occupies, or null if not equippable.</summary>
-    public string? EquipmentSlot { get; init; }
+    /// <summary>Whether this item type supports stacking.</summary>
+    public bool IsStackable => MaxStackSize > 1;
 
-    /// <summary>Reference to a loot table for nested drops, or null if none.</summary>
-    public string? LootTableRef { get; init; }
+    /// <summary>Whether this item has durability that degrades with use.</summary>
+    public bool HasDurability { get; init; }
+
+    /// <summary>Maximum durability points when fully repaired.</summary>
+    public int MaxDurability { get; init; }
+
+    /// <summary>Identifier into the icon texture atlas for UI display.</summary>
+    public string IconAtlasId { get; init; } = "";
+
+    /// <summary>Optional 3D model identifier for in-hand rendering.</summary>
+    public string? ModelId { get; init; }
+
+    /// <summary>Block ID to place when this item is used. Null if not a block item.</summary>
+    public string? PlacesBlockId { get; init; }
+
+    /// <summary>Tool-specific properties. Null if this item is not a tool.</summary>
+    public ToolProperties? Tool { get; init; }
+
+    /// <summary>Weapon-specific properties. Null if this item is not a weapon.</summary>
+    public WeaponProperties? Weapon { get; init; }
+
+    /// <summary>Armor-specific properties. Null if this item is not armor.</summary>
+    public ArmorProperties? Armor { get; init; }
+
+    /// <summary>Consumable-specific properties. Null if this item is not consumable.</summary>
+    public ConsumableProperties? Consumable { get; init; }
+
+    /// <summary>Flexible tags for custom behaviors and queries.</summary>
+    public IReadOnlyList<string> Tags { get; init; } = [];
+
+    /// <summary>Sale price at merchants.</summary>
+    public int SellValue { get; init; }
+
+    /// <summary>Purchase price at merchants.</summary>
+    public int BuyValue { get; init; }
 }

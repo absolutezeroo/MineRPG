@@ -1,0 +1,22 @@
+{
+  "id": "cooked_beef",
+  "displayName": "Steak",
+  "description": "A juicy cooked steak that restores hunger.",
+  "category": "consumable",
+  "rarity": "common",
+  "maxStackSize": 64,
+  "hasDurability": false,
+  "iconAtlasId": "items/cooked_beef",
+  "sellValue": 3,
+  "buyValue": 8,
+  "tags": ["food", "meat"],
+  "consumable": {
+    "type": "food",
+    "useTime": 1.6,
+    "healthRestore": 0,
+    "manaRestore": 0,
+    "hungerRestore": 8,
+    "saturationRestore": 12.8,
+    "effects": []
+  }
+}

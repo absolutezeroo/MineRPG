@@ -1,0 +1,20 @@
+{
+  "id": "diamond_sword",
+  "type": "shaped",
+  "category": "weapons",
+  "pattern": [
+    "D",
+    "D",
+    "S"
+  ],
+  "patternKey": {
+    "D": "diamond",
+    "S": "stick"
+  },
+  "ingredients": [
+    { "itemId": "diamond", "quantity": 2 },
+    { "itemId": "stick", "quantity": 1 }
+  ],
+  "outputItemId": "diamond_sword",
+  "outputQuantity": 1
+}

@@ -1,0 +1,21 @@
+{
+  "id": "iron_boots",
+  "displayName": "Iron Boots",
+  "description": "Iron boots that protect the feet.",
+  "category": "armor",
+  "rarity": "common",
+  "maxStackSize": 1,
+  "hasDurability": true,
+  "maxDurability": 195,
+  "iconAtlasId": "items/iron_boots",
+  "sellValue": 15,
+  "buyValue": 45,
+  "tags": [],
+  "armor": {
+    "slot": "boots",
+    "defense": 2.0,
+    "toughness": 0.0,
+    "weight": 2.0,
+    "resistances": []
+  }
+}

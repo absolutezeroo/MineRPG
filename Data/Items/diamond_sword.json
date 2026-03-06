@@ -1,0 +1,24 @@
+{
+  "id": "diamond_sword",
+  "displayName": "Diamond Sword",
+  "description": "A razor-sharp sword crafted from diamonds.",
+  "category": "weapon",
+  "rarity": "rare",
+  "maxStackSize": 1,
+  "hasDurability": true,
+  "maxDurability": 1561,
+  "iconAtlasId": "items/diamond_sword",
+  "sellValue": 120,
+  "buyValue": 350,
+  "tags": [],
+  "weapon": {
+    "weaponType": "sword",
+    "baseDamage": 7.0,
+    "attackSpeed": 1.6,
+    "reach": 3.0,
+    "knockback": 0.4,
+    "damageType": "physical",
+    "critChance": 0.05,
+    "critMultiplier": 1.5
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "id": "iron_ingot",
+  "displayName": "Iron Ingot",
+  "description": "A bar of refined iron, used in crafting tools and armor.",
+  "category": "material",
+  "rarity": "common",
+  "maxStackSize": 64,
+  "hasDurability": false,
+  "iconAtlasId": "items/iron_ingot",
+  "sellValue": 5,
+  "buyValue": 15,
+  "tags": ["metal", "crafting"]
+}
