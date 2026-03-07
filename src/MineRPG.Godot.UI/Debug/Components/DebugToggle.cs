@@ -41,10 +41,7 @@ public sealed partial class DebugToggle : HBoxContainer
     }
 
     /// <inheritdoc />
-    public override void _Ready()
-    {
-        UpdateStateLabel();
-    }
+    public override void _Ready() => UpdateStateLabel();
 
     /// <inheritdoc />
     public override void _GuiInput(InputEvent @event)

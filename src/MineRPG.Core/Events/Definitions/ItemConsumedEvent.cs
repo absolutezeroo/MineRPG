@@ -16,4 +16,10 @@ public readonly struct ItemConsumedEvent
 
     /// <summary>Hunger restored by the consumable.</summary>
     public float HungerRestored { get; init; }
+
+    /// <summary>Saturation restored by the consumable.</summary>
+    public float SaturationRestored { get; init; }
+
+    /// <summary>Thirst restored by the consumable.</summary>
+    public float ThirstRestored { get; init; }
 }

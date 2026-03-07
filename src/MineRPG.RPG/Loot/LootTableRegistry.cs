@@ -63,8 +63,5 @@ public sealed class LootTableRegistry
     /// <summary>
     /// Freezes the registry, preventing further modifications.
     /// </summary>
-    public void Freeze()
-    {
-        _inner.Freeze();
-    }
+    public void Freeze() => _inner.Freeze();
 }

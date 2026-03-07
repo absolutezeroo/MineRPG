@@ -78,10 +78,7 @@ public sealed partial class HotbarNode : Control
     }
 
     /// <inheritdoc />
-    public override void _ExitTree()
-    {
-        _eventBus.Unsubscribe<InventoryToggledEvent>(OnInventoryToggled);
-    }
+    public override void _ExitTree() => _eventBus.Unsubscribe<InventoryToggledEvent>(OnInventoryToggled);
 
     /// <inheritdoc />
     public override void _Input(InputEvent @event)

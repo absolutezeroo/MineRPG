@@ -24,8 +24,5 @@ public sealed partial class EquipmentScreenNode : Control
         _logger.Info("EquipmentScreenNode ready.");
     }
 
-    private void OnClosePressed()
-    {
-        Visible = false;
-    }
+    private void OnClosePressed() => Visible = false;
 }

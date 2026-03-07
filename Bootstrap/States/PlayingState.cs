@@ -109,7 +109,25 @@ public sealed class PlayingState : IState
             CameraYaw = playerData.CameraYaw,
             CameraPitch = playerData.CameraPitch,
             IsSprinting = playerData.IsSprinting,
+            SpawnX = playerData.SpawnX,
+            SpawnY = playerData.SpawnY,
+            SpawnZ = playerData.SpawnZ,
         };
+
+        if (playerData.Survival is not null)
+        {
+            saveData.Health = playerData.Survival.Health.Current;
+            saveData.Hunger = playerData.Survival.Hunger.Current;
+            saveData.Saturation = playerData.Survival.Hunger.Saturation;
+            saveData.Thirst = playerData.Survival.Thirst.Current;
+            saveData.Stamina = playerData.Survival.Stamina.Current;
+            saveData.Breath = playerData.Survival.Breath.Current;
+            saveData.BodyTemperature = playerData.Survival.Temperature.Current;
+        }
+        else
+        {
+            _logger.Warning("PlayingState: SurvivalSystem is null — survival state not persisted.");
+        }
 
         repository.Save(_worldSaveDirectory, saveData);
     }

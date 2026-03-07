@@ -123,6 +123,43 @@ public sealed class PlayerInventory
     public int CountItem(string definitionId) => Main.CountItem(definitionId) + Hotbar.CountItem(definitionId);
 
     /// <summary>
+    /// Clears all inventory sections and returns all non-null items.
+    /// Used when the player dies to drop all items.
+    /// </summary>
+    /// <returns>A list of all items that were in the inventory.</returns>
+    public IReadOnlyList<ItemInstance> ClearAll()
+    {
+        List<ItemInstance> allItems = new();
+
+        IReadOnlyList<ItemInstance> hotbarItems = Hotbar.ClearAndReturn();
+        IReadOnlyList<ItemInstance> mainItems = Main.ClearAndReturn();
+        IReadOnlyList<ItemInstance> armorItems = Armor.ClearAndReturn();
+        IReadOnlyList<ItemInstance> offhandItems = Offhand.ClearAndReturn();
+
+        for (int i = 0; i < hotbarItems.Count; i++)
+        {
+            allItems.Add(hotbarItems[i]);
+        }
+
+        for (int i = 0; i < mainItems.Count; i++)
+        {
+            allItems.Add(mainItems[i]);
+        }
+
+        for (int i = 0; i < armorItems.Count; i++)
+        {
+            allItems.Add(armorItems[i]);
+        }
+
+        for (int i = 0; i < offhandItems.Count; i++)
+        {
+            allItems.Add(offhandItems[i]);
+        }
+
+        return allItems;
+    }
+
+    /// <summary>
     /// Calculates total defense from all equipped armor.
     /// </summary>
     /// <returns>Combined defense value.</returns>

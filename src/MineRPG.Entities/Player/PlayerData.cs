@@ -1,3 +1,4 @@
+using MineRPG.Entities.Player.Survival;
 using MineRPG.RPG.Inventory;
 
 namespace MineRPG.Entities.Player;
@@ -59,4 +60,22 @@ public sealed class PlayerData
 
     /// <summary>The index of the currently selected hotbar slot (0-8).</summary>
     public int SelectedHotbarSlot { get; set; }
+
+    /// <summary>The survival system managing health, hunger, thirst, etc. Null until wired.</summary>
+    public SurvivalSystem? Survival { get; set; }
+
+    /// <summary>Whether the player's head is currently submerged in a liquid block.</summary>
+    public bool IsUnderwater { get; set; }
+
+    /// <summary>Normalized biome temperature at the player's position (-1 cold to 1 hot).</summary>
+    public float CurrentBiomeTemperature { get; set; }
+
+    /// <summary>World spawn X position.</summary>
+    public float SpawnX { get; set; } = 8f;
+
+    /// <summary>World spawn Y position.</summary>
+    public float SpawnY { get; set; } = 80f;
+
+    /// <summary>World spawn Z position.</summary>
+    public float SpawnZ { get; set; } = 8f;
 }

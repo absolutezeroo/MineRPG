@@ -8,6 +8,6 @@
   "hotbarSize": 9,
   "flySpeed": 10.0,
   "minFlySpeed": 1.0,
-  "maxFlySpeed": 50.0,
-  "flySpeedStep": 2.0
+  "maxFlySpeed": 100.0,
+  "flySpeedStep": 5.0
 }

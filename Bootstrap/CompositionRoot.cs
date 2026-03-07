@@ -13,6 +13,7 @@ using MineRPG.Core.Interfaces.Settings;
 using MineRPG.Core.Logging;
 using MineRPG.Core.Registry;
 using MineRPG.Entities.Player;
+using MineRPG.Entities.Player.Survival;
 using MineRPG.Godot.UI.Items;
 using MineRPG.Godot.World;
 using MineRPG.Godot.World.Chunks;
@@ -135,6 +136,11 @@ public static class CompositionRoot
         PlayerData playerData = new(movementSettings);
         locator.Register<PlayerData>(playerData);
 
+        SurvivalSettings survivalSettings = TryLoadSurvivalSettings(dataLoader, logger);
+        SurvivalSystem survivalSystem = new(survivalSettings, playerData, eventBus, logger);
+        playerData.Survival = survivalSystem;
+        locator.Register<SurvivalSystem>(survivalSystem);
+
         MiningState miningState = new();
         locator.Register<MiningState>(miningState);
 
@@ -149,6 +155,9 @@ public static class CompositionRoot
             playerData.PositionX = SpawnPositionResolver.SpawnWorldX;
             playerData.PositionY = spawnY;
             playerData.PositionZ = SpawnPositionResolver.SpawnWorldZ;
+            playerData.SpawnX = SpawnPositionResolver.SpawnWorldX;
+            playerData.SpawnY = spawnY;
+            playerData.SpawnZ = SpawnPositionResolver.SpawnWorldZ;
             logger.Info("CompositionRoot: New world — spawn Y computed as {0}.", spawnY);
         }
 
@@ -220,6 +229,9 @@ public static class CompositionRoot
         locator.Register<IHotbarController>(hotbarController);
         locator.Register<HotbarController>(hotbarController);
 
+        ItemConsumptionService consumptionService = new(playerData, itemRegistry, eventBus, logger);
+        locator.Register<ItemConsumptionService>(consumptionService);
+
         ISettingsRepository settingsRepo = locator.Get<ISettingsRepository>();
         SettingsData settingsData = locator.Get<SettingsData>();
         OptionsProvider optionsProvider = new(playerData, settingsRepo, settingsData, logger);
@@ -228,6 +240,19 @@ public static class CompositionRoot
         logger.Info(
             "CompositionRoot: All services wired. World='{0}', Seed={1}, SaveRoot={2}",
             worldMeta.Name, worldSeed, saveRoot);
+    }
+
+    private static SurvivalSettings TryLoadSurvivalSettings(IDataLoader loader, ILogger logger)
+    {
+        try
+        {
+            return loader.Load<SurvivalSettings>("Player/survival_settings.json");
+        }
+        catch (Exception ex)
+        {
+            logger.Warning("Could not load survival_settings.json — using defaults. {0}", ex.Message);
+            return new SurvivalSettings();
+        }
     }
 
     private static PlayerMovementSettings TryLoadMovementSettings(IDataLoader loader, ILogger logger)
@@ -264,6 +289,31 @@ public static class CompositionRoot
         playerData.CameraYaw = save.CameraYaw;
         playerData.CameraPitch = save.CameraPitch;
         playerData.IsSprinting = save.IsSprinting;
+        playerData.SpawnX = save.SpawnX;
+        playerData.SpawnY = save.SpawnY;
+        playerData.SpawnZ = save.SpawnZ;
+
+        if (playerData.Survival is not null)
+        {
+            playerData.Survival.Health.SetCurrent(save.Health);
+            playerData.Survival.Hunger.SetValues(save.Hunger, save.Saturation);
+            playerData.Survival.Thirst.SetCurrent(save.Thirst);
+            playerData.Survival.Stamina.SetCurrent(save.Stamina);
+            playerData.Survival.Breath.SetCurrent(save.Breath);
+            playerData.Survival.Temperature.SetCurrent(save.BodyTemperature);
+
+            // Safety: if saved health was zero (crash during death), reset all vitals
+            if (playerData.Survival.Health.IsDead)
+            {
+                logger.Warning("CompositionRoot: Saved health is zero — resetting survival to defaults.");
+                playerData.Survival.Health.Reset();
+                playerData.Survival.Hunger.Reset();
+                playerData.Survival.Thirst.Reset();
+                playerData.Survival.Stamina.Reset();
+                playerData.Survival.Breath.Reset();
+                playerData.Survival.Temperature.Reset();
+            }
+        }
 
         logger.Info(
             "CompositionRoot: Restored player save — position ({0:F1}, {1:F1}, {2:F1}).",

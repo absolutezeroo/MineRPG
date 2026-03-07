@@ -24,8 +24,5 @@ public sealed partial class CraftingScreenNode : Control
         _logger.Info("CraftingScreenNode ready.");
     }
 
-    private void OnClosePressed()
-    {
-        Visible = false;
-    }
+    private void OnClosePressed() => Visible = false;
 }

@@ -24,8 +24,5 @@ public sealed partial class QuestJournalScreenNode : Control
         _logger.Info("QuestJournalScreenNode ready.");
     }
 
-    private void OnClosePressed()
-    {
-        Visible = false;
-    }
+    private void OnClosePressed() => Visible = false;
 }

@@ -1,0 +1,49 @@
+{
+  "health": {
+    "maxHealth": 20.0,
+    "naturalRegenRate": 1.0,
+    "naturalRegenDelay": 2.5,
+    "hungerRegenThreshold": 18.0,
+    "starveDamageRate": 1.0,
+    "starveDamageInterval": 4.0
+  },
+  "hunger": {
+    "maxHunger": 20.0,
+    "maxSaturation": 20.0,
+    "initialSaturation": 5.0,
+    "passiveDecayRate": 0.05,
+    "sprintDecayRate": 0.1
+  },
+  "thirst": {
+    "maxThirst": 20.0,
+    "passiveDecayRate": 0.04,
+    "sprintDecayRate": 0.08,
+    "dehydrationDamageInterval": 5.0,
+    "dehydrationDamageAmount": 1.0
+  },
+  "stamina": {
+    "maxStamina": 100.0,
+    "sprintDrainRate": 20.0,
+    "regenRate": 15.0,
+    "regenDelay": 1.5,
+    "minStaminaToSprint": 10.0
+  },
+  "breath": {
+    "maxBreath": 15.0,
+    "drainRate": 1.0,
+    "regenRate": 4.0,
+    "drowningDamageInterval": 1.0,
+    "drowningDamageAmount": 2.0
+  },
+  "temperature": {
+    "comfortMin": -0.15,
+    "comfortMax": 0.35,
+    "altitudeCoolRate": 0.0015,
+    "altitudeBaseY": 64,
+    "hotDamageInterval": 3.0,
+    "hotDamageAmount": 1.0,
+    "coldDamageInterval": 3.0,
+    "coldDamageAmount": 1.0,
+    "adaptationRate": 0.05
+  }
+}

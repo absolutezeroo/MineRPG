@@ -24,6 +24,9 @@ public sealed class ConsumableProperties
     /// <summary>Saturation points restored on consumption.</summary>
     public float SaturationRestore { get; init; }
 
+    /// <summary>Thirst points restored on consumption.</summary>
+    public float ThirstRestore { get; init; }
+
     /// <summary>Status effects applied on consumption.</summary>
     public IReadOnlyList<StatusEffectApplication> Effects { get; init; } = [];
 }

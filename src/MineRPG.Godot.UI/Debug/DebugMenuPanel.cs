@@ -118,10 +118,7 @@ public sealed partial class DebugMenuPanel : Control
     /// Updates the active tab display. Called by DebugManager.
     /// </summary>
     /// <param name="delta">Frame delta time in seconds.</param>
-    public void UpdateDisplay(double delta)
-    {
-        _tabs[_activeTab].UpdateDisplay(delta);
-    }
+    public void UpdateDisplay(double delta) => _tabs[_activeTab].UpdateDisplay(delta);
 
     private void AddTab(int index, Control tabControl)
     {

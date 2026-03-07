@@ -14,6 +14,9 @@ public enum ConsumableType
     /// <summary>Scroll that triggers a one-time magical effect.</summary>
     Scroll,
 
+    /// <summary>Drink that restores thirst.</summary>
+    Drink,
+
     /// <summary>Throwable item that creates an area effect.</summary>
     Throwable,
 }

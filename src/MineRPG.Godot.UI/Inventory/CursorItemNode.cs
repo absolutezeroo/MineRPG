@@ -54,10 +54,7 @@ public sealed partial class CursorItemNode : Control
     }
 
     /// <inheritdoc />
-    public override void _Process(double delta)
-    {
-        GlobalPosition = GetGlobalMousePosition() + new Vector2(Offset, Offset);
-    }
+    public override void _Process(double delta) => GlobalPosition = GetGlobalMousePosition() + new Vector2(Offset, Offset);
 
     /// <inheritdoc />
     public override void _ExitTree()
