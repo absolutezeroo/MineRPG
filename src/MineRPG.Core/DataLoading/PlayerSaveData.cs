@@ -9,7 +9,6 @@ public sealed class PlayerSaveData
     private const float DefaultSpawnX = 8f;
     private const float DefaultSpawnY = 80f;
     private const float DefaultSpawnZ = 8f;
-    private const ushort DefaultSelectedBlockId = 1;
 
     /// <summary>Gets or sets the save format version for forward compatibility.</summary>
     public int Version { get; set; } = 1;
@@ -40,7 +39,4 @@ public sealed class PlayerSaveData
 
     /// <summary>Gets or sets whether the player was sprinting.</summary>
     public bool IsSprinting { get; set; }
-
-    /// <summary>Gets or sets the block ID selected in the hotbar.</summary>
-    public ushort SelectedBlockId { get; set; } = DefaultSelectedBlockId;
 }

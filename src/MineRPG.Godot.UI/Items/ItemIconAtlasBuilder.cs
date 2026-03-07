@@ -54,6 +54,7 @@ public static class ItemIconAtlasBuilder
                 if (texture is not null)
                 {
                     tileImage = texture.GetImage();
+                    texture.Dispose();
                     tileImage.Convert(Image.Format.Rgba8);
 
                     if (tileImage.GetWidth() != tileSize || tileImage.GetHeight() != tileSize)

@@ -32,6 +32,7 @@ public sealed class BlockInteractionService : IBlockInteractionService
     private readonly IVoxelRaycaster _raycaster;
     private readonly WorldNode _worldNode;
     private readonly BlockRegistry _blockRegistry;
+    private readonly ItemRegistry _itemRegistry;
     private readonly HotbarController _hotbarController;
     private readonly PlayerData _playerData;
     private readonly MiningState _miningState;
@@ -47,6 +48,7 @@ public sealed class BlockInteractionService : IBlockInteractionService
     /// <param name="raycaster">Voxel raycaster for block hit detection.</param>
     /// <param name="worldNode">World node for breaking and placing blocks.</param>
     /// <param name="blockRegistry">Block definition registry.</param>
+    /// <param name="itemRegistry">Item definition registry for resolving placeable blocks.</param>
     /// <param name="hotbarController">Hotbar controller for reading the equipped tool.</param>
     /// <param name="playerData">Player state container.</param>
     /// <param name="miningState">Mining progress state tracker.</param>
@@ -56,6 +58,7 @@ public sealed class BlockInteractionService : IBlockInteractionService
         IVoxelRaycaster raycaster,
         WorldNode worldNode,
         BlockRegistry blockRegistry,
+        ItemRegistry itemRegistry,
         HotbarController hotbarController,
         PlayerData playerData,
         MiningState miningState,
@@ -65,6 +68,7 @@ public sealed class BlockInteractionService : IBlockInteractionService
         _raycaster = raycaster;
         _worldNode = worldNode;
         _blockRegistry = blockRegistry;
+        _itemRegistry = itemRegistry;
         _hotbarController = hotbarController;
         _playerData = playerData;
         _miningState = miningState;
@@ -179,8 +183,33 @@ public sealed class BlockInteractionService : IBlockInteractionService
     public bool TryPlaceBlock(
         float originX, float originY, float originZ,
         float dirX, float dirY, float dirZ,
-        float maxDistance, ushort blockId)
+        float maxDistance)
     {
+        ItemInstance? heldItem = _hotbarController.GetSelectedItem();
+
+        if (heldItem is null)
+        {
+            return false;
+        }
+
+        if (!_itemRegistry.TryGet(heldItem.DefinitionId, out ItemDefinition itemDef))
+        {
+            return false;
+        }
+
+        if (string.IsNullOrEmpty(itemDef.PlacesBlockId))
+        {
+            return false;
+        }
+
+        if (!_blockRegistry.TryGetByName(itemDef.PlacesBlockId, out BlockDefinition block))
+        {
+            _logger.Warning(
+                "TryPlaceBlock: item '{0}' references block '{1}' not found in BlockRegistry.",
+                heldItem.DefinitionId, itemDef.PlacesBlockId);
+            return false;
+        }
+
         VoxelRaycastResult result = _raycaster.Cast(
             originX, originY, originZ, dirX, dirY, dirZ, maxDistance);
 
@@ -197,18 +226,21 @@ public sealed class BlockInteractionService : IBlockInteractionService
             return false;
         }
 
-        _worldNode.PlaceBlock(target, blockId);
+        _worldNode.PlaceBlock(target, block.Id);
+
+        _playerData.Inventory?.Hotbar.RemoveAt(_playerData.SelectedHotbarSlot, 1);
+
         return true;
     }
 
     /// <summary>
-    /// Drops items from a broken block into the player's inventory.
+    /// Spawns a world drop from a broken block.
     /// Only drops when the correct tool was used.
-    /// Surplus items that do not fit are spawned as world drops.
+    /// The drop pops out visually and is auto-collected by proximity.
     /// </summary>
     private void DropItemsFromBlock(BlockDefinition block)
     {
-        if (string.IsNullOrEmpty(block.DropItemId) || _playerData.Inventory is null)
+        if (string.IsNullOrEmpty(block.DropItemId))
         {
             return;
         }
@@ -218,27 +250,17 @@ public sealed class BlockInteractionService : IBlockInteractionService
             return;
         }
 
-        ItemInstance drop = new ItemInstance(block.DropItemId!, block.DropCount);
-        int surplus = _playerData.Inventory.AddItem(drop);
-
-        if (surplus > 0)
+        _eventBus.Publish(new ItemDropSpawnedEvent
         {
-            _eventBus.Publish(new ItemDropSpawnedEvent
-            {
-                X = _miningState.TargetX + 0.5f,
-                Y = _miningState.TargetY + 1.0f,
-                Z = _miningState.TargetZ + 0.5f,
-                ItemDefinitionId = block.DropItemId!,
-                Count = surplus,
-                VelocityX = DropVelocity.BlockBreak.X,
-                VelocityY = DropVelocity.BlockBreak.Y,
-                VelocityZ = DropVelocity.BlockBreak.Z,
-            });
-
-            _logger.Debug(
-                "Inventory full — spawned {0}x {1} as world drop",
-                surplus, block.DropItemId);
-        }
+            X = _miningState.TargetX + 0.5f,
+            Y = _miningState.TargetY + 0.5f,
+            Z = _miningState.TargetZ + 0.5f,
+            ItemDefinitionId = block.DropItemId!,
+            Count = block.DropCount,
+            VelocityX = DropVelocity.BlockBreak.X,
+            VelocityY = DropVelocity.BlockBreak.Y,
+            VelocityZ = DropVelocity.BlockBreak.Z,
+        });
     }
 
     /// <summary>

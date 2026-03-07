@@ -31,6 +31,8 @@ public interface IBlockInteractionService
 
     /// <summary>
     /// Cast a ray and place a block adjacent to the first solid block hit.
+    /// The block type is determined by the currently held hotbar item.
+    /// Returns false if the held item is not placeable or the ray misses.
     /// </summary>
     /// <param name="originX">Ray origin X coordinate.</param>
     /// <param name="originY">Ray origin Y coordinate.</param>
@@ -39,8 +41,7 @@ public interface IBlockInteractionService
     /// <param name="dirY">Ray direction Y component.</param>
     /// <param name="dirZ">Ray direction Z component.</param>
     /// <param name="maxDistance">Maximum ray distance.</param>
-    /// <param name="blockId">The block type ID to place.</param>
     /// <returns>True if a block was placed.</returns>
     bool TryPlaceBlock(float originX, float originY, float originZ,
-        float dirX, float dirY, float dirZ, float maxDistance, ushort blockId);
+        float dirX, float dirY, float dirZ, float maxDistance);
 }

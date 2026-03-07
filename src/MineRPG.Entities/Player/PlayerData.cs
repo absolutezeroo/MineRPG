@@ -8,9 +8,6 @@ namespace MineRPG.Entities.Player;
 /// </summary>
 public sealed class PlayerData
 {
-    /// <summary>Default block ID selected in the hotbar.</summary>
-    private const ushort DefaultSelectedBlockId = 1;
-
     /// <summary>
     /// Initializes a new instance of the <see cref="PlayerData"/> class.
     /// </summary>
@@ -56,9 +53,6 @@ public sealed class PlayerData
 
     /// <summary>Current fly speed in blocks per second. Adjustable at runtime.</summary>
     public float CurrentFlySpeed { get; set; }
-
-    /// <summary>Block ID currently selected in the hotbar (legacy, used for placement).</summary>
-    public ushort SelectedBlockId { get; set; } = DefaultSelectedBlockId;
 
     /// <summary>The player's inventory system. Null until initialized by CompositionRoot.</summary>
     public PlayerInventory? Inventory { get; set; }

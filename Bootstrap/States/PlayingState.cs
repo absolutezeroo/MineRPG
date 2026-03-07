@@ -109,7 +109,6 @@ public sealed class PlayingState : IState
             CameraYaw = playerData.CameraYaw,
             CameraPitch = playerData.CameraPitch,
             IsSprinting = playerData.IsSprinting,
-            SelectedBlockId = playerData.SelectedBlockId,
         };
 
         repository.Save(_worldSaveDirectory, saveData);

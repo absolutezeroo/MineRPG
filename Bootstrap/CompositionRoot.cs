@@ -251,7 +251,6 @@ public static class CompositionRoot
         playerData.CameraYaw = save.CameraYaw;
         playerData.CameraPitch = save.CameraPitch;
         playerData.IsSprinting = save.IsSprinting;
-        playerData.SelectedBlockId = save.SelectedBlockId;
 
         logger.Info(
             "CompositionRoot: Restored player save — position ({0:F1}, {1:F1}, {2:F1}).",

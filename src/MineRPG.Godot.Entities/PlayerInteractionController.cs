@@ -70,6 +70,7 @@ internal sealed class PlayerInteractionController
 
     /// <summary>
     /// Attempts to place a block at the position the player is looking at.
+    /// The block type is determined by the currently held hotbar item.
     /// </summary>
     public void TryPlaceBlock()
     {
@@ -85,7 +86,7 @@ internal sealed class PlayerInteractionController
         _blockInteraction!.TryPlaceBlock(
             origin.X, origin.Y, origin.Z,
             forward.X, forward.Y, forward.Z,
-            range, _playerData.SelectedBlockId);
+            range);
     }
 
     /// <summary>

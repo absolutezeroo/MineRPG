@@ -7,6 +7,7 @@
   "maxStackSize": 64,
   "hasDurability": false,
   "iconAtlasId": "items/oak_log",
+  "placesBlockId": "Wood",
   "sellValue": 1,
   "buyValue": 3,
   "tags": ["building", "crafting", "wood"]

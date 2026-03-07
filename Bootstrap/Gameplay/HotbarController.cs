@@ -42,7 +42,6 @@ public sealed class HotbarController : IHotbarController
         int clamped = Math.Clamp(index, MinSlotIndex, MaxSlotIndex);
         SelectedIndex = clamped;
         _playerData.SelectedHotbarSlot = clamped;
-        _playerData.SelectedBlockId = (ushort)(clamped + 1);
     }
 
     /// <summary>

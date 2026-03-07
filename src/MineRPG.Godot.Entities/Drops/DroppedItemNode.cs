@@ -19,6 +19,7 @@ public sealed partial class DroppedItemNode : Node3D
     private const float QuadSize = 0.4f;
 
     private float _totalTime;
+    private float _spinDegrees;
 
     /// <summary>The pure-layer drop this node represents.</summary>
     public DroppedItem LinkedDrop { get; private set; } = null!;
@@ -79,10 +80,8 @@ public sealed partial class DroppedItemNode : Node3D
         float deltaTime = (float)delta;
         _totalTime += deltaTime;
 
-        RotationDegrees = new Vector3(
-            0f,
-            RotationDegrees.Y + SpinDegreesPerSecond * deltaTime,
-            0f);
+        _spinDegrees = (_spinDegrees + SpinDegreesPerSecond * deltaTime) % 360f;
+        RotationDegrees = new Vector3(0f, _spinDegrees, 0f);
 
         float bobOffset = BobAmplitude * MathF.Sin(_totalTime * BobFrequency * MathF.Tau);
         Position = new Vector3(LinkedDrop.WorldX, LinkedDrop.WorldY + bobOffset, LinkedDrop.WorldZ);
