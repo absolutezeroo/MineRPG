@@ -2,6 +2,7 @@ using System;
 
 using Godot;
 
+using MineRPG.Godot.UI.Items;
 using MineRPG.RPG.Inventory;
 using MineRPG.RPG.Items;
 
@@ -11,7 +12,7 @@ namespace MineRPG.Godot.UI.Inventory;
 
 /// <summary>
 /// A single inventory slot UI widget (50x50 PanelContainer).
-/// Displays the item icon (placeholder colored rect) and stack count.
+/// Displays the item icon (atlas texture or placeholder color) and stack count.
 /// Fires events for mouse interaction (click, hover).
 /// Subscribes to <see cref="RPG.Inventory.Inventory.SlotChanged"/> to auto-refresh.
 /// </summary>
@@ -24,7 +25,9 @@ public sealed partial class InventorySlotNode : PanelContainer
     private InventoryContainer? _inventory;
     private int _slotIndex;
     private ItemRegistry _itemRegistry = null!;
-    private ColorRect _iconRect = null!;
+    private ItemIconAtlas? _iconAtlas;
+    private TextureRect _iconTexture = null!;
+    private ColorRect _iconColorFallback = null!;
     private Label _countLabel = null!;
     private StyleBoxFlat _normalStyle = null!;
     private StyleBoxFlat _hoverStyle = null!;
@@ -53,11 +56,17 @@ public sealed partial class InventorySlotNode : PanelContainer
     /// <param name="inventory">The inventory containing this slot.</param>
     /// <param name="slotIndex">The index within the inventory.</param>
     /// <param name="itemRegistry">The item registry for definition lookups.</param>
-    public void Initialize(InventoryContainer inventory, int slotIndex, ItemRegistry itemRegistry)
+    /// <param name="iconAtlas">Optional item icon atlas for textured icons.</param>
+    public void Initialize(
+        InventoryContainer inventory,
+        int slotIndex,
+        ItemRegistry itemRegistry,
+        ItemIconAtlas? iconAtlas = null)
     {
         _inventory = inventory;
         _slotIndex = slotIndex;
         _itemRegistry = itemRegistry;
+        _iconAtlas = iconAtlas;
 
         _inventory.SlotChanged += OnSlotChanged;
 
@@ -109,13 +118,23 @@ public sealed partial class InventorySlotNode : PanelContainer
 
         AddThemeStyleboxOverride("panel", _normalStyle);
 
-        _iconRect = new ColorRect();
-        _iconRect.CustomMinimumSize = new Vector2(IconSize, IconSize);
-        _iconRect.Position = new Vector2(IconMargin, IconMargin);
-        _iconRect.Size = new Vector2(IconSize, IconSize);
-        _iconRect.MouseFilter = MouseFilterEnum.Ignore;
-        _iconRect.Color = Colors.Transparent;
-        AddChild(_iconRect);
+        _iconTexture = new TextureRect();
+        _iconTexture.CustomMinimumSize = new Vector2(IconSize, IconSize);
+        _iconTexture.Position = new Vector2(IconMargin, IconMargin);
+        _iconTexture.Size = new Vector2(IconSize, IconSize);
+        _iconTexture.ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize;
+        _iconTexture.StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered;
+        _iconTexture.MouseFilter = MouseFilterEnum.Ignore;
+        _iconTexture.Visible = false;
+        AddChild(_iconTexture);
+
+        _iconColorFallback = new ColorRect();
+        _iconColorFallback.CustomMinimumSize = new Vector2(IconSize, IconSize);
+        _iconColorFallback.Position = new Vector2(IconMargin, IconMargin);
+        _iconColorFallback.Size = new Vector2(IconSize, IconSize);
+        _iconColorFallback.MouseFilter = MouseFilterEnum.Ignore;
+        _iconColorFallback.Color = Colors.Transparent;
+        AddChild(_iconColorFallback);
 
         _countLabel = new Label();
         _countLabel.HorizontalAlignment = HorizontalAlignment.Right;
@@ -142,19 +161,37 @@ public sealed partial class InventorySlotNode : PanelContainer
 
         if (item == null)
         {
-            _iconRect.Color = Colors.Transparent;
+            _iconTexture.Texture = null;
+            _iconTexture.Visible = false;
+            _iconColorFallback.Color = Colors.Transparent;
             _countLabel.Text = "";
             return;
         }
 
         if (_itemRegistry.TryGet(item.DefinitionId, out ItemDefinition definition))
         {
-            _iconRect.Color = GameTheme.GetCategoryPlaceholderColor(definition.Category);
+            AtlasTexture? atlas = _iconAtlas?.GetIconTexture(definition.IconAtlasId);
+
+            if (atlas is not null)
+            {
+                _iconTexture.Texture = atlas;
+                _iconTexture.Visible = true;
+                _iconColorFallback.Color = Colors.Transparent;
+            }
+            else
+            {
+                _iconTexture.Texture = null;
+                _iconTexture.Visible = false;
+                _iconColorFallback.Color = GameTheme.GetCategoryPlaceholderColor(definition.Category);
+            }
+
             _countLabel.Text = item.Count > 1 ? item.Count.ToString() : "";
         }
         else
         {
-            _iconRect.Color = new Color(1.0f, 0.0f, 1.0f, 0.8f);
+            _iconTexture.Texture = null;
+            _iconTexture.Visible = false;
+            _iconColorFallback.Color = new Color(1.0f, 0.0f, 1.0f, 0.8f);
             _countLabel.Text = item.Count > 1 ? item.Count.ToString() : "";
         }
     }

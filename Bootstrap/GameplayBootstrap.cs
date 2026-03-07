@@ -1,19 +1,24 @@
+using System;
+
 using Godot;
 
 using MineRPG.Core.Diagnostics;
 using MineRPG.Core.DI;
 using MineRPG.Core.Events;
 using MineRPG.Core.Events.Definitions;
+using MineRPG.Core.Interfaces;
 using MineRPG.Core.Interfaces.Gameplay;
 using MineRPG.Core.Logging;
 using MineRPG.Entities.Player;
 using MineRPG.Godot.Entities.Drops;
+using MineRPG.Godot.UI.Items;
 using MineRPG.Godot.World;
 using MineRPG.Godot.World.Rendering;
 using MineRPG.RPG.Drops;
 using MineRPG.RPG.Inventory;
 using MineRPG.RPG.Items;
 using MineRPG.World.Blocks;
+using MineRPG.World.Chunks;
 using MineRPG.World.Spatial;
 
 using MineRPG.Game.Bootstrap.Gameplay;
@@ -175,14 +180,34 @@ public sealed partial class GameplayBootstrap : Node
         ItemRegistry itemRegistry = ServiceLocator.Instance.Get<ItemRegistry>();
         PlayerInventory playerInventory = ServiceLocator.Instance.Get<PlayerInventory>();
         IEventBus eventBus = ServiceLocator.Instance.Get<IEventBus>();
+        IChunkManager chunkManager = ServiceLocator.Instance.Get<IChunkManager>();
+        BlockRegistry blockRegistry = ServiceLocator.Instance.Get<BlockRegistry>();
 
-        ItemDropManager dropManager = new(itemRegistry);
+        ChunkTerrainQuery terrainQuery = new(chunkManager, blockRegistry);
+        ItemDropManager dropManager = new(itemRegistry, terrainQuery);
         ServiceLocator.Instance.Register<ItemDropManager>(dropManager);
+
+        Func<string, AtlasTexture?>? iconResolver = null;
+
+        if (ServiceLocator.Instance.TryGet<ItemIconAtlas>(out ItemIconAtlas? iconAtlas)
+            && iconAtlas is not null)
+        {
+            iconResolver = iconAtlas.GetIconTexture;
+        }
+
+        IAudioManager? audioManager = null;
+
+        if (ServiceLocator.Instance.TryGet<IAudioManager>(out IAudioManager? audio))
+        {
+            audioManager = audio;
+        }
 
         DroppedItemManagerNode dropManagerNode = new();
         dropManagerNode.Name = "DroppedItemManager";
         worldNode.AddChild(dropManagerNode);
-        dropManagerNode.Initialize(dropManager, playerInventory, itemRegistry, eventBus, logger);
+        dropManagerNode.Initialize(
+            dropManager, playerInventory, itemRegistry, eventBus, logger,
+            iconResolver, audioManager);
 
         logger.Info("GameplayBootstrap: DroppedItemManagerNode wired.");
     }

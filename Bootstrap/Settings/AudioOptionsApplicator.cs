@@ -10,6 +10,8 @@ namespace MineRPG.Game.Bootstrap.Settings;
 internal sealed class AudioOptionsApplicator
 {
     private static readonly StringName MasterBusName = new("Master");
+    private static readonly StringName SfxBusName = new("SFX");
+    private static readonly StringName MusicBusName = new("Music");
 
     private readonly ILogger _logger;
 
@@ -25,16 +27,47 @@ internal sealed class AudioOptionsApplicator
     /// <summary>Gets or sets the master audio bus volume (0.0 to 1.0).</summary>
     public float MasterVolume
     {
-        get
+        get => GetBusVolume(MasterBusName);
+        set => SetBusVolume(MasterBusName, value, "MasterVolume");
+    }
+
+    /// <summary>Gets or sets the SFX audio bus volume (0.0 to 1.0).</summary>
+    public float SfxVolume
+    {
+        get => GetBusVolume(SfxBusName);
+        set => SetBusVolume(SfxBusName, value, "SfxVolume");
+    }
+
+    /// <summary>Gets or sets the music audio bus volume (0.0 to 1.0).</summary>
+    public float MusicVolume
+    {
+        get => GetBusVolume(MusicBusName);
+        set => SetBusVolume(MusicBusName, value, "MusicVolume");
+    }
+
+    private static float GetBusVolume(StringName busName)
+    {
+        int busIndex = AudioServer.GetBusIndex(busName);
+
+        if (busIndex < 0)
         {
-            int busIndex = AudioServer.GetBusIndex(MasterBusName);
-            return Mathf.DbToLinear(AudioServer.GetBusVolumeDb(busIndex));
+            return 1.0f;
         }
-        set
+
+        return Mathf.DbToLinear(AudioServer.GetBusVolumeDb(busIndex));
+    }
+
+    private void SetBusVolume(StringName busName, float value, string label)
+    {
+        int busIndex = AudioServer.GetBusIndex(busName);
+
+        if (busIndex < 0)
         {
-            int busIndex = AudioServer.GetBusIndex(MasterBusName);
-            AudioServer.SetBusVolumeDb(busIndex, Mathf.LinearToDb(value));
-            _logger.Debug("AudioOptions: MasterVolume={0}", value);
+            _logger.Warning("AudioOptions: Bus '{0}' not found in AudioServer.", busName);
+            return;
         }
+
+        AudioServer.SetBusVolumeDb(busIndex, Mathf.LinearToDb(value));
+        _logger.Debug("AudioOptions: {0}={1}", label, value);
     }
 }

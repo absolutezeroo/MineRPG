@@ -70,6 +70,28 @@ public sealed class OptionsProvider : IOptionsProvider
     }
 
     /// <inheritdoc />
+    public float SfxVolume
+    {
+        get => _audio.SfxVolume;
+        set
+        {
+            _audio.SfxVolume = value;
+            SaveSnapshot();
+        }
+    }
+
+    /// <inheritdoc />
+    public float MusicVolume
+    {
+        get => _audio.MusicVolume;
+        set
+        {
+            _audio.MusicVolume = value;
+            SaveSnapshot();
+        }
+    }
+
+    /// <inheritdoc />
     public int RenderDistance
     {
         get => _video.RenderDistance;
@@ -188,6 +210,8 @@ public sealed class OptionsProvider : IOptionsProvider
         AnisotropicFiltering = settings.AnisotropicFiltering;
         Brightness = settings.Brightness;
         MasterVolume = settings.MasterVolume;
+        SfxVolume = settings.SfxVolume;
+        MusicVolume = settings.MusicVolume;
         MouseSensitivity = settings.MouseSensitivity;
         RenderDistance = settings.RenderDistance;
         FieldOfView = settings.FieldOfView;
@@ -214,6 +238,8 @@ public sealed class OptionsProvider : IOptionsProvider
         {
             MouseSensitivity = MouseSensitivity,
             MasterVolume = MasterVolume,
+            SfxVolume = SfxVolume,
+            MusicVolume = MusicVolume,
             RenderDistance = RenderDistance,
             VSyncEnabled = VSyncEnabled,
             WindowMode = WindowMode,

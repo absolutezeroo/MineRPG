@@ -1,0 +1,11 @@
+{
+  "sounds": [
+    {
+      "key": "item_pickup",
+      "path": "Assets/Audio/SFX/item_pickup.wav",
+      "volumeDb": 0,
+      "pitchScale": 1.0,
+      "pitchRandomness": 0.1
+    }
+  ]
+}

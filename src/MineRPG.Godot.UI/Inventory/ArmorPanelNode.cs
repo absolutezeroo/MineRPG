@@ -2,6 +2,7 @@ using System;
 
 using Godot;
 
+using MineRPG.Godot.UI.Items;
 using MineRPG.RPG.Inventory;
 using MineRPG.RPG.Items;
 
@@ -35,10 +36,12 @@ public sealed partial class ArmorPanelNode : VBoxContainer
     /// <param name="armorInventory">The 4-slot armor inventory.</param>
     /// <param name="offhandInventory">The 1-slot offhand inventory.</param>
     /// <param name="itemRegistry">The item registry for definition lookups.</param>
+    /// <param name="iconAtlas">Optional item icon atlas for textured icons.</param>
     public void Initialize(
         InventoryContainer armorInventory,
         InventoryContainer offhandInventory,
-        ItemRegistry itemRegistry)
+        ItemRegistry itemRegistry,
+        ItemIconAtlas? iconAtlas = null)
     {
         AddThemeConstantOverride("separation", 4);
 
@@ -55,7 +58,7 @@ public sealed partial class ArmorPanelNode : VBoxContainer
             InventorySlotNode slotNode = new();
             slotNode.Name = $"Armor{i}";
             AddChild(slotNode);
-            slotNode.Initialize(armorInventory, i, itemRegistry);
+            slotNode.Initialize(armorInventory, i, itemRegistry, iconAtlas);
 
             slotNode.SlotClicked += OnSlotClicked;
             slotNode.SlotHovered += OnSlotHovered;
@@ -76,7 +79,7 @@ public sealed partial class ArmorPanelNode : VBoxContainer
         _offhandSlot = new InventorySlotNode();
         _offhandSlot.Name = "Offhand";
         AddChild(_offhandSlot);
-        _offhandSlot.Initialize(offhandInventory, 0, itemRegistry);
+        _offhandSlot.Initialize(offhandInventory, 0, itemRegistry, iconAtlas);
 
         _offhandSlot.SlotClicked += OnSlotClicked;
         _offhandSlot.SlotHovered += OnSlotHovered;

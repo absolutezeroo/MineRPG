@@ -13,6 +13,7 @@ using MineRPG.Core.Interfaces.Settings;
 using MineRPG.Core.Logging;
 using MineRPG.Core.Registry;
 using MineRPG.Entities.Player;
+using MineRPG.Godot.UI.Items;
 using MineRPG.Godot.World;
 using MineRPG.Godot.World.Chunks;
 using MineRPG.Godot.World.Rendering;
@@ -173,6 +174,10 @@ public static class CompositionRoot
 
         itemRegistry.Freeze();
         locator.Register<ItemRegistry>(itemRegistry);
+
+        ImageTexture itemIconTexture = ItemIconAtlasBuilder.Build(itemRegistry.IconAtlasLayout, logger);
+        ItemIconAtlas itemIconAtlas = new(itemIconTexture, itemRegistry.IconAtlasLayout);
+        locator.Register<ItemIconAtlas>(itemIconAtlas);
 
         logger.Info("CompositionRoot: Loaded {0} item definitions.", itemDefinitions.Count);
 

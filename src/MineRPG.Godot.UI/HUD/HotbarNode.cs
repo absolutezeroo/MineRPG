@@ -12,6 +12,7 @@ using MineRPG.RPG.Items;
 
 using MineRPG.Game.Bootstrap.Input;
 using MineRPG.Godot.UI.Inventory;
+using MineRPG.Godot.UI.Items;
 
 namespace MineRPG.Godot.UI.HUD;
 
@@ -44,6 +45,13 @@ public sealed partial class HotbarNode : Control
         _playerData = ServiceLocator.Instance.Get<PlayerData>();
         ItemRegistry itemRegistry = ServiceLocator.Instance.Get<ItemRegistry>();
 
+        ItemIconAtlas? iconAtlas = null;
+
+        if (ServiceLocator.Instance.TryGet<ItemIconAtlas>(out ItemIconAtlas? atlas))
+        {
+            iconAtlas = atlas;
+        }
+
         _eventBus.Subscribe<InventoryToggledEvent>(OnInventoryToggled);
 
         GameTheme.Apply(this);
@@ -55,7 +63,7 @@ public sealed partial class HotbarNode : Control
             InventorySlotNode slotNode = new();
             slotNode.Name = $"Slot{i}";
             slotContainer.AddChild(slotNode);
-            slotNode.Initialize(_playerInventory.Hotbar, i, itemRegistry);
+            slotNode.Initialize(_playerInventory.Hotbar, i, itemRegistry, iconAtlas);
             _slotNodes[i] = slotNode;
         }
 
@@ -177,6 +185,7 @@ public sealed partial class HotbarNode : Control
             VelocityX = DropVelocity.PlayerThrow.X,
             VelocityY = DropVelocity.PlayerThrow.Y,
             VelocityZ = DropVelocity.PlayerThrow.Z,
+            PlayerYaw = _playerData.CameraYaw,
         });
 
         GetViewport().SetInputAsHandled();

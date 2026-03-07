@@ -5,6 +5,7 @@ using MineRPG.Core.Events;
 using MineRPG.Core.Events.Definitions;
 using MineRPG.Core.Logging;
 using MineRPG.Game.Bootstrap.Input;
+using MineRPG.Godot.UI.Items;
 using MineRPG.RPG.Inventory;
 using MineRPG.RPG.Items;
 
@@ -22,6 +23,7 @@ public sealed partial class InventoryScreenNode : Control
     private PlayerInventory _playerInventory = null!;
     private CursorItemHolder _cursor = null!;
     private ItemRegistry _itemRegistry = null!;
+    private ItemIconAtlas? _iconAtlas;
 
     private InventoryGridNode _mainGrid = null!;
     private InventoryGridNode _hotbarGrid = null!;
@@ -42,6 +44,11 @@ public sealed partial class InventoryScreenNode : Control
         _playerInventory = ServiceLocator.Instance.Get<PlayerInventory>();
         _cursor = ServiceLocator.Instance.Get<CursorItemHolder>();
         _itemRegistry = ServiceLocator.Instance.Get<ItemRegistry>();
+
+        if (ServiceLocator.Instance.TryGet<ItemIconAtlas>(out ItemIconAtlas? atlas))
+        {
+            _iconAtlas = atlas;
+        }
 
         BuildContent();
 
@@ -150,7 +157,7 @@ public sealed partial class InventoryScreenNode : Control
         _armorPanel.Name = "ArmorPanel";
         _armorPanel.MouseFilter = MouseFilterEnum.Ignore;
         hbox.AddChild(_armorPanel);
-        _armorPanel.Initialize(_playerInventory.Armor, _playerInventory.Offhand, _itemRegistry);
+        _armorPanel.Initialize(_playerInventory.Armor, _playerInventory.Offhand, _itemRegistry, _iconAtlas);
         _armorPanel.SlotClicked += OnSlotClicked;
         _armorPanel.SlotHovered += OnSlotHovered;
         _armorPanel.SlotUnhovered += OnSlotUnhovered;
@@ -175,7 +182,7 @@ public sealed partial class InventoryScreenNode : Control
         _mainGrid = new InventoryGridNode();
         _mainGrid.Name = "MainGrid";
         centerColumn.AddChild(_mainGrid);
-        _mainGrid.Initialize(_playerInventory.Main, 9, _itemRegistry);
+        _mainGrid.Initialize(_playerInventory.Main, 9, _itemRegistry, _iconAtlas);
         _mainGrid.SlotClicked += OnSlotClicked;
         _mainGrid.SlotHovered += OnSlotHovered;
         _mainGrid.SlotUnhovered += OnSlotUnhovered;
@@ -194,7 +201,7 @@ public sealed partial class InventoryScreenNode : Control
         _hotbarGrid = new InventoryGridNode();
         _hotbarGrid.Name = "HotbarGrid";
         centerColumn.AddChild(_hotbarGrid);
-        _hotbarGrid.Initialize(_playerInventory.Hotbar, 9, _itemRegistry);
+        _hotbarGrid.Initialize(_playerInventory.Hotbar, 9, _itemRegistry, _iconAtlas);
         _hotbarGrid.SlotClicked += OnSlotClicked;
         _hotbarGrid.SlotHovered += OnSlotHovered;
         _hotbarGrid.SlotUnhovered += OnSlotUnhovered;
@@ -203,7 +210,7 @@ public sealed partial class InventoryScreenNode : Control
         _cursorItemNode = new CursorItemNode();
         _cursorItemNode.Name = "CursorItem";
         AddChild(_cursorItemNode);
-        _cursorItemNode.Initialize(_cursor, _itemRegistry);
+        _cursorItemNode.Initialize(_cursor, _itemRegistry, _iconAtlas);
 
         // Tooltip
         _tooltipNode = new ItemTooltipNode();

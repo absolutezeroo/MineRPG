@@ -2,6 +2,7 @@ using System;
 
 using Godot;
 
+using MineRPG.Godot.UI.Items;
 using MineRPG.RPG.Inventory;
 using MineRPG.RPG.Items;
 
@@ -19,7 +20,9 @@ public sealed partial class CursorItemNode : Control
 
     private CursorItemHolder _cursor = null!;
     private ItemRegistry _itemRegistry = null!;
-    private ColorRect _iconRect = null!;
+    private ItemIconAtlas? _iconAtlas;
+    private TextureRect _iconTexture = null!;
+    private ColorRect _iconColorFallback = null!;
     private Label _countLabel = null!;
 
     /// <summary>
@@ -27,10 +30,12 @@ public sealed partial class CursorItemNode : Control
     /// </summary>
     /// <param name="cursor">The cursor item holder to observe.</param>
     /// <param name="itemRegistry">The item registry for definition lookups.</param>
-    public void Initialize(CursorItemHolder cursor, ItemRegistry itemRegistry)
+    /// <param name="iconAtlas">Optional item icon atlas for textured icons.</param>
+    public void Initialize(CursorItemHolder cursor, ItemRegistry itemRegistry, ItemIconAtlas? iconAtlas = null)
     {
         _cursor = cursor;
         _itemRegistry = itemRegistry;
+        _iconAtlas = iconAtlas;
 
         _cursor.HeldItemChanged += OnHeldItemChanged;
 
@@ -61,12 +66,21 @@ public sealed partial class CursorItemNode : Control
         ZIndex = 100;
         SetProcess(false);
 
-        _iconRect = new ColorRect();
-        _iconRect.CustomMinimumSize = new Vector2(IconSize, IconSize);
-        _iconRect.Size = new Vector2(IconSize, IconSize);
-        _iconRect.MouseFilter = MouseFilterEnum.Ignore;
-        _iconRect.Color = Colors.Transparent;
-        AddChild(_iconRect);
+        _iconTexture = new TextureRect();
+        _iconTexture.CustomMinimumSize = new Vector2(IconSize, IconSize);
+        _iconTexture.Size = new Vector2(IconSize, IconSize);
+        _iconTexture.ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize;
+        _iconTexture.StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered;
+        _iconTexture.MouseFilter = MouseFilterEnum.Ignore;
+        _iconTexture.Visible = false;
+        AddChild(_iconTexture);
+
+        _iconColorFallback = new ColorRect();
+        _iconColorFallback.CustomMinimumSize = new Vector2(IconSize, IconSize);
+        _iconColorFallback.Size = new Vector2(IconSize, IconSize);
+        _iconColorFallback.MouseFilter = MouseFilterEnum.Ignore;
+        _iconColorFallback.Color = Colors.Transparent;
+        AddChild(_iconColorFallback);
 
         _countLabel = new Label();
         _countLabel.HorizontalAlignment = HorizontalAlignment.Right;
@@ -95,12 +109,28 @@ public sealed partial class CursorItemNode : Control
 
         if (_itemRegistry.TryGet(item.DefinitionId, out ItemDefinition definition))
         {
-            _iconRect.Color = GameTheme.GetCategoryPlaceholderColor(definition.Category);
+            AtlasTexture? atlas = _iconAtlas?.GetIconTexture(definition.IconAtlasId);
+
+            if (atlas is not null)
+            {
+                _iconTexture.Texture = atlas;
+                _iconTexture.Visible = true;
+                _iconColorFallback.Color = Colors.Transparent;
+            }
+            else
+            {
+                _iconTexture.Texture = null;
+                _iconTexture.Visible = false;
+                _iconColorFallback.Color = GameTheme.GetCategoryPlaceholderColor(definition.Category);
+            }
+
             _countLabel.Text = item.Count > 1 ? item.Count.ToString() : "";
         }
         else
         {
-            _iconRect.Color = new Color(1.0f, 0.0f, 1.0f, 0.8f);
+            _iconTexture.Texture = null;
+            _iconTexture.Visible = false;
+            _iconColorFallback.Color = new Color(1.0f, 0.0f, 1.0f, 0.8f);
             _countLabel.Text = item.Count > 1 ? item.Count.ToString() : "";
         }
     }

@@ -2,6 +2,7 @@ using System;
 
 using Godot;
 
+using MineRPG.Godot.UI.Items;
 using MineRPG.RPG.Inventory;
 using MineRPG.RPG.Items;
 
@@ -35,7 +36,12 @@ public sealed partial class InventoryGridNode : GridContainer
     /// <param name="inventory">The inventory to bind to.</param>
     /// <param name="columns">Number of columns in the grid.</param>
     /// <param name="itemRegistry">The item registry for definition lookups.</param>
-    public void Initialize(InventoryContainer inventory, int columns, ItemRegistry itemRegistry)
+    /// <param name="iconAtlas">Optional item icon atlas for textured icons.</param>
+    public void Initialize(
+        InventoryContainer inventory,
+        int columns,
+        ItemRegistry itemRegistry,
+        ItemIconAtlas? iconAtlas = null)
     {
         Columns = columns;
         AddThemeConstantOverride("h_separation", SlotSeparation);
@@ -48,7 +54,7 @@ public sealed partial class InventoryGridNode : GridContainer
             InventorySlotNode slotNode = new();
             slotNode.Name = $"Slot{i}";
             AddChild(slotNode);
-            slotNode.Initialize(inventory, i, itemRegistry);
+            slotNode.Initialize(inventory, i, itemRegistry, iconAtlas);
 
             slotNode.SlotClicked += OnSlotClicked;
             slotNode.SlotHovered += OnSlotHovered;
