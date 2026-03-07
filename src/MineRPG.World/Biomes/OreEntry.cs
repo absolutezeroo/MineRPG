@@ -4,18 +4,13 @@ namespace MineRPG.World.Biomes;
 
 /// <summary>
 /// Describes ore distribution parameters within a biome.
-/// Loaded from biome JSON files. The <see cref="BlockName"/> is resolved
-/// to a <see cref="BlockId"/> at startup by the block resolver.
+/// Loaded from biome JSON files. References blocks by their stable numeric ID.
 /// </summary>
 public sealed class OreEntry
 {
-    /// <summary>Block name reference resolved at startup (e.g., "Coal Ore").</summary>
-    [JsonProperty("block_name")]
-    public string BlockName { get; init; } = "";
-
-    /// <summary>Resolved block ID, set at startup by BiomeBlockResolver.</summary>
-    [JsonIgnore]
-    public ushort BlockId { get; set; }
+    /// <summary>Block ID for the ore block (matches BlockDefinition.Id).</summary>
+    [JsonProperty("block_id")]
+    public ushort BlockId { get; init; }
 
     /// <summary>Minimum Y height for ore generation.</summary>
     [JsonProperty("min_height")]

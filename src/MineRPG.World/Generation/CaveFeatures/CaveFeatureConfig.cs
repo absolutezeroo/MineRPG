@@ -37,9 +37,9 @@ public sealed class CaveFeatureConfig
     [JsonProperty("stalagmite_max_height")]
     public int StalagmiteMaxHeight { get; init; } = 6;
 
-    /// <summary>Block name for pillar/formation material.</summary>
-    [JsonProperty("formation_block_name")]
-    public string FormationBlockName { get; init; } = "Stone";
+    /// <summary>Block ID for pillar/formation material (default: Stone = 1).</summary>
+    [JsonProperty("formation_block_id")]
+    public ushort FormationBlockId { get; init; } = 1;
 
     /// <summary>Biome IDs where cave features are active (empty = all cave biomes).</summary>
     [JsonProperty("eligible_biomes")]

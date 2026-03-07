@@ -23,7 +23,6 @@ public sealed class OreDistributorTests
         {
             new OreDefinition
             {
-                BlockName = "Iron Ore",
                 BlockId = IronOreId,
                 MinHeight = 10,
                 MaxHeight = 80,
@@ -82,7 +81,6 @@ public sealed class OreDistributorTests
         {
             new OreDefinition
             {
-                BlockName = "Diamond Ore",
                 BlockId = DiamondOreId,
                 MinHeight = 5,
                 MaxHeight = 16,
@@ -141,7 +139,6 @@ public sealed class OreDistributorTests
         {
             new OreDefinition
             {
-                BlockName = "Missing",
                 BlockId = 0,
                 MinHeight = 0,
                 MaxHeight = 100,

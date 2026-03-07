@@ -4,6 +4,7 @@ namespace MineRPG.World.Generation.Ores;
 
 /// <summary>
 /// Data-driven definition of an ore type and its distribution parameters.
+/// References blocks by their stable numeric ID.
 /// </summary>
 public sealed class OreDefinition
 {
@@ -11,13 +12,9 @@ public sealed class OreDefinition
     [JsonProperty("id")]
     public string Id { get; init; } = "";
 
-    /// <summary>Block name to resolve to a block ID at startup.</summary>
-    [JsonProperty("block_name")]
-    public string BlockName { get; init; } = "";
-
-    /// <summary>Resolved block ID (set at startup, not in JSON).</summary>
-    [JsonIgnore]
-    public ushort BlockId { get; set; }
+    /// <summary>Block ID for the ore block (matches BlockDefinition.Id).</summary>
+    [JsonProperty("block_id")]
+    public ushort BlockId { get; init; }
 
     /// <summary>Minimum Y for ore generation.</summary>
     [JsonProperty("min_height")]

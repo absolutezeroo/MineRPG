@@ -1,6 +1,6 @@
 [
   {
-    "block_name": "Coal Ore",
+    "block_id": 17,
     "min_height": 0,
     "max_height": 192,
     "peak_height": 96,
@@ -10,7 +10,7 @@
     "air_exposure_reduction": 0.0
   },
   {
-    "block_name": "Iron Ore",
+    "block_id": 9,
     "min_height": -64,
     "max_height": 72,
     "peak_height": 15,
@@ -20,7 +20,7 @@
     "air_exposure_reduction": 0.0
   },
   {
-    "block_name": "Copper Ore",
+    "block_id": 10,
     "min_height": -16,
     "max_height": 112,
     "peak_height": 48,
@@ -30,7 +30,7 @@
     "air_exposure_reduction": 0.0
   },
   {
-    "block_name": "Gold Ore",
+    "block_id": 11,
     "min_height": -64,
     "max_height": 32,
     "peak_height": -16,
@@ -40,7 +40,7 @@
     "air_exposure_reduction": 0.5
   },
   {
-    "block_name": "Redstone Ore",
+    "block_id": 12,
     "min_height": -64,
     "max_height": 15,
     "peak_height": -32,
@@ -50,7 +50,7 @@
     "air_exposure_reduction": 0.0
   },
   {
-    "block_name": "Lapis Ore",
+    "block_id": 13,
     "min_height": -64,
     "max_height": 64,
     "peak_height": 0,
@@ -60,7 +60,7 @@
     "air_exposure_reduction": 0.0
   },
   {
-    "block_name": "Diamond Ore",
+    "block_id": 14,
     "min_height": -64,
     "max_height": 16,
     "peak_height": -59,
@@ -70,7 +70,7 @@
     "air_exposure_reduction": 0.5
   },
   {
-    "block_name": "Emerald Ore",
+    "block_id": 15,
     "min_height": -16,
     "max_height": 256,
     "peak_height": 100,

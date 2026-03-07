@@ -97,7 +97,6 @@ public static class CompositionRoot
         locator.Register<IChunkManager>(chunkManager);
 
         IReadOnlyList<BiomeDefinition> biomes = dataLoader.LoadAll<BiomeDefinition>("Biomes");
-        BiomeBlockResolver.ResolveAll(biomes, blockRegistry, logger);
         BiomeSelector biomeSelector = new(biomes, worldSeed);
         locator.Register<BiomeSelector>(biomeSelector);
 

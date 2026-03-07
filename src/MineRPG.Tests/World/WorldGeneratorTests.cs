@@ -25,7 +25,6 @@ public sealed class WorldGeneratorTests
         BlockRegistry blockRegistry = new BlockRegistry(loader, logger);
 
         IReadOnlyList<BiomeDefinition> biomes = loader.LoadAll<BiomeDefinition>("Biomes");
-        BiomeBlockResolver.ResolveAll(biomes, blockRegistry, logger);
 
         const int seed = 42;
         BiomeSelector biomeSelector = new BiomeSelector(biomes, seed);

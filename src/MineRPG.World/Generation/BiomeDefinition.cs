@@ -10,7 +10,7 @@ namespace MineRPG.World.Generation;
 /// <summary>
 /// Data-driven biome configuration supporting 6D climate targeting.
 /// Loaded from Data/Biomes/*.json. Adding a new biome requires only a JSON file.
-/// Block IDs reference BlockRegistry via name-based resolution.
+/// Block references use stable numeric IDs matching BlockDefinition.Id.
 /// </summary>
 public sealed class BiomeDefinition
 {
@@ -53,35 +53,19 @@ public sealed class BiomeDefinition
 
     /// <summary>Block ID for the top surface layer.</summary>
     [JsonProperty("surfaceBlock")]
-    public ushort SurfaceBlock { get; set; }
+    public ushort SurfaceBlock { get; init; }
 
     /// <summary>Block ID for the sub-surface layer (filler).</summary>
     [JsonProperty("subSurfaceBlock")]
-    public ushort SubSurfaceBlock { get; set; }
+    public ushort SubSurfaceBlock { get; init; }
 
     /// <summary>Block ID for the stone layer.</summary>
     [JsonProperty("stoneBlock")]
-    public ushort StoneBlock { get; set; }
-
-    /// <summary>Name-based surface block reference resolved at startup.</summary>
-    [JsonProperty("surfaceBlockName")]
-    public string? SurfaceBlockName { get; init; }
-
-    /// <summary>Name-based sub-surface block reference resolved at startup.</summary>
-    [JsonProperty("subSurfaceBlockName")]
-    public string? SubSurfaceBlockName { get; init; }
-
-    /// <summary>Name-based stone block reference resolved at startup.</summary>
-    [JsonProperty("stoneBlockName")]
-    public string? StoneBlockName { get; init; }
+    public ushort StoneBlock { get; init; }
 
     /// <summary>Block ID for underwater floor surfaces.</summary>
     [JsonProperty("underwaterBlock")]
-    public ushort UnderwaterBlock { get; set; }
-
-    /// <summary>Name-based underwater block reference resolved at startup.</summary>
-    [JsonProperty("underwaterBlockName")]
-    public string? UnderwaterBlockName { get; init; }
+    public ushort UnderwaterBlock { get; init; }
 
     /// <summary>Thickness of the sub-surface layer (dirt/sand). Default 4.</summary>
     [JsonProperty("subSurfaceDepth")]

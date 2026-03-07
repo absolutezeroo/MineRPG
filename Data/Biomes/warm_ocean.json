@@ -32,68 +32,68 @@
   "baseHeight": 35,
   "heightVariation": 4.0,
   "terrainScale": 0.8,
-  "surfaceBlockName": "Sand",
-  "subSurfaceBlockName": "Sand",
-  "stoneBlockName": "Stone",
-  "underwaterBlockName": "Sand",
+  "surfaceBlock": 4,
+  "subSurfaceBlock": 4,
+  "stoneBlock": 1,
+  "underwaterBlock": 4,
   "subSurfaceDepth": 4,
   "vegetation": [],
   "ores": [
     {
-      "block_name": "Coal Ore",
       "min_height": 0,
       "max_height": 128,
       "vein_size": 12,
-      "frequency": 20
+      "frequency": 20,
+      "block_id": 17
     },
     {
-      "block_name": "Iron Ore",
       "min_height": 0,
       "max_height": 64,
       "vein_size": 9,
-      "frequency": 20
+      "frequency": 20,
+      "block_id": 9
     },
     {
-      "block_name": "Copper Ore",
       "min_height": 0,
       "max_height": 96,
       "vein_size": 10,
-      "frequency": 16
+      "frequency": 16,
+      "block_id": 10
     },
     {
-      "block_name": "Gold Ore",
       "min_height": 0,
       "max_height": 32,
       "vein_size": 9,
-      "frequency": 4
+      "frequency": 4,
+      "block_id": 11
     },
     {
-      "block_name": "Redstone Ore",
       "min_height": 0,
       "max_height": 16,
       "vein_size": 8,
-      "frequency": 8
+      "frequency": 8,
+      "block_id": 12
     },
     {
-      "block_name": "Lapis Ore",
       "min_height": 0,
       "max_height": 30,
       "vein_size": 6,
-      "frequency": 2
+      "frequency": 2,
+      "block_id": 13
     },
     {
-      "block_name": "Diamond Ore",
       "min_height": 0,
       "max_height": 16,
       "vein_size": 8,
-      "frequency": 2
+      "frequency": 2,
+      "block_id": 14
     },
     {
-      "block_name": "Emerald Ore",
       "min_height": 0,
       "max_height": 32,
       "vein_size": 1,
-      "frequency": 1
+      "frequency": 1,
+      "block_id": 15
     }
   ],
   "structures": [],
