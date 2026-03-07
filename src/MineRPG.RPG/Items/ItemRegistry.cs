@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 using MineRPG.Core.Registry;
 
 namespace MineRPG.RPG.Items;
@@ -12,6 +14,12 @@ public sealed class ItemRegistry
     private readonly Registry<string, ItemDefinition> _inner = new();
     private readonly Dictionary<ItemCategory, List<ItemDefinition>> _byCategory = new();
     private readonly Dictionary<string, List<ItemDefinition>> _byTag = new();
+
+    /// <summary>
+    /// Atlas layout for item icons, built when the registry is frozen.
+    /// Returns an empty layout before <see cref="Freeze"/> is called.
+    /// </summary>
+    public ItemIconAtlasLayout IconAtlasLayout { get; private set; } = new(Array.Empty<string>());
 
     /// <summary>Number of registered item definitions.</summary>
     public int Count => _inner.Count;
@@ -56,8 +64,24 @@ public sealed class ItemRegistry
 
     /// <summary>
     /// Freezes the registry, preventing further registrations.
+    /// Builds the icon atlas layout from all registered IconAtlasId values.
     /// </summary>
-    public void Freeze() => _inner.Freeze();
+    public void Freeze()
+    {
+        IReadOnlyList<ItemDefinition> all = _inner.GetAll();
+        List<string> iconIds = new(all.Count);
+
+        for (int i = 0; i < all.Count; i++)
+        {
+            if (!string.IsNullOrEmpty(all[i].IconAtlasId))
+            {
+                iconIds.Add(all[i].IconAtlasId);
+            }
+        }
+
+        IconAtlasLayout = new ItemIconAtlasLayout(iconIds);
+        _inner.Freeze();
+    }
 
     /// <summary>
     /// Retrieves an item definition by ID. Throws if not found.

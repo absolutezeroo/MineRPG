@@ -29,4 +29,7 @@ public readonly struct ItemDropSpawnedEvent
 
     /// <summary>Initial velocity Z component.</summary>
     public float VelocityZ { get; init; }
+
+    /// <summary>Player camera yaw in radians. Used to orient directional throws.</summary>
+    public float PlayerYaw { get; init; }
 }

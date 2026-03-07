@@ -1,3 +1,4 @@
+using MineRPG.Core.Interfaces.Gameplay;
 using MineRPG.RPG.Inventory;
 using MineRPG.RPG.Items;
 
@@ -13,14 +14,21 @@ public sealed class ItemDropManager
 
     private readonly List<DroppedItem> _drops = new();
     private readonly ItemRegistry _itemRegistry;
+    private readonly ITerrainQuery? _terrainQuery;
 
     /// <summary>
     /// Creates an item drop manager.
     /// </summary>
     /// <param name="itemRegistry">The item registry for definition lookups.</param>
-    public ItemDropManager(ItemRegistry itemRegistry)
+    /// <param name="terrainQuery">
+    /// Optional terrain query for drop physics. When null, drops remain
+    /// stationary (age-only updates). When provided, gravity and velocity
+    /// are applied each frame.
+    /// </param>
+    public ItemDropManager(ItemRegistry itemRegistry, ITerrainQuery? terrainQuery = null)
     {
         _itemRegistry = itemRegistry ?? throw new ArgumentNullException(nameof(itemRegistry));
+        _terrainQuery = terrainQuery;
     }
 
     /// <summary>All currently active drops in the world.</summary>
@@ -118,14 +126,22 @@ public sealed class ItemDropManager
     }
 
     /// <summary>
-    /// Updates the age of all active drops.
+    /// Updates all active drops: advances age and applies physics when
+    /// a terrain query is available.
     /// </summary>
     /// <param name="deltaTime">Time elapsed since last update.</param>
     public void UpdateDrops(float deltaTime)
     {
         for (int i = 0; i < _drops.Count; i++)
         {
-            _drops[i].Age += deltaTime;
+            DroppedItem drop = _drops[i];
+            drop.Age += deltaTime;
+
+            if (_terrainQuery is not null)
+            {
+                float surfaceY = _terrainQuery.GetSurfaceY(drop.WorldX, drop.WorldZ);
+                ItemDropPhysics.Step(drop, deltaTime, surfaceY);
+            }
         }
     }
 }

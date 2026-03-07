@@ -14,6 +14,12 @@ public interface IOptionsProvider
     /// <summary>Gets or sets the master audio bus volume (0.0 to 1.0).</summary>
     float MasterVolume { get; set; }
 
+    /// <summary>Gets or sets the SFX audio bus volume (0.0 to 1.0).</summary>
+    float SfxVolume { get; set; }
+
+    /// <summary>Gets or sets the music audio bus volume (0.0 to 1.0).</summary>
+    float MusicVolume { get; set; }
+
     // --- Graphics tab ---
 
     /// <summary>Gets or sets the chunk render distance.</summary>

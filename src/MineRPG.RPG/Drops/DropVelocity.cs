@@ -6,13 +6,13 @@ namespace MineRPG.RPG.Drops;
 public readonly struct DropVelocity
 {
     /// <summary>Velocity for items popping out of a broken block.</summary>
-    public static readonly DropVelocity BlockBreak = new(0f, 0.3f, 0f);
+    public static readonly DropVelocity BlockBreak = new(0f, 5.0f, 0f);
 
     /// <summary>Velocity for items dropping from a killed mob.</summary>
-    public static readonly DropVelocity MobDeath = new(0f, 0.5f, 0f);
+    public static readonly DropVelocity MobDeath = new(0f, 4.0f, 0f);
 
-    /// <summary>Velocity for items thrown by the player.</summary>
-    public static readonly DropVelocity PlayerThrow = new(0f, 0.2f, 1f);
+    /// <summary>Base velocity for items thrown by the player. X/Z are oriented by camera yaw.</summary>
+    public static readonly DropVelocity PlayerThrow = new(0f, 3.0f, 6.0f);
 
     /// <summary>X velocity component.</summary>
     public float X { get; init; }

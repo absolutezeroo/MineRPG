@@ -20,6 +20,12 @@ public sealed class SettingsData
     /// <summary>Master audio bus volume (0.0 to 1.0).</summary>
     public float MasterVolume { get; set; } = 1.0f;
 
+    /// <summary>SFX audio bus volume (0.0 to 1.0).</summary>
+    public float SfxVolume { get; set; } = 1.0f;
+
+    /// <summary>Music audio bus volume (0.0 to 1.0).</summary>
+    public float MusicVolume { get; set; } = 1.0f;
+
     // --- Graphics tab ---
 
     /// <summary>Chunk render distance in chunks.</summary>
