@@ -3,10 +3,11 @@ using Godot;
 using MineRPG.Core.DI;
 using MineRPG.Core.Events;
 using MineRPG.Core.Events.Definitions;
-using MineRPG.Core.Interfaces.Lifecycle;
 using MineRPG.Core.Interfaces.Gameplay;
+using MineRPG.Core.Interfaces.Lifecycle;
 using MineRPG.Core.Logging;
 using MineRPG.Entities.Player;
+using MineRPG.Game.Bootstrap.Input;
 
 namespace MineRPG.Godot.Entities;
 
@@ -95,11 +96,7 @@ public sealed partial class PlayerNode : CharacterBody3D
 
         if (@event.IsActionPressed(InputActions.Pause))
         {
-            if (ServiceLocator.Instance.TryGet<IGameStateController>(
-                out IGameStateController? controller))
-            {
-                controller.RequestPause();
-            }
+            _eventBus.Publish(new PauseRequestedEvent());
         }
 
         if (@event.IsActionPressed(InputActions.Interact) &&

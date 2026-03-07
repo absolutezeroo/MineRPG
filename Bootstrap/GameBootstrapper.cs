@@ -9,8 +9,7 @@ using MineRPG.Core.Events;
 using MineRPG.Core.Interfaces;
 using MineRPG.Core.Interfaces.Settings;
 using MineRPG.Core.Logging;
-using MineRPG.Game.Bootstrap.Debug;
-using MineRPG.Game.Bootstrap.Gameplay;
+using MineRPG.Game.Bootstrap.Input;
 using MineRPG.Game.Bootstrap.Settings;
 using MineRPG.Godot.UI;
 
@@ -59,11 +58,7 @@ public sealed partial class GameBootstrapper : Node
 
         GameTheme.Initialize();
 
-        InventoryInputRegistrar.Register(logger);
-
-#if DEBUG
-        DebugInputRegistrar.RegisterAll(logger);
-#endif
+        InputActionRegistrar.RegisterAll(logger);
 
         logger.Info("GameBootstrapper: Bootstrap initialization complete.");
     }

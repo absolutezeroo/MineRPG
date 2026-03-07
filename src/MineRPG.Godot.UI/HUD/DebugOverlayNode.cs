@@ -5,6 +5,7 @@ using Godot;
 using MineRPG.Core.DI;
 using MineRPG.Core.Interfaces.Gameplay;
 using MineRPG.Core.Logging;
+using MineRPG.Game.Bootstrap.Input;
 
 namespace MineRPG.Godot.UI.HUD;
 
@@ -78,7 +79,7 @@ public sealed partial class DebugOverlayNode : Control
     /// <inheritdoc />
     public override void _Input(InputEvent @event)
     {
-        if (!@event.IsActionPressed(InputActionNames.DebugToggle))
+        if (!@event.IsActionPressed(InputActions.DebugToggle))
         {
             return;
         }

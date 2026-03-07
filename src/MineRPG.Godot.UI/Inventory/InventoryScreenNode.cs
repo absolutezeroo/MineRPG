@@ -4,6 +4,7 @@ using MineRPG.Core.DI;
 using MineRPG.Core.Events;
 using MineRPG.Core.Events.Definitions;
 using MineRPG.Core.Logging;
+using MineRPG.Game.Bootstrap.Input;
 using MineRPG.RPG.Inventory;
 using MineRPG.RPG.Items;
 
@@ -53,7 +54,7 @@ public sealed partial class InventoryScreenNode : Control
     /// <inheritdoc />
     public override void _Input(InputEvent @event)
     {
-        if (@event.IsActionPressed(InputActionNames.InventoryToggle))
+        if (@event.IsActionPressed(InputActions.InventoryToggle))
         {
             if (_isOpen)
             {
@@ -68,7 +69,7 @@ public sealed partial class InventoryScreenNode : Control
             return;
         }
 
-        if (_isOpen && @event.IsActionPressed(InputActionNames.Pause))
+        if (_isOpen && @event.IsActionPressed(InputActions.Pause))
         {
             Close();
             GetViewport().SetInputAsHandled();

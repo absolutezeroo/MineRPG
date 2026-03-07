@@ -5,6 +5,7 @@ using MineRPG.Core.Events;
 using MineRPG.Core.Events.Definitions;
 using MineRPG.Core.Interfaces.Lifecycle;
 using MineRPG.Core.Logging;
+using MineRPG.Game.Bootstrap.Input;
 
 using MineRPG.Godot.UI.Options;
 
@@ -79,7 +80,7 @@ public sealed partial class PauseMenuNode : Control
             return;
         }
 
-        if (@event.IsActionPressed(InputActionNames.Pause))
+        if (@event.IsActionPressed(InputActions.Pause))
         {
             OnResumePressed();
             GetViewport().SetInputAsHandled();

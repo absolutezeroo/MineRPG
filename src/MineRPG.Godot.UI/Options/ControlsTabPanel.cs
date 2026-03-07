@@ -6,6 +6,7 @@ using Godot.Collections;
 using MineRPG.Core.DataLoading;
 using MineRPG.Core.DI;
 using MineRPG.Core.Interfaces;
+using MineRPG.Game.Bootstrap.Input;
 
 namespace MineRPG.Godot.UI.Options;
 
@@ -16,21 +17,7 @@ namespace MineRPG.Godot.UI.Options;
 /// </summary>
 public sealed partial class ControlsTabPanel : OptionsTabPanel
 {
-    private static readonly RebindRowData[] RebindableActions =
-    [
-        new("move_forward", "Move Forward"),
-        new("move_back", "Move Backward"),
-        new("move_left", "Strafe Left"),
-        new("move_right", "Strafe Right"),
-        new("jump", "Jump"),
-        new("sprint", "Sprint"),
-        new("attack", "Break Block"),
-        new("interact", "Place Block"),
-        new("debug_toggle", "Debug Overlay"),
-        new("toggle_fly", "Toggle Fly"),
-        new("fly_speed_up", "Fly Speed Up"),
-        new("fly_speed_down", "Fly Speed Down"),
-    ];
+    private static readonly RebindRowData[] RebindableActions = BuildRebindableActions();
 
     private readonly Button[] _rebindButtons = new Button[RebindableActions.Length];
 
@@ -216,6 +203,19 @@ public sealed partial class ControlsTabPanel : OptionsTabPanel
         button.AddThemeColorOverride(
             "font_color",
             isListening ? GameTheme.ListeningText : GameTheme.TextBody);
+    }
+
+    private static RebindRowData[] BuildRebindableActions()
+    {
+        RebindableActionData[] source = InputActions.RebindableActions;
+        RebindRowData[] result = new RebindRowData[source.Length];
+
+        for (int i = 0; i < source.Length; i++)
+        {
+            result[i] = new RebindRowData(source[i].ActionName, source[i].DisplayLabel);
+        }
+
+        return result;
     }
 
     private void SaveKeybinds()

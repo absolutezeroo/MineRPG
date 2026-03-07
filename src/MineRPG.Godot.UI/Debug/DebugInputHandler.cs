@@ -2,6 +2,7 @@
 using Godot;
 
 using MineRPG.Core.Logging;
+using MineRPG.Game.Bootstrap.Input;
 
 namespace MineRPG.Godot.UI.Debug;
 
@@ -33,56 +34,56 @@ internal sealed class DebugInputHandler
     /// <returns>True if the input was handled.</returns>
     public bool HandleInput(InputEvent @event, Viewport viewport)
     {
-        if (@event.IsActionPressed(InputActionNames.DebugMenu))
+        if (@event.IsActionPressed(InputActions.DebugMenu))
         {
             _manager.ToggleDebugMenu();
             viewport.SetInputAsHandled();
             return true;
         }
 
-        if (@event.IsActionPressed(InputActionNames.DebugHud))
+        if (@event.IsActionPressed(InputActions.DebugHud))
         {
             _manager.ToggleHudPanel();
             viewport.SetInputAsHandled();
             return true;
         }
 
-        if (@event.IsActionPressed(InputActionNames.DebugChunkMap))
+        if (@event.IsActionPressed(InputActions.DebugChunkMap))
         {
             _manager.ToggleChunkMapPanel();
             viewport.SetInputAsHandled();
             return true;
         }
 
-        if (@event.IsActionPressed(InputActionNames.DebugChunkBorder))
+        if (@event.IsActionPressed(InputActions.DebugChunkBorder))
         {
             _manager.ToggleChunkBorder();
             viewport.SetInputAsHandled();
             return true;
         }
 
-        if (@event.IsActionPressed(InputActionNames.DebugPerfGraph))
+        if (@event.IsActionPressed(InputActions.DebugPerfGraph))
         {
             _manager.TogglePerfGraph();
             viewport.SetInputAsHandled();
             return true;
         }
 
-        if (@event.IsActionPressed(InputActionNames.DebugBiomeOverlay))
+        if (@event.IsActionPressed(InputActions.DebugBiomeOverlay))
         {
             _manager.ToggleBiomeOverlay();
             viewport.SetInputAsHandled();
             return true;
         }
 
-        if (@event.IsActionPressed(InputActionNames.DebugBiomeOverlayMode))
+        if (@event.IsActionPressed(InputActions.DebugBiomeOverlayMode))
         {
             _manager.CycleBiomeOverlayMode();
             viewport.SetInputAsHandled();
             return true;
         }
 
-        if (@event.IsActionPressed(InputActionNames.DebugBlockInspector))
+        if (@event.IsActionPressed(InputActions.DebugBlockInspector))
         {
             _manager.ToggleBlockInspector();
             viewport.SetInputAsHandled();

@@ -4,6 +4,7 @@ using MineRPG.Core.DI;
 using MineRPG.Core.Interfaces.Gameplay;
 using MineRPG.Core.Logging;
 using MineRPG.Entities.Player;
+using MineRPG.Game.Bootstrap.Input;
 
 namespace MineRPG.Godot.Entities;
 

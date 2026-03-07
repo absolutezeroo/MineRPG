@@ -61,8 +61,9 @@ public sealed partial class GameStateOrchestrator : Node, IGameStateController
     public override void _ExitTree() => UnsubscribeEvents();
 
     /// <summary>
-    /// Called by PlayerNode when ESC is pressed during gameplay.
-    /// Pushes the PausedState onto the state machine.
+    /// Pushes the PausedState onto the state machine if currently playing.
+    /// Triggered by <see cref="PauseRequestedEvent"/> (published by PlayerNode).
+    /// Also available via <see cref="IGameStateController"/> for direct callers.
     /// </summary>
     public void RequestPause()
     {
@@ -213,11 +214,14 @@ public sealed partial class GameStateOrchestrator : Node, IGameStateController
         _logger.Info("GameStateOrchestrator: LoadingScreen scene added to scene tree.");
     }
 
+    private void OnPauseRequested(PauseRequestedEvent evt) => RequestPause();
+
     private void SubscribeEvents()
     {
         _eventBus.Subscribe<WorldLoadRequestedEvent>(OnWorldLoadRequested);
         _eventBus.Subscribe<ReturnToMainMenuEvent>(OnReturnToMainMenu);
         _eventBus.Subscribe<GameQuitRequestedEvent>(OnGameQuitRequested);
+        _eventBus.Subscribe<PauseRequestedEvent>(OnPauseRequested);
     }
 
     private void UnsubscribeEvents()
@@ -225,5 +229,6 @@ public sealed partial class GameStateOrchestrator : Node, IGameStateController
         _eventBus.Unsubscribe<WorldLoadRequestedEvent>(OnWorldLoadRequested);
         _eventBus.Unsubscribe<ReturnToMainMenuEvent>(OnReturnToMainMenu);
         _eventBus.Unsubscribe<GameQuitRequestedEvent>(OnGameQuitRequested);
+        _eventBus.Unsubscribe<PauseRequestedEvent>(OnPauseRequested);
     }
 }
