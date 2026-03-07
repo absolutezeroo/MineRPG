@@ -3,25 +3,26 @@ using Godot;
 using MineRPG.Core.DI;
 using MineRPG.Core.Events;
 using MineRPG.Core.Events.Definitions;
-using MineRPG.Core.Interfaces;
 using MineRPG.Core.Interfaces.Gameplay;
 using MineRPG.Core.Logging;
+using MineRPG.RPG.Inventory;
+using MineRPG.RPG.Items;
+
+using MineRPG.Godot.UI.Inventory;
 
 namespace MineRPG.Godot.UI.HUD;
 
 /// <summary>
 /// 9-slot hotbar displayed at the bottom center of the screen.
-/// Layout is defined in Scenes/UI/HUD/Hotbar.tscn; this script handles
-/// scroll wheel selection and updates slot border styles via cached style overrides.
+/// Creates <see cref="InventorySlotNode"/> instances programmatically and manages
+/// scroll wheel selection.
 /// </summary>
 public sealed partial class HotbarNode : Control
 {
     private const int SlotCount = 9;
 
-    private readonly PanelContainer[] _slots = new PanelContainer[SlotCount];
+    private readonly InventorySlotNode[] _slotNodes = new InventorySlotNode[SlotCount];
 
-    private StyleBoxFlat _slotStyleNormal = null!;
-    private StyleBoxFlat _slotStyleSelected = null!;
     private int _selectedIndex;
     private IHotbarController _hotbar = null!;
     private ILogger _logger = null!;
@@ -34,19 +35,25 @@ public sealed partial class HotbarNode : Control
         _hotbar = ServiceLocator.Instance.Get<IHotbarController>();
         _logger = ServiceLocator.Instance.Get<ILogger>();
         _eventBus = ServiceLocator.Instance.Get<IEventBus>();
+        PlayerInventory playerInventory = ServiceLocator.Instance.Get<PlayerInventory>();
+        ItemRegistry itemRegistry = ServiceLocator.Instance.Get<ItemRegistry>();
 
         _eventBus.Subscribe<InventoryToggledEvent>(OnInventoryToggled);
 
-        _slotStyleNormal = CreateSlotStyle(isSelected: false);
-        _slotStyleSelected = CreateSlotStyle(isSelected: true);
+        GameTheme.Apply(this);
+
+        HBoxContainer slotContainer = GetNode<HBoxContainer>("SlotContainer");
 
         for (int i = 0; i < SlotCount; i++)
         {
-            _slots[i] = GetNode<PanelContainer>($"SlotContainer/Slot{i}");
-            _slots[i].AddThemeStyleboxOverride("panel", _slotStyleNormal);
+            InventorySlotNode slotNode = new();
+            slotNode.Name = $"Slot{i}";
+            slotContainer.AddChild(slotNode);
+            slotNode.Initialize(playerInventory.Hotbar, i, itemRegistry);
+            _slotNodes[i] = slotNode;
         }
 
-        _slots[_selectedIndex].AddThemeStyleboxOverride("panel", _slotStyleSelected);
+        _slotNodes[_selectedIndex].SetSelected();
 
         _logger.Info("HotbarNode ready -- {0} slots.", SlotCount);
     }
@@ -70,38 +77,30 @@ public sealed partial class HotbarNode : Control
             return;
         }
 
-        if (mouseButton.ButtonIndex == MouseButton.WheelUp)
+        int direction = mouseButton.ButtonIndex switch
         {
-            int oldIndex = _selectedIndex;
-            _selectedIndex = (_selectedIndex - 1 + SlotCount) % SlotCount;
-            _hotbar.SelectSlot(_selectedIndex);
-            SwapSlotStyles(oldIndex, _selectedIndex);
-            GetViewport().SetInputAsHandled();
-        }
-        else if (mouseButton.ButtonIndex == MouseButton.WheelDown)
+            MouseButton.WheelUp => -1,
+            MouseButton.WheelDown => 1,
+            _ => 0,
+        };
+
+        if (direction == 0)
         {
-            int oldIndex = _selectedIndex;
-            _selectedIndex = (_selectedIndex + 1) % SlotCount;
-            _hotbar.SelectSlot(_selectedIndex);
-            SwapSlotStyles(oldIndex, _selectedIndex);
-            GetViewport().SetInputAsHandled();
+            return;
         }
+
+        int oldIndex = _selectedIndex;
+        _selectedIndex = (_selectedIndex + direction + SlotCount) % SlotCount;
+        _hotbar.SelectSlot(_selectedIndex);
+        SwapSlotSelection(oldIndex, _selectedIndex);
+        GetViewport().SetInputAsHandled();
     }
 
-    private void SwapSlotStyles(int oldIndex, int newIndex)
+    private void SwapSlotSelection(int oldIndex, int newIndex)
     {
-        _slots[oldIndex].AddThemeStyleboxOverride("panel", _slotStyleNormal);
-        _slots[newIndex].AddThemeStyleboxOverride("panel", _slotStyleSelected);
+        _slotNodes[oldIndex].SetNormal();
+        _slotNodes[newIndex].SetSelected();
     }
 
     private void OnInventoryToggled(InventoryToggledEvent e) => _inventoryOpen = e.IsOpen;
-
-    private static StyleBoxFlat CreateSlotStyle(bool isSelected)
-    {
-        StyleBoxFlat style = new();
-        style.BgColor = GameTheme.SlotBackground;
-        style.SetBorderWidthAll(GameTheme.BorderWidth);
-        style.BorderColor = isSelected ? GameTheme.SlotSelectedBorder : GameTheme.SlotBorder;
-        return style;
-    }
 }

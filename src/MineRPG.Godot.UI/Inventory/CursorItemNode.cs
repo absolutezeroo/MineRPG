@@ -74,8 +74,7 @@ public sealed partial class CursorItemNode : Control
         _countLabel.SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
         _countLabel.OffsetRight = -2;
         _countLabel.OffsetBottom = -1;
-        _countLabel.AddThemeFontSizeOverride("font_size", GameTheme.FontSizeSmall);
-        _countLabel.AddThemeColorOverride("font_color", GameTheme.TextTitle);
+        _countLabel.ThemeTypeVariation = ThemeTypeVariations.SlotCountLabel;
         _countLabel.MouseFilter = MouseFilterEnum.Ignore;
         AddChild(_countLabel);
     }

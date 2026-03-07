@@ -50,12 +50,16 @@ public sealed class TerrainShaper : ITerrainHeightProvider
         HeightSpline continentalness = new(
         [
             new SplinePoint(-1.0f, -60f),
-            new SplinePoint(-0.5f, -30f),
-            new SplinePoint(-0.2f, -5f),
-            new SplinePoint(-0.1f, 0f),
-            new SplinePoint(0.0f, 5f),
-            new SplinePoint(0.3f, 30f),
-            new SplinePoint(0.7f, 80f),
+            new SplinePoint(-0.55f, -35f),
+            new SplinePoint(-0.3f, -12f),
+            new SplinePoint(-0.2f, -4f),
+            new SplinePoint(-0.12f, 0f),
+            new SplinePoint(-0.05f, 4f),
+            new SplinePoint(0.05f, 10f),
+            new SplinePoint(0.2f, 22f),
+            new SplinePoint(0.4f, 40f),
+            new SplinePoint(0.65f, 70f),
+            new SplinePoint(0.85f, 100f),
             new SplinePoint(1.0f, 120f),
         ]);
 

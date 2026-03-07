@@ -87,14 +87,13 @@ public sealed partial class ItemTooltipNode : PanelContainer
         AddChild(vbox);
 
         _nameLabel = new Label();
-        _nameLabel.AddThemeFontSizeOverride("font_size", GameTheme.FontSizeButton);
+        _nameLabel.ThemeTypeVariation = ThemeTypeVariations.TooltipNameLabel;
         _nameLabel.AutowrapMode = TextServer.AutowrapMode.WordSmart;
         _nameLabel.MouseFilter = MouseFilterEnum.Ignore;
         vbox.AddChild(_nameLabel);
 
         _categoryLabel = new Label();
-        _categoryLabel.AddThemeFontSizeOverride("font_size", GameTheme.FontSizeSmall);
-        _categoryLabel.AddThemeColorOverride("font_color", GameTheme.TextSub);
+        _categoryLabel.ThemeTypeVariation = ThemeTypeVariations.CaptionLabel;
         _categoryLabel.MouseFilter = MouseFilterEnum.Ignore;
         vbox.AddChild(_categoryLabel);
 
@@ -102,15 +101,13 @@ public sealed partial class ItemTooltipNode : PanelContainer
         vbox.AddChild(separator);
 
         _descriptionLabel = new Label();
-        _descriptionLabel.AddThemeFontSizeOverride("font_size", GameTheme.FontSizeSmall);
-        _descriptionLabel.AddThemeColorOverride("font_color", GameTheme.TextBody);
+        _descriptionLabel.ThemeTypeVariation = ThemeTypeVariations.TooltipDescriptionLabel;
         _descriptionLabel.AutowrapMode = TextServer.AutowrapMode.WordSmart;
         _descriptionLabel.MouseFilter = MouseFilterEnum.Ignore;
         vbox.AddChild(_descriptionLabel);
 
         _statsLabel = new Label();
-        _statsLabel.AddThemeFontSizeOverride("font_size", GameTheme.FontSizeSmall);
-        _statsLabel.AddThemeColorOverride("font_color", GameTheme.AccentGreen);
+        _statsLabel.ThemeTypeVariation = ThemeTypeVariations.TooltipStatsLabel;
         _statsLabel.AutowrapMode = TextServer.AutowrapMode.WordSmart;
         _statsLabel.MouseFilter = MouseFilterEnum.Ignore;
         vbox.AddChild(_statsLabel);

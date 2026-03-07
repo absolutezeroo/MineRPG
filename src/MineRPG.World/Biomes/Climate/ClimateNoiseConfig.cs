@@ -55,10 +55,10 @@ public sealed class ClimateNoiseConfig
             Continentalness = new NoiseSettings
             {
                 SeedOffset = 0,
-                Frequency = 0.003f,
-                Octaves = 6,
+                Frequency = 0.0005f,
+                Octaves = 4,
                 Lacunarity = 2.0f,
-                Gain = 0.5f,
+                Gain = 0.45f,
             },
             Erosion = new NoiseSettings
             {

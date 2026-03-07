@@ -39,8 +39,7 @@ public sealed partial class PauseMenuNode : Control
         _buttonStack = GetNode<VBoxContainer>(
             "CenterContainer/PanelContainer/VBoxContainer/ButtonStack");
 
-        _title.AddThemeFontSizeOverride("font_size", GameTheme.FontSizeTitle);
-        _title.AddThemeColorOverride("font_color", GameTheme.TextTitle);
+        _title.ThemeTypeVariation = ThemeTypeVariations.ScreenTitleLabel;
 
         Button resumeButton = GetNode<Button>(
             "CenterContainer/PanelContainer/VBoxContainer/ButtonStack/ResumeButton");

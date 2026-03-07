@@ -46,10 +46,8 @@ public sealed partial class LoadingScreenNode : CanvasLayer
         _statusLabel = GetNode<Label>(
             "Root/CenterContainer/PanelContainer/VBoxContainer/StatusLabel");
 
-        _title.AddThemeFontSizeOverride("font_size", GameTheme.FontSizeTitleLarge);
-        _title.AddThemeColorOverride("font_color", GameTheme.TextTitle);
-
-        _statusLabel.AddThemeColorOverride("font_color", GameTheme.TextSub);
+        _title.ThemeTypeVariation = ThemeTypeVariations.LoadingTitleLabel;
+        _statusLabel.ThemeTypeVariation = ThemeTypeVariations.SubduedBodyLabel;
 
         _progressBar.MinValue = 0.0;
         _progressBar.MaxValue = 100.0;

@@ -164,8 +164,7 @@ public sealed partial class InventoryScreenNode : Control
         Label titleLabel = new();
         titleLabel.Text = "Inventory";
         titleLabel.HorizontalAlignment = HorizontalAlignment.Center;
-        titleLabel.AddThemeFontSizeOverride("font_size", GameTheme.FontSizeSubTitle);
-        titleLabel.AddThemeColorOverride("font_color", GameTheme.TextTitle);
+        titleLabel.ThemeTypeVariation = ThemeTypeVariations.PanelTitleLabel;
         centerColumn.AddChild(titleLabel);
 
         HSeparator sep1 = new();
@@ -187,8 +186,7 @@ public sealed partial class InventoryScreenNode : Control
         Label hotbarLabel = new();
         hotbarLabel.Text = "Hotbar";
         hotbarLabel.HorizontalAlignment = HorizontalAlignment.Center;
-        hotbarLabel.AddThemeFontSizeOverride("font_size", GameTheme.FontSizeBody);
-        hotbarLabel.AddThemeColorOverride("font_color", GameTheme.TextSub);
+        hotbarLabel.ThemeTypeVariation = ThemeTypeVariations.SubduedBodyLabel;
         centerColumn.AddChild(hotbarLabel);
 
         // Hotbar grid (1 row x 9 cols)

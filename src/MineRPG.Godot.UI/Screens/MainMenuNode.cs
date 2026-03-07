@@ -37,23 +37,16 @@ public sealed partial class MainMenuNode : Control
         _buttonStack = GetNode<VBoxContainer>("CenterContainer/ButtonStack");
         _versionLabel = GetNode<Label>("VersionLabel");
 
-        // Title styling (hero size, not part of global theme)
-        _title.AddThemeFontSizeOverride("font_size", GameTheme.FontSizeHero);
-        _title.AddThemeColorOverride("font_color", GameTheme.TextTitle);
+        _title.ThemeTypeVariation = ThemeTypeVariations.HeroLabel;
+        _titleShadow.ThemeTypeVariation = ThemeTypeVariations.HeroShadowLabel;
+        _versionLabel.ThemeTypeVariation = ThemeTypeVariations.VersionLabel;
 
-        _titleShadow.AddThemeFontSizeOverride("font_size", GameTheme.FontSizeHero);
-        _titleShadow.AddThemeColorOverride("font_color", GameTheme.TitleShadow);
-
-        _versionLabel.AddThemeColorOverride("font_color", GameTheme.TextVersion);
-        _versionLabel.AddThemeFontSizeOverride("font_size", GameTheme.FontSizeSmall);
-
-        // Button font size override for large menu buttons
         Button singleplayerButton = GetNode<Button>("CenterContainer/ButtonStack/SingleplayerButton");
-        singleplayerButton.AddThemeFontSizeOverride("font_size", GameTheme.FontSizeButtonLarge);
+        singleplayerButton.ThemeTypeVariation = ThemeTypeVariations.LargeMenuButton;
         singleplayerButton.Pressed += OnSingleplayerPressed;
 
         Button quitButton = GetNode<Button>("CenterContainer/ButtonStack/QuitButton");
-        quitButton.AddThemeFontSizeOverride("font_size", GameTheme.FontSizeButtonLarge);
+        quitButton.ThemeTypeVariation = ThemeTypeVariations.LargeMenuButton;
         quitButton.Pressed += OnQuitPressed;
 
         Input.MouseMode = Input.MouseModeEnum.Visible;

@@ -29,11 +29,9 @@ public sealed partial class OptionsPanelNode : Control
 
         GameTheme.Apply(this);
 
-        // Title font size override (larger than default theme)
         Label title = GetNode<Label>(
             "CenterContainer/PanelContainer/VBoxContainer/Title");
-        title.AddThemeFontSizeOverride("font_size", GameTheme.FontSizeSubTitle);
-        title.AddThemeColorOverride("font_color", GameTheme.TextTitle);
+        title.ThemeTypeVariation = ThemeTypeVariations.PanelTitleLabel;
 
         // Tab strip buttons
         Button gameTab = GetNode<Button>(

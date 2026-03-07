@@ -49,8 +49,7 @@ public sealed partial class ArmorPanelNode : VBoxContainer
             Label label = new();
             label.Text = ArmorSlotLabels[i];
             label.HorizontalAlignment = HorizontalAlignment.Center;
-            label.AddThemeFontSizeOverride("font_size", GameTheme.FontSizeSmall);
-            label.AddThemeColorOverride("font_color", GameTheme.TextSub);
+            label.ThemeTypeVariation = ThemeTypeVariations.CaptionLabel;
             AddChild(label);
 
             InventorySlotNode slotNode = new();
@@ -71,8 +70,7 @@ public sealed partial class ArmorPanelNode : VBoxContainer
         Label offhandLabel = new();
         offhandLabel.Text = "Offhand";
         offhandLabel.HorizontalAlignment = HorizontalAlignment.Center;
-        offhandLabel.AddThemeFontSizeOverride("font_size", GameTheme.FontSizeSmall);
-        offhandLabel.AddThemeColorOverride("font_color", GameTheme.TextSub);
+        offhandLabel.ThemeTypeVariation = ThemeTypeVariations.CaptionLabel;
         AddChild(offhandLabel);
 
         _offhandSlot = new InventorySlotNode();

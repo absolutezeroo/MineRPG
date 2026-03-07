@@ -64,8 +64,7 @@ public abstract partial class OptionsTabPanel : Control
     {
         Label header = new();
         header.Text = text;
-        header.AddThemeColorOverride("font_color", GameTheme.AccentGreen);
-        header.AddThemeFontSizeOverride("font_size", GameTheme.FontSizeSmall);
+        header.ThemeTypeVariation = ThemeTypeVariations.SectionHeaderLabel;
         return header;
     }
 

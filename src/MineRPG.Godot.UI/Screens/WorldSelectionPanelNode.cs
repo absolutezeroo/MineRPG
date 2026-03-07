@@ -56,8 +56,7 @@ public sealed partial class WorldSelectionPanelNode : Control
 
         Label header = GetNode<Label>(
             "CenterContainer/PanelContainer/VBoxContainer/Header");
-        header.AddThemeFontSizeOverride("font_size", GameTheme.FontSizeSubTitle);
-        header.AddThemeColorOverride("font_color", GameTheme.TextTitle);
+        header.ThemeTypeVariation = ThemeTypeVariations.PanelTitleLabel;
 
         Button createButton = GetNode<Button>(
             "CenterContainer/PanelContainer/VBoxContainer/CreateSection/CreateVBox/CreateButton");
@@ -88,7 +87,7 @@ public sealed partial class WorldSelectionPanelNode : Control
         {
             Label emptyLabel = new();
             emptyLabel.Text = "No saved worlds found.";
-            emptyLabel.AddThemeColorOverride("font_color", GameTheme.TextSub);
+            emptyLabel.ThemeTypeVariation = ThemeTypeVariations.SubduedBodyLabel;
             emptyLabel.HorizontalAlignment = HorizontalAlignment.Center;
             _worldListContainer.AddChild(emptyLabel);
             return;

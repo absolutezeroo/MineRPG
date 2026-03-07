@@ -28,6 +28,8 @@ public sealed partial class InventorySlotNode : PanelContainer
     private Label _countLabel = null!;
     private StyleBoxFlat _normalStyle = null!;
     private StyleBoxFlat _hoverStyle = null!;
+    private StyleBoxFlat _selectedStyle = null!;
+    private bool _isSelected;
 
     /// <summary>Raised when this slot is clicked.</summary>
     public event EventHandler<SlotClickedEventArgs>? SlotClicked;
@@ -99,6 +101,12 @@ public sealed partial class InventorySlotNode : PanelContainer
         _hoverStyle.BorderColor = GameTheme.SlotHoverBorder;
         _hoverStyle.SetContentMarginAll(0);
 
+        _selectedStyle = new StyleBoxFlat();
+        _selectedStyle.BgColor = GameTheme.SlotBackground;
+        _selectedStyle.SetBorderWidthAll(GameTheme.BorderWidth);
+        _selectedStyle.BorderColor = GameTheme.SlotSelectedBorder;
+        _selectedStyle.SetContentMarginAll(0);
+
         AddThemeStyleboxOverride("panel", _normalStyle);
 
         _iconRect = new ColorRect();
@@ -115,8 +123,7 @@ public sealed partial class InventorySlotNode : PanelContainer
         _countLabel.SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
         _countLabel.OffsetRight = -2;
         _countLabel.OffsetBottom = -1;
-        _countLabel.AddThemeFontSizeOverride("font_size", GameTheme.FontSizeSmall);
-        _countLabel.AddThemeColorOverride("font_color", GameTheme.TextTitle);
+        _countLabel.ThemeTypeVariation = ThemeTypeVariations.SlotCountLabel;
         _countLabel.MouseFilter = MouseFilterEnum.Ignore;
         AddChild(_countLabel);
 
@@ -166,11 +173,31 @@ public sealed partial class InventorySlotNode : PanelContainer
 
     /// <summary>
     /// Sets the slot border style to the hovered appearance.
+    /// Skipped when the slot is in the selected state (selected takes priority).
     /// </summary>
-    public void SetHovered() => AddThemeStyleboxOverride("panel", _hoverStyle);
+    public void SetHovered()
+    {
+        if (!_isSelected)
+        {
+            AddThemeStyleboxOverride("panel", _hoverStyle);
+        }
+    }
 
     /// <summary>
-    /// Sets the slot border style to the normal appearance.
+    /// Sets the slot border style to the normal appearance and clears the selected state.
     /// </summary>
-    public void SetNormal() => AddThemeStyleboxOverride("panel", _normalStyle);
+    public void SetNormal()
+    {
+        _isSelected = false;
+        AddThemeStyleboxOverride("panel", _normalStyle);
+    }
+
+    /// <summary>
+    /// Sets the slot border style to the selected appearance (thicker border).
+    /// </summary>
+    public void SetSelected()
+    {
+        _isSelected = true;
+        AddThemeStyleboxOverride("panel", _selectedStyle);
+    }
 }

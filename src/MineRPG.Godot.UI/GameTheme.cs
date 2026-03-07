@@ -260,6 +260,7 @@ public static class GameTheme
         ApplyOptionButtonStyles(theme);
         ApplyLineEditStyles(theme);
         ApplyHSeparatorStyles(theme);
+        ApplyTypeVariations(theme);
 
         _instance = theme;
     }
@@ -521,6 +522,41 @@ public static class GameTheme
         separatorStyle.ContentMarginBottom = 1f;
 
         theme.SetStylebox("separator", "HSeparator", separatorStyle);
+    }
+
+    private static void ApplyTypeVariations(Theme theme)
+    {
+        // Label variations
+        SetLabelVariation(theme, ThemeTypeVariations.HeroLabel, FontSizeHero, TextTitle);
+        SetLabelVariation(theme, ThemeTypeVariations.HeroShadowLabel, FontSizeHero, TitleShadow);
+        SetLabelVariation(theme, ThemeTypeVariations.ScreenTitleLabel, FontSizeTitle, TextTitle);
+        SetLabelVariation(theme, ThemeTypeVariations.PanelTitleLabel, FontSizeSubTitle, TextTitle);
+        SetLabelVariation(theme, ThemeTypeVariations.LoadingTitleLabel, FontSizeTitleLarge, TextTitle);
+        SetLabelVariation(theme, ThemeTypeVariations.SectionHeaderLabel, FontSizeSmall, AccentGreen);
+        SetLabelVariation(theme, ThemeTypeVariations.CaptionLabel, FontSizeSmall, TextSub);
+        SetLabelVariation(theme, ThemeTypeVariations.SubduedBodyLabel, FontSizeBody, TextSub);
+        SetLabelVariation(theme, ThemeTypeVariations.SlotCountLabel, FontSizeSmall, TextTitle);
+        SetLabelVariation(theme, ThemeTypeVariations.TooltipNameLabel, FontSizeButton, null);
+        SetLabelVariation(theme, ThemeTypeVariations.TooltipDescriptionLabel, FontSizeSmall, TextBody);
+        SetLabelVariation(theme, ThemeTypeVariations.TooltipStatsLabel, FontSizeSmall, AccentGreen);
+        SetLabelVariation(theme, ThemeTypeVariations.VersionLabel, FontSizeSmall, TextVersion);
+
+        // Button variations
+        theme.AddType(ThemeTypeVariations.LargeMenuButton);
+        theme.SetTypeVariation(ThemeTypeVariations.LargeMenuButton, "Button");
+        theme.SetFontSize("font_size", ThemeTypeVariations.LargeMenuButton, FontSizeButtonLarge);
+    }
+
+    private static void SetLabelVariation(Theme theme, string variation, int fontSize, Color? fontColor)
+    {
+        theme.AddType(variation);
+        theme.SetTypeVariation(variation, "Label");
+        theme.SetFontSize("font_size", variation, fontSize);
+
+        if (fontColor.HasValue)
+        {
+            theme.SetColor("font_color", variation, fontColor.Value);
+        }
     }
 
     private static StyleBoxFlat CreateButtonStyleBox(Color backgroundColor)
