@@ -21,7 +21,7 @@
       "max": -0.45
     },
     "humidity": {
-      "min": 0.1,
+      "min": 0.0,
       "max": 1.0
     },
     "depth": {

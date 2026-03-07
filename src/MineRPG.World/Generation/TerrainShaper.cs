@@ -47,6 +47,9 @@ public sealed class TerrainShaper : ITerrainHeightProvider
     /// <returns>A terrain shaper with default splines.</returns>
     public static TerrainShaper CreateDefault()
     {
+        // Continentalness: determines ocean depth and base land elevation.
+        // Inland areas get only a small height boost (0-15 blocks above sea level).
+        // Mountain heights come from PeaksAndValleys × erosionFactor, not from this.
         HeightSpline continentalness = new(
         [
             new SplinePoint(-1.0f, -60f),
@@ -54,31 +57,40 @@ public sealed class TerrainShaper : ITerrainHeightProvider
             new SplinePoint(-0.3f, -12f),
             new SplinePoint(-0.2f, -4f),
             new SplinePoint(-0.12f, 0f),
-            new SplinePoint(-0.05f, 4f),
-            new SplinePoint(0.05f, 10f),
-            new SplinePoint(0.2f, 22f),
-            new SplinePoint(0.4f, 40f),
-            new SplinePoint(0.65f, 70f),
-            new SplinePoint(0.85f, 100f),
-            new SplinePoint(1.0f, 120f),
+            new SplinePoint(-0.05f, 2f),
+            new SplinePoint(0.05f, 4f),
+            new SplinePoint(0.2f, 6f),
+            new SplinePoint(0.4f, 8f),
+            new SplinePoint(0.65f, 10f),
+            new SplinePoint(0.85f, 12f),
+            new SplinePoint(1.0f, 15f),
         ]);
 
+        // Erosion: scales the PeaksAndValleys contribution.
+        // High erosion (plains, deserts) nearly zeroes out PV → flat terrain.
+        // Low erosion (mountains) amplifies PV → dramatic height variation.
         HeightSpline erosion = new(
         [
-            new SplinePoint(-1.0f, 1.5f),
-            new SplinePoint(-0.5f, 1.2f),
-            new SplinePoint(0.0f, 1.0f),
-            new SplinePoint(0.5f, 0.5f),
-            new SplinePoint(1.0f, 0.2f),
+            new SplinePoint(-1.0f, 2.0f),
+            new SplinePoint(-0.5f, 1.5f),
+            new SplinePoint(-0.2f, 1.0f),
+            new SplinePoint(0.0f, 0.6f),
+            new SplinePoint(0.3f, 0.3f),
+            new SplinePoint(0.5f, 0.15f),
+            new SplinePoint(0.7f, 0.08f),
+            new SplinePoint(1.0f, 0.04f),
         ]);
 
+        // PeaksAndValleys: local height variation scaled by erosion factor.
+        // At low erosion (mountains): full range applied → -20 to +60 blocks.
+        // At high erosion (plains): nearly zeroed → ±1-2 blocks.
         HeightSpline peaksValleys = new(
         [
-            new SplinePoint(-1.0f, -40f),
-            new SplinePoint(-0.5f, -10f),
+            new SplinePoint(-1.0f, -20f),
+            new SplinePoint(-0.5f, -8f),
             new SplinePoint(0.0f, 0f),
-            new SplinePoint(0.5f, 15f),
-            new SplinePoint(1.0f, 50f),
+            new SplinePoint(0.5f, 20f),
+            new SplinePoint(1.0f, 60f),
         ]);
 
         return new TerrainShaper(continentalness, erosion, peaksValleys);
