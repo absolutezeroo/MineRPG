@@ -8,20 +8,27 @@ namespace MineRPG.Godot.UI.Inventory;
 /// A tooltip popup that displays item information when hovering over a slot.
 /// Shows: name (colored by rarity), category, description, and tool/weapon/armor stats.
 /// Positioned near the mouse, clamped to the viewport.
+/// Layout is defined in Scenes/UI/Widgets/ItemTooltip.tscn.
 /// </summary>
 public sealed partial class ItemTooltipNode : PanelContainer
 {
     private const int TooltipMargin = 12;
 
-    private Label _nameLabel = null!;
-    private Label _categoryLabel = null!;
-    private Label _descriptionLabel = null!;
-    private Label _statsLabel = null!;
+    [Export] private Label _nameLabel = null!;
+    [Export] private Label _categoryLabel = null!;
+    [Export] private Label _descriptionLabel = null!;
+    [Export] private Label _statsLabel = null!;
 
     /// <inheritdoc />
     public override void _Ready()
     {
-        BuildUI();
+        StyleBoxFlat tooltipStyle = new();
+        tooltipStyle.BgColor = GameTheme.TooltipBackground;
+        tooltipStyle.SetBorderWidthAll(GameTheme.BorderWidthThin);
+        tooltipStyle.BorderColor = GameTheme.TooltipBorder;
+        tooltipStyle.SetContentMarginAll(8f);
+        AddThemeStyleboxOverride("panel", tooltipStyle);
+
         Visible = false;
     }
 
@@ -67,51 +74,6 @@ public sealed partial class ItemTooltipNode : PanelContainer
     /// Hides the tooltip.
     /// </summary>
     public void HideTooltip() => Visible = false;
-
-    private void BuildUI()
-    {
-        MouseFilter = MouseFilterEnum.Ignore;
-        CustomMinimumSize = new Vector2(160, 0);
-        ZIndex = 101;
-
-        StyleBoxFlat tooltipStyle = new();
-        tooltipStyle.BgColor = GameTheme.TooltipBackground;
-        tooltipStyle.SetBorderWidthAll(GameTheme.BorderWidthThin);
-        tooltipStyle.BorderColor = GameTheme.TooltipBorder;
-        tooltipStyle.SetContentMarginAll(8f);
-        AddThemeStyleboxOverride("panel", tooltipStyle);
-
-        VBoxContainer vbox = new();
-        vbox.AddThemeConstantOverride("separation", 4);
-        vbox.MouseFilter = MouseFilterEnum.Ignore;
-        AddChild(vbox);
-
-        _nameLabel = new Label();
-        _nameLabel.ThemeTypeVariation = ThemeTypeVariations.TooltipNameLabel;
-        _nameLabel.AutowrapMode = TextServer.AutowrapMode.WordSmart;
-        _nameLabel.MouseFilter = MouseFilterEnum.Ignore;
-        vbox.AddChild(_nameLabel);
-
-        _categoryLabel = new Label();
-        _categoryLabel.ThemeTypeVariation = ThemeTypeVariations.CaptionLabel;
-        _categoryLabel.MouseFilter = MouseFilterEnum.Ignore;
-        vbox.AddChild(_categoryLabel);
-
-        HSeparator separator = new();
-        vbox.AddChild(separator);
-
-        _descriptionLabel = new Label();
-        _descriptionLabel.ThemeTypeVariation = ThemeTypeVariations.TooltipDescriptionLabel;
-        _descriptionLabel.AutowrapMode = TextServer.AutowrapMode.WordSmart;
-        _descriptionLabel.MouseFilter = MouseFilterEnum.Ignore;
-        vbox.AddChild(_descriptionLabel);
-
-        _statsLabel = new Label();
-        _statsLabel.ThemeTypeVariation = ThemeTypeVariations.TooltipStatsLabel;
-        _statsLabel.AutowrapMode = TextServer.AutowrapMode.WordSmart;
-        _statsLabel.MouseFilter = MouseFilterEnum.Ignore;
-        vbox.AddChild(_statsLabel);
-    }
 
     private void PositionTooltip()
     {

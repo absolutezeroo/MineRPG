@@ -17,16 +17,6 @@ public sealed partial class EquipmentScreenNode : Control
     {
         _logger = ServiceLocator.Instance.Get<ILogger>();
 
-        GameTheme.Apply(this);
-
-        Label title = GetNode<Label>(
-            "CenterContainer/PanelContainer/VBoxContainer/Title");
-        title.ThemeTypeVariation = ThemeTypeVariations.PanelTitleLabel;
-
-        Label placeholder = GetNode<Label>(
-            "CenterContainer/PanelContainer/VBoxContainer/Placeholder");
-        placeholder.ThemeTypeVariation = ThemeTypeVariations.SubduedBodyLabel;
-
         Button closeButton = GetNode<Button>(
             "CenterContainer/PanelContainer/VBoxContainer/CloseButton");
         closeButton.Pressed += OnClosePressed;

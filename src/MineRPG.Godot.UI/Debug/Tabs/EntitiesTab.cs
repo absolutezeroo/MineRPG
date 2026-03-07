@@ -35,7 +35,7 @@ public sealed partial class EntitiesTab : VBoxContainer, IDebugTab
         AddThemeConstantOverride("separation", 4);
 
         // -- Player section --
-        DebugSection playerSection = new("Player");
+        DebugSection playerSection = DebugSection.Create("Player");
         AddChild(playerSection);
 
         _playerLabel = new Label();

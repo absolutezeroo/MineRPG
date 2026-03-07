@@ -1,7 +1,6 @@
 using Godot;
 
 using MineRPG.Core.DI;
-using MineRPG.Core.Interfaces;
 using MineRPG.Core.Interfaces.Settings;
 using MineRPG.Core.Logging;
 
@@ -9,22 +8,13 @@ namespace MineRPG.Godot.UI.Options;
 
 /// <summary>
 /// Abstract base for options tab content panels.
-/// Subclasses implement <see cref="BuildContent"/> to populate their rows.
-/// Provides factory helpers that use <see cref="GameTheme"/> for consistent styling.
+/// Resolves shared services; subclasses implement <see cref="InitializeTab"/>
+/// to wire up events and set initial values from scene-defined controls.
 /// </summary>
 public abstract partial class OptionsTabPanel : Control
 {
-    /// <summary>Width of the label column in slider/toggle/dropdown rows.</summary>
+    /// <summary>Width of the label column used for dynamic rows (e.g. rebind rows).</summary>
     protected const float LabelColumnWidth = 200f;
-
-    /// <summary>Width of the slider control.</summary>
-    protected const float SliderWidth = 180f;
-
-    /// <summary>Width of the value readout label next to sliders.</summary>
-    protected const float ValueLabelWidth = 70f;
-
-    /// <summary>Default height for control rows.</summary>
-    protected const float RowHeight = 28f;
 
     /// <summary>The options provider resolved from <see cref="ServiceLocator"/>.</summary>
     protected IOptionsProvider Options { get; private set; } = null!;
@@ -33,145 +23,18 @@ public abstract partial class OptionsTabPanel : Control
     protected ILogger Logger { get; private set; } = null!;
 
     /// <summary>
-    /// Resolves services and calls <see cref="BuildContent"/> to populate the tab.
+    /// Resolves services and calls <see cref="InitializeTab"/> to wire up controls.
     /// </summary>
     public override void _Ready()
     {
         Options = ServiceLocator.Instance.Get<IOptionsProvider>();
         Logger = ServiceLocator.Instance.Get<ILogger>();
 
-        VBoxContainer layout = new();
-        layout.SizeFlagsHorizontal = SizeFlags.ExpandFill;
-        layout.SizeFlagsVertical = SizeFlags.ExpandFill;
-        layout.AddThemeConstantOverride("separation", 10);
-        AddChild(layout);
-
-        BuildContent(layout);
+        InitializeTab();
     }
 
     /// <summary>
-    /// Override to add controls to the tab's vertical layout container.
+    /// Override to wire up events and set initial values for scene-defined controls.
     /// </summary>
-    /// <param name="layout">The root vertical layout for this tab's content.</param>
-    protected abstract void BuildContent(VBoxContainer layout);
-
-    /// <summary>
-    /// Creates a section header label with the accent green color from <see cref="GameTheme"/>.
-    /// </summary>
-    /// <param name="text">The section header text.</param>
-    /// <returns>A styled label for section headers.</returns>
-    protected static Label CreateSectionHeader(string text)
-    {
-        Label header = new();
-        header.Text = text;
-        header.ThemeTypeVariation = ThemeTypeVariations.SectionHeaderLabel;
-        return header;
-    }
-
-    /// <summary>
-    /// Creates a labeled HSlider row with a value readout label.
-    /// </summary>
-    /// <param name="labelText">Display label for the setting.</param>
-    /// <param name="minValue">Minimum slider value.</param>
-    /// <param name="maxValue">Maximum slider value.</param>
-    /// <param name="currentValue">Current slider value.</param>
-    /// <param name="step">Slider step increment.</param>
-    /// <param name="slider">Out: the created HSlider for connecting ValueChanged.</param>
-    /// <param name="valueLabel">Out: the value readout label for updates.</param>
-    /// <returns>The row container.</returns>
-    protected static HBoxContainer CreateSliderRow(
-        string labelText,
-        float minValue,
-        float maxValue,
-        float currentValue,
-        float step,
-        out HSlider slider,
-        out Label valueLabel)
-    {
-        HBoxContainer row = new();
-        row.AddThemeConstantOverride("separation", 8);
-
-        Label label = new();
-        label.Text = labelText;
-        label.CustomMinimumSize = new Vector2(LabelColumnWidth, 0f);
-        row.AddChild(label);
-
-        slider = new HSlider();
-        slider.MinValue = minValue;
-        slider.MaxValue = maxValue;
-        slider.Value = currentValue;
-        slider.Step = step;
-        slider.CustomMinimumSize = new Vector2(SliderWidth, 24f);
-        slider.SizeFlagsHorizontal = SizeFlags.ExpandFill;
-        row.AddChild(slider);
-
-        valueLabel = new Label();
-        valueLabel.CustomMinimumSize = new Vector2(ValueLabelWidth, 0f);
-        row.AddChild(valueLabel);
-
-        return row;
-    }
-
-    /// <summary>
-    /// Creates a labeled CheckButton toggle row.
-    /// </summary>
-    /// <param name="labelText">Display label for the setting.</param>
-    /// <param name="currentValue">Current toggle state.</param>
-    /// <param name="toggle">Out: the created CheckButton for connecting Toggled.</param>
-    /// <returns>The row container.</returns>
-    protected static HBoxContainer CreateToggleRow(
-        string labelText,
-        bool currentValue,
-        out CheckButton toggle)
-    {
-        HBoxContainer row = new();
-        row.AddThemeConstantOverride("separation", 8);
-
-        Label label = new();
-        label.Text = labelText;
-        label.CustomMinimumSize = new Vector2(LabelColumnWidth, 0f);
-        row.AddChild(label);
-
-        toggle = new CheckButton();
-        toggle.ButtonPressed = currentValue;
-        row.AddChild(toggle);
-
-        return row;
-    }
-
-    /// <summary>
-    /// Creates a labeled OptionButton dropdown row.
-    /// </summary>
-    /// <param name="labelText">Display label for the setting.</param>
-    /// <param name="optionLabels">Array of dropdown option display strings.</param>
-    /// <param name="selectedIndex">Currently selected index.</param>
-    /// <param name="dropdown">Out: the created OptionButton for connecting ItemSelected.</param>
-    /// <returns>The row container.</returns>
-    protected static HBoxContainer CreateDropdownRow(
-        string labelText,
-        string[] optionLabels,
-        int selectedIndex,
-        out OptionButton dropdown)
-    {
-        HBoxContainer row = new();
-        row.AddThemeConstantOverride("separation", 8);
-
-        Label label = new();
-        label.Text = labelText;
-        label.CustomMinimumSize = new Vector2(LabelColumnWidth, 0f);
-        row.AddChild(label);
-
-        dropdown = new OptionButton();
-        dropdown.CustomMinimumSize = new Vector2(160f, RowHeight);
-
-        for (int i = 0; i < optionLabels.Length; i++)
-        {
-            dropdown.AddItem(optionLabels[i], i);
-        }
-
-        dropdown.Selected = selectedIndex;
-        row.AddChild(dropdown);
-
-        return row;
-    }
+    protected abstract void InitializeTab();
 }

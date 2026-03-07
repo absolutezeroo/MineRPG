@@ -9,11 +9,15 @@ using MineRPG.Core.Logging;
 namespace MineRPG.Godot.UI.Debug;
 
 /// <summary>
-/// Lazily creates debug panels on first toggle. Each panel is created once
-/// and added as a child of the owning control node.
+/// Lazily creates debug panels on first toggle. Scene-based panels are
+/// instantiated from PackedScene and configured via SetDependencies.
+/// Code-only panels (custom _Draw) are still created with new().
 /// </summary>
 internal sealed class DebugModuleFactory
 {
+    private const string DebugMenuScenePath = "res://Scenes/UI/Debug/DebugMenuPanel.tscn";
+    private const string DebugHudScenePath = "res://Scenes/UI/Debug/DebugHudPanel.tscn";
+
     private readonly IDebugDataProvider _debugData;
     private readonly PerformanceSampler _sampler;
     private readonly PerformanceMonitor _performanceMonitor;
@@ -54,27 +58,31 @@ internal sealed class DebugModuleFactory
         _logger = logger;
     }
 
-    /// <summary>Creates a new DebugMenuPanel.</summary>
+    /// <summary>Creates a new DebugMenuPanel from scene.</summary>
     /// <returns>The created panel.</returns>
     public DebugMenuPanel CreateDebugMenuPanel()
     {
-        DebugMenuPanel panel = new(
+        PackedScene scene = GD.Load<PackedScene>(DebugMenuScenePath);
+        DebugMenuPanel panel = scene.Instantiate<DebugMenuPanel>();
+        panel.Name = "DebugMenuPanel";
+        panel.SetDependencies(
             _debugData, _sampler, _performanceMonitor,
             _pipelineMetrics, _optimizationFlags, _eventBus, _chunkDebugProvider);
-        panel.Name = "DebugMenuPanel";
-        _logger.Debug("DebugModuleFactory: DebugMenuPanel created.");
+        _logger.Debug("DebugModuleFactory: DebugMenuPanel created from scene.");
         return panel;
     }
 
-    /// <summary>Creates a new DebugHudPanel.</summary>
+    /// <summary>Creates a new DebugHudPanel from scene.</summary>
     /// <param name="camera">Optional camera for look direction display.</param>
     /// <returns>The created panel.</returns>
     public DebugHudPanel CreateHudPanel(Camera3D? camera)
     {
-        DebugHudPanel panel = new(_debugData, _sampler, _performanceMonitor, _pipelineMetrics);
+        PackedScene scene = GD.Load<PackedScene>(DebugHudScenePath);
+        DebugHudPanel panel = scene.Instantiate<DebugHudPanel>();
         panel.Name = "DebugHudPanel";
+        panel.SetDependencies(_debugData, _sampler, _performanceMonitor, _pipelineMetrics);
         panel.SetCamera(camera);
-        _logger.Debug("DebugModuleFactory: DebugHudPanel created.");
+        _logger.Debug("DebugModuleFactory: DebugHudPanel created from scene.");
         return panel;
     }
 

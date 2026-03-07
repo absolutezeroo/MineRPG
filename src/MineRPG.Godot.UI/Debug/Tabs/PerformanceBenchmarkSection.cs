@@ -48,27 +48,27 @@ internal sealed class PerformanceBenchmarkSection
     /// <param name="parent">The parent container to add sections to.</param>
     public void BuildLayout(VBoxContainer parent)
     {
-        DebugSection benchmarkSection = new("Benchmark");
+        DebugSection benchmarkSection = DebugSection.Create("Benchmark");
         parent.AddChild(benchmarkSection);
 
-        DebugButton benchmarkButton = new("Start 5s Benchmark", StartBenchmark);
+        DebugButton benchmarkButton = DebugButton.Create("Start 5s Benchmark", StartBenchmark);
         benchmarkSection.Content.AddChild(benchmarkButton);
 
         _benchmarkLabel = new Label();
         DebugTheme.ApplyLabelStyle(_benchmarkLabel, DebugTheme.TextPrimary, DebugTheme.FontSizeSmall);
         benchmarkSection.Content.AddChild(_benchmarkLabel);
 
-        DebugSection abSection = new("A/B Compare");
+        DebugSection abSection = DebugSection.Create("A/B Compare");
         parent.AddChild(abSection);
 
         HBoxContainer abButtons = new();
         abButtons.AddThemeConstantOverride("separation", 8);
         abSection.Content.AddChild(abButtons);
 
-        DebugButton snapshotAButton = new("Snapshot A", TakeSnapshotA);
+        DebugButton snapshotAButton = DebugButton.Create("Snapshot A", TakeSnapshotA);
         abButtons.AddChild(snapshotAButton);
 
-        DebugButton snapshotBButton = new("Snapshot B", TakeSnapshotB);
+        DebugButton snapshotBButton = DebugButton.Create("Snapshot B", TakeSnapshotB);
         abButtons.AddChild(snapshotBButton);
 
         _abLabel = new Label();

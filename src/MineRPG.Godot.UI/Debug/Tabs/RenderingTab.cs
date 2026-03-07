@@ -44,7 +44,7 @@ public sealed partial class RenderingTab : VBoxContainer, IDebugTab
         AddThemeConstantOverride("separation", 4);
 
         // -- Meshing section --
-        DebugSection meshingSection = new("Meshing");
+        DebugSection meshingSection = DebugSection.Create("Meshing");
         AddChild(meshingSection);
 
         AddToggle(meshingSection.Content, "Greedy Meshing",
@@ -56,7 +56,7 @@ public sealed partial class RenderingTab : VBoxContainer, IDebugTab
             value => SetAndPublish(v => _flags.VertexAoEnabled = v, value, "VertexAoEnabled", false));
 
         // -- Threading section --
-        DebugSection threadingSection = new("Threading");
+        DebugSection threadingSection = DebugSection.Create("Threading");
         AddChild(threadingSection);
 
         AddToggle(threadingSection.Content, "Async Generation",
@@ -64,7 +64,7 @@ public sealed partial class RenderingTab : VBoxContainer, IDebugTab
             value => SetAndPublish(v => _flags.AsyncGenerationEnabled = v, value, "AsyncGenerationEnabled", false));
 
         // -- Generation section --
-        DebugSection generationSection = new("Generation");
+        DebugSection generationSection = DebugSection.Create("Generation");
         AddChild(generationSection);
 
         AddToggle(generationSection.Content, "Cheese Caves",
@@ -100,7 +100,7 @@ public sealed partial class RenderingTab : VBoxContainer, IDebugTab
             value => SetAndPublish(v => _flags.BiomeBlendingEnabled = v, value, "BiomeBlendingEnabled", true));
 
         // -- Optimization section --
-        DebugSection optimizationSection = new("Optimization");
+        DebugSection optimizationSection = DebugSection.Create("Optimization");
         AddChild(optimizationSection);
 
         AddToggle(optimizationSection.Content, "Vertex Packing",
@@ -116,7 +116,7 @@ public sealed partial class RenderingTab : VBoxContainer, IDebugTab
             value => SetAndPublish(v => _flags.DrawCallBatchingEnabled = v, value, "DrawCallBatchingEnabled", false));
 
         // -- Rendering section --
-        DebugSection renderSection = new("Rendering");
+        DebugSection renderSection = DebugSection.Create("Rendering");
         AddChild(renderSection);
 
         AddToggle(renderSection.Content, "Fog",
@@ -132,7 +132,7 @@ public sealed partial class RenderingTab : VBoxContainer, IDebugTab
             value => SetAndPublish(v => _flags.ShowNormalsEnabled = v, value, "ShowNormalsEnabled", false));
 
         // -- Live impact --
-        DebugSection impactSection = new("Live Impact");
+        DebugSection impactSection = DebugSection.Create("Live Impact");
         AddChild(impactSection);
 
         _impactLabel = new Label();
@@ -140,7 +140,7 @@ public sealed partial class RenderingTab : VBoxContainer, IDebugTab
         impactSection.Content.AddChild(_impactLabel);
 
         // -- Reset button --
-        DebugButton resetButton = new("Reset All to Default", ResetAllFlags);
+        DebugButton resetButton = DebugButton.Create("Reset All to Default", ResetAllFlags);
         AddChild(resetButton);
     }
 
@@ -161,7 +161,7 @@ public sealed partial class RenderingTab : VBoxContainer, IDebugTab
         Func<bool> getter,
         Action<bool> setter)
     {
-        DebugToggle toggle = new(label, getter, setter);
+        DebugToggle toggle = DebugToggle.Create(label, getter, setter);
         parent.AddChild(toggle);
     }
 

@@ -7,45 +7,40 @@ namespace MineRPG.Godot.UI.Debug.Components;
 
 /// <summary>
 /// A toggle switch for the debug menu. Displays a label and on/off state.
+/// Layout is defined in Scenes/UI/Debug/Widgets/DebugToggle.tscn.
 /// </summary>
 public sealed partial class DebugToggle : HBoxContainer
 {
-    private readonly string _labelText;
-    private readonly Func<bool> _getter;
-    private readonly Action<bool> _setter;
+    private const string ScenePath = "res://Scenes/UI/Debug/Widgets/DebugToggle.tscn";
 
-    private Label _stateLabel = null!;
+    private static PackedScene? _sceneCache;
+
+    [Export] private Label _nameLabel = null!;
+    [Export] private Label _stateLabel = null!;
+
+    private Func<bool> _getter = null!;
+    private Action<bool> _setter = null!;
 
     /// <summary>
-    /// Creates a debug toggle.
+    /// Creates and initializes a DebugToggle from the scene template.
     /// </summary>
     /// <param name="labelText">Display label for this toggle.</param>
     /// <param name="getter">Function to read current state.</param>
     /// <param name="setter">Function to apply new state.</param>
-    public DebugToggle(string labelText, Func<bool> getter, Action<bool> setter)
+    /// <returns>The configured toggle instance.</returns>
+    public static DebugToggle Create(string labelText, Func<bool> getter, Action<bool> setter)
     {
-        _labelText = labelText;
-        _getter = getter;
-        _setter = setter;
+        _sceneCache ??= GD.Load<PackedScene>(ScenePath);
+        DebugToggle instance = _sceneCache.Instantiate<DebugToggle>();
+        instance._getter = getter;
+        instance._setter = setter;
+        instance._nameLabel.Text = labelText;
+        return instance;
     }
 
     /// <inheritdoc />
     public override void _Ready()
     {
-        MouseFilter = MouseFilterEnum.Stop;
-
-        Label nameLabel = new();
-        nameLabel.Text = _labelText;
-        nameLabel.CustomMinimumSize = new Vector2(200, 0);
-        DebugTheme.ApplyLabelStyle(nameLabel, DebugTheme.TextPrimary, DebugTheme.FontSizeSmall);
-        nameLabel.MouseFilter = MouseFilterEnum.Ignore;
-        AddChild(nameLabel);
-
-        _stateLabel = new Label();
-        _stateLabel.CustomMinimumSize = new Vector2(40, 0);
-        _stateLabel.MouseFilter = MouseFilterEnum.Ignore;
-        AddChild(_stateLabel);
-
         UpdateStateLabel();
     }
 

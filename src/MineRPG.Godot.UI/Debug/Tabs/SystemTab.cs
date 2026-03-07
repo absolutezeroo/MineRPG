@@ -39,7 +39,7 @@ public sealed partial class SystemTab : VBoxContainer, IDebugTab
         AddThemeConstantOverride("separation", 4);
 
         // -- Engine info (static, set once) --
-        DebugSection engineSection = new("Engine");
+        DebugSection engineSection = DebugSection.Create("Engine");
         AddChild(engineSection);
 
         _engineLabel = new Label();
@@ -49,10 +49,10 @@ public sealed partial class SystemTab : VBoxContainer, IDebugTab
         BuildEngineInfo();
 
         // -- GC Control --
-        DebugSection gcSection = new("GC Control");
+        DebugSection gcSection = DebugSection.Create("GC Control");
         AddChild(gcSection);
 
-        DebugButton gcButton = new("Force GC Collect", ForceGarbageCollection);
+        DebugButton gcButton = DebugButton.Create("Force GC Collect", ForceGarbageCollection);
         gcSection.Content.AddChild(gcButton);
 
         _gcLabel = new Label();
@@ -60,7 +60,7 @@ public sealed partial class SystemTab : VBoxContainer, IDebugTab
         gcSection.Content.AddChild(_gcLabel);
 
         // -- Debug info --
-        DebugSection debugSection = new("Debug Modules");
+        DebugSection debugSection = DebugSection.Create("Debug Modules");
         AddChild(debugSection);
 
         Label debugInfo = new();

@@ -17,6 +17,7 @@ namespace MineRPG.Godot.UI.HUD;
 /// </summary>
 public sealed partial class HUDNode : CanvasLayer
 {
+    private const string CrosshairScenePath = "res://Scenes/UI/HUD/Crosshair.tscn";
     private const string HotbarScenePath = "res://Scenes/UI/HUD/Hotbar.tscn";
     private const string PauseMenuScenePath = "res://Scenes/UI/PauseMenu.tscn";
     private const string InventoryScenePath = "res://Scenes/UI/Inventory.tscn";
@@ -36,7 +37,8 @@ public sealed partial class HUDNode : CanvasLayer
         // HUD must always process (even when paused) so pause menu works
         ProcessMode = ProcessModeEnum.Always;
 
-        CrosshairNode crosshair = new();
+        PackedScene crosshairScene = GD.Load<PackedScene>(CrosshairScenePath);
+        Node crosshair = crosshairScene.Instantiate();
         crosshair.Name = "Crosshair";
         AddChild(crosshair);
 

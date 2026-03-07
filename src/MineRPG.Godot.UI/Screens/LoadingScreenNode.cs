@@ -23,7 +23,6 @@ public sealed partial class LoadingScreenNode : CanvasLayer
     private PreloadProgress? _progress;
     private ProgressBar _progressBar = null!;
     private Label _statusLabel = null!;
-    private Label _title = null!;
 
     /// <inheritdoc />
     public override void _Ready()
@@ -36,18 +35,10 @@ public sealed partial class LoadingScreenNode : CanvasLayer
             _progress = progress;
         }
 
-        // Apply theme to the child Control root (CanvasLayer is not a Control)
-        Control root = GetNode<Control>("Root");
-        GameTheme.Apply(root);
-
-        _title = GetNode<Label>("Root/CenterContainer/PanelContainer/VBoxContainer/Title");
         _progressBar = GetNode<ProgressBar>(
             "Root/CenterContainer/PanelContainer/VBoxContainer/ProgressBar");
         _statusLabel = GetNode<Label>(
             "Root/CenterContainer/PanelContainer/VBoxContainer/StatusLabel");
-
-        _title.ThemeTypeVariation = ThemeTypeVariations.LoadingTitleLabel;
-        _statusLabel.ThemeTypeVariation = ThemeTypeVariations.SubduedBodyLabel;
 
         _progressBar.MinValue = 0.0;
         _progressBar.MaxValue = 100.0;

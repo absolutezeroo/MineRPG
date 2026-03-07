@@ -1,8 +1,10 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://src/MineRPG.Godot.UI/Screens/QuestJournalScreenNode.cs" id="1_questjournal"]
+[ext_resource type="Theme" path="res://Resources/Themes/GameTheme.tres" id="2_theme"]
 
 [node name="QuestJournalScreen" type="Control"]
+theme = ExtResource("2_theme")
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -40,6 +42,7 @@ theme_override_constants/separation = 12
 
 [node name="Title" type="Label" parent="CenterContainer/PanelContainer/VBoxContainer"]
 layout_mode = 2
+theme_type_variation = &"PanelTitleLabel"
 text = "Quest Journal"
 horizontal_alignment = 1
 
@@ -48,6 +51,7 @@ layout_mode = 2
 
 [node name="Placeholder" type="Label" parent="CenterContainer/PanelContainer/VBoxContainer"]
 layout_mode = 2
+theme_type_variation = &"SubduedBodyLabel"
 text = "Coming soon..."
 horizontal_alignment = 1
 

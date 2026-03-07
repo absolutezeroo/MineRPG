@@ -1,0 +1,36 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/MineRPG.Godot.UI/Debug/Components/DebugSlider.cs" id="1_slider"]
+
+[node name="DebugSlider" type="HBoxContainer"]
+mouse_filter = 0
+script = ExtResource("1_slider")
+_nameLabel = NodePath("NameLabel")
+_slider = NodePath("Slider")
+_valueLabel = NodePath("ValueLabel")
+
+[node name="NameLabel" type="Label" parent="."]
+layout_mode = 2
+custom_minimum_size = Vector2(160, 0)
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.75)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 12
+mouse_filter = 2
+
+[node name="Slider" type="HSlider" parent="."]
+layout_mode = 2
+custom_minimum_size = Vector2(140, 20)
+size_flags_horizontal = 3
+
+[node name="ValueLabel" type="Label" parent="."]
+layout_mode = 2
+custom_minimum_size = Vector2(60, 0)
+theme_override_colors/font_color = Color(0.55, 0.85, 0.55, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.75)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 12
+mouse_filter = 2
+horizontal_alignment = 2

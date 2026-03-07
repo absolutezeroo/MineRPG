@@ -1,0 +1,151 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://src/MineRPG.Godot.UI/HUD/DebugOverlayNode.cs" id="1_debug"]
+
+[sub_resource type="StyleBoxFlat" id="panel_style_1"]
+bg_color = Color(0, 0, 0, 0.45)
+content_margin_left = 6.0
+content_margin_top = 4.0
+content_margin_right = 6.0
+content_margin_bottom = 4.0
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_left = 2
+corner_radius_bottom_right = 2
+
+[sub_resource type="StyleBoxFlat" id="panel_style_2"]
+bg_color = Color(0, 0, 0, 0.45)
+content_margin_left = 6.0
+content_margin_top = 4.0
+content_margin_right = 6.0
+content_margin_bottom = 4.0
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_left = 2
+corner_radius_bottom_right = 2
+
+[sub_resource type="StyleBoxFlat" id="panel_style_3"]
+bg_color = Color(0, 0, 0, 0.45)
+content_margin_left = 6.0
+content_margin_top = 4.0
+content_margin_right = 6.0
+content_margin_bottom = 4.0
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_left = 2
+corner_radius_bottom_right = 2
+
+[node name="DebugOverlay" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_debug")
+_positionLabel = NodePath("LeftColumn/PositionPanel/PositionContent/PositionData")
+_worldLabel = NodePath("LeftColumn/WorldPanel/WorldContent/WorldData")
+_performanceLabel = NodePath("LeftColumn/PerformancePanel/PerformanceContent/PerformanceData")
+
+[node name="LeftColumn" type="VBoxContainer" parent="."]
+layout_mode = 0
+offset_left = 4.0
+offset_top = 4.0
+offset_right = 304.0
+offset_bottom = 404.0
+mouse_filter = 2
+
+[node name="PositionPanel" type="PanelContainer" parent="LeftColumn"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("panel_style_1")
+
+[node name="PositionContent" type="VBoxContainer" parent="LeftColumn/PositionPanel"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="PositionHeader" type="Label" parent="LeftColumn/PositionPanel/PositionContent"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.55, 0.85, 0.55, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.75)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 14
+mouse_filter = 2
+text = "--- Position ---"
+
+[node name="PositionData" type="Label" parent="LeftColumn/PositionPanel/PositionContent"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.75)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 14
+mouse_filter = 2
+
+[node name="Spacer1" type="Control" parent="LeftColumn"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 6)
+mouse_filter = 2
+
+[node name="WorldPanel" type="PanelContainer" parent="LeftColumn"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("panel_style_2")
+
+[node name="WorldContent" type="VBoxContainer" parent="LeftColumn/WorldPanel"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="WorldHeader" type="Label" parent="LeftColumn/WorldPanel/WorldContent"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.55, 0.85, 0.55, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.75)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 14
+mouse_filter = 2
+text = "--- World ---"
+
+[node name="WorldData" type="Label" parent="LeftColumn/WorldPanel/WorldContent"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.75)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 14
+mouse_filter = 2
+
+[node name="Spacer2" type="Control" parent="LeftColumn"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 6)
+mouse_filter = 2
+
+[node name="PerformancePanel" type="PanelContainer" parent="LeftColumn"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("panel_style_3")
+
+[node name="PerformanceContent" type="VBoxContainer" parent="LeftColumn/PerformancePanel"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="PerformanceHeader" type="Label" parent="LeftColumn/PerformancePanel/PerformanceContent"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.55, 0.85, 0.55, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.75)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 14
+mouse_filter = 2
+text = "--- Performance ---"
+
+[node name="PerformanceData" type="Label" parent="LeftColumn/PerformancePanel/PerformanceContent"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.75)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 14
+mouse_filter = 2

@@ -11,7 +11,6 @@ using MineRPG.Core.Interfaces.Settings;
 using MineRPG.Core.Logging;
 using MineRPG.Game.Bootstrap.Input;
 using MineRPG.Game.Bootstrap.Settings;
-using MineRPG.Godot.UI;
 using MineRPG.Godot.UI.Audio;
 
 namespace MineRPG.Game.Bootstrap;
@@ -56,8 +55,6 @@ public sealed partial class GameBootstrapper : Node
         locator.Register(settingsData);
 
         KeybindApplicator.Apply(settingsData, logger);
-
-        GameTheme.Initialize();
 
         InputActionRegistrar.RegisterAll(logger);
 

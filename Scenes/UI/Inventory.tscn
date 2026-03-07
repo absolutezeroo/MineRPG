@@ -1,8 +1,14 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://src/MineRPG.Godot.UI/Inventory/InventoryScreenNode.cs" id="1_inv"]
+[ext_resource type="Theme" path="res://Resources/Themes/GameTheme.tres" id="2_theme"]
+[ext_resource type="PackedScene" path="res://Scenes/UI/Widgets/CursorItem.tscn" id="3_cursor"]
+[ext_resource type="PackedScene" path="res://Scenes/UI/Widgets/ItemTooltip.tscn" id="4_tooltip"]
+[ext_resource type="Script" path="res://src/MineRPG.Godot.UI/Inventory/InventoryGridNode.cs" id="5_grid"]
+[ext_resource type="Script" path="res://src/MineRPG.Godot.UI/Inventory/ArmorPanelNode.cs" id="6_armor"]
 
 [node name="InventoryScreen" type="Control"]
+theme = ExtResource("2_theme")
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -10,3 +16,77 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_inv")
+_overlay = NodePath("Overlay")
+_armorPanel = NodePath("CenterContainer/MainPanel/HBox/ArmorPanel")
+_mainGrid = NodePath("CenterContainer/MainPanel/HBox/CenterColumn/MainGrid")
+_hotbarGrid = NodePath("CenterContainer/MainPanel/HBox/CenterColumn/HotbarGrid")
+_cursorItemNode = NodePath("CursorItem")
+_tooltipNode = NodePath("ItemTooltip")
+
+[node name="Overlay" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+color = Color(0, 0, 0, 0.55)
+
+[node name="CenterContainer" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="MainPanel" type="PanelContainer" parent="CenterContainer"]
+layout_mode = 2
+mouse_filter = 0
+
+[node name="HBox" type="HBoxContainer" parent="CenterContainer/MainPanel"]
+layout_mode = 2
+theme_override_constants/separation = 16
+mouse_filter = 2
+
+[node name="ArmorPanel" type="VBoxContainer" parent="CenterContainer/MainPanel/HBox"]
+layout_mode = 2
+mouse_filter = 2
+script = ExtResource("6_armor")
+
+[node name="CenterColumn" type="VBoxContainer" parent="CenterContainer/MainPanel/HBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+mouse_filter = 2
+
+[node name="TitleLabel" type="Label" parent="CenterContainer/MainPanel/HBox/CenterColumn"]
+layout_mode = 2
+theme_type_variation = &"PanelTitleLabel"
+text = "Inventory"
+horizontal_alignment = 1
+
+[node name="Separator1" type="HSeparator" parent="CenterContainer/MainPanel/HBox/CenterColumn"]
+layout_mode = 2
+
+[node name="MainGrid" type="GridContainer" parent="CenterContainer/MainPanel/HBox/CenterColumn"]
+layout_mode = 2
+script = ExtResource("5_grid")
+
+[node name="Separator2" type="HSeparator" parent="CenterContainer/MainPanel/HBox/CenterColumn"]
+layout_mode = 2
+
+[node name="HotbarLabel" type="Label" parent="CenterContainer/MainPanel/HBox/CenterColumn"]
+layout_mode = 2
+theme_type_variation = &"SubduedBodyLabel"
+text = "Hotbar"
+horizontal_alignment = 1
+
+[node name="HotbarGrid" type="GridContainer" parent="CenterContainer/MainPanel/HBox/CenterColumn"]
+layout_mode = 2
+script = ExtResource("5_grid")
+
+[node name="CursorItem" parent="." instance=ExtResource("3_cursor")]
+
+[node name="ItemTooltip" parent="." instance=ExtResource("4_tooltip")]

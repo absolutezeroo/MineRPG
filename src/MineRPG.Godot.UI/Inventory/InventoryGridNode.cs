@@ -18,7 +18,9 @@ namespace MineRPG.Godot.UI.Inventory;
 public sealed partial class InventoryGridNode : GridContainer
 {
     private const int SlotSeparation = 2;
+    private const string SlotScenePath = "res://Scenes/UI/Widgets/InventorySlot.tscn";
 
+    private static PackedScene? _slotSceneCache;
     private InventorySlotNode[] _slotNodes = [];
 
     /// <summary>Raised when any child slot is clicked.</summary>
@@ -47,11 +49,12 @@ public sealed partial class InventoryGridNode : GridContainer
         AddThemeConstantOverride("h_separation", SlotSeparation);
         AddThemeConstantOverride("v_separation", SlotSeparation);
 
+        _slotSceneCache ??= GD.Load<PackedScene>(SlotScenePath);
         _slotNodes = new InventorySlotNode[inventory.SlotCount];
 
         for (int i = 0; i < inventory.SlotCount; i++)
         {
-            InventorySlotNode slotNode = new();
+            InventorySlotNode slotNode = _slotSceneCache.Instantiate<InventorySlotNode>();
             slotNode.Name = $"Slot{i}";
             AddChild(slotNode);
             slotNode.Initialize(inventory, i, itemRegistry, iconAtlas);

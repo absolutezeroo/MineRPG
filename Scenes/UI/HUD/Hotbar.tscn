@@ -1,8 +1,10 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://src/MineRPG.Godot.UI/HUD/HotbarNode.cs" id="1_hotbar"]
+[ext_resource type="Theme" path="res://Resources/Themes/GameTheme.tres" id="2_theme"]
 
 [node name="Hotbar" type="Control"]
+theme = ExtResource("2_theme")
 layout_mode = 3
 anchors_preset = 7
 anchor_left = 0.5
@@ -16,6 +18,7 @@ grow_horizontal = 2
 grow_vertical = 0
 mouse_filter = 2
 script = ExtResource("1_hotbar")
+_slotContainer = NodePath("SlotContainer")
 
 [node name="SlotContainer" type="HBoxContainer" parent="."]
 layout_mode = 1

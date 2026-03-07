@@ -12,18 +12,19 @@ namespace MineRPG.Godot.UI.Inventory;
 /// A floating Control that follows the mouse cursor, displaying the item
 /// currently held by <see cref="CursorItemHolder"/>.
 /// Uses <c>MouseFilter.Ignore</c> so it never captures clicks.
+/// Layout is defined in Scenes/UI/Widgets/CursorItem.tscn.
 /// </summary>
 public sealed partial class CursorItemNode : Control
 {
-    private const int IconSize = 40;
     private const int Offset = 4;
+
+    [Export] private TextureRect _iconTexture = null!;
+    [Export] private ColorRect _iconColorFallback = null!;
+    [Export] private Label _countLabel = null!;
 
     private CursorItemHolder _cursor = null!;
     private ItemRegistry _itemRegistry = null!;
     private ItemIconAtlas? _iconAtlas;
-    private TextureRect _iconTexture = null!;
-    private ColorRect _iconColorFallback = null!;
-    private Label _countLabel = null!;
 
     /// <summary>
     /// Binds this node to the given cursor holder and item registry.
@@ -39,7 +40,6 @@ public sealed partial class CursorItemNode : Control
 
         _cursor.HeldItemChanged += OnHeldItemChanged;
 
-        BuildUI();
         Refresh();
     }
 
@@ -56,41 +56,6 @@ public sealed partial class CursorItemNode : Control
         {
             _cursor.HeldItemChanged -= OnHeldItemChanged;
         }
-    }
-
-    private void BuildUI()
-    {
-        MouseFilter = MouseFilterEnum.Ignore;
-        SetAnchorsAndOffsetsPreset(LayoutPreset.TopLeft);
-        Size = new Vector2(IconSize, IconSize);
-        ZIndex = 100;
-        SetProcess(false);
-
-        _iconTexture = new TextureRect();
-        _iconTexture.CustomMinimumSize = new Vector2(IconSize, IconSize);
-        _iconTexture.Size = new Vector2(IconSize, IconSize);
-        _iconTexture.ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize;
-        _iconTexture.StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered;
-        _iconTexture.MouseFilter = MouseFilterEnum.Ignore;
-        _iconTexture.Visible = false;
-        AddChild(_iconTexture);
-
-        _iconColorFallback = new ColorRect();
-        _iconColorFallback.CustomMinimumSize = new Vector2(IconSize, IconSize);
-        _iconColorFallback.Size = new Vector2(IconSize, IconSize);
-        _iconColorFallback.MouseFilter = MouseFilterEnum.Ignore;
-        _iconColorFallback.Color = Colors.Transparent;
-        AddChild(_iconColorFallback);
-
-        _countLabel = new Label();
-        _countLabel.HorizontalAlignment = HorizontalAlignment.Right;
-        _countLabel.VerticalAlignment = VerticalAlignment.Bottom;
-        _countLabel.SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
-        _countLabel.OffsetRight = -2;
-        _countLabel.OffsetBottom = -1;
-        _countLabel.ThemeTypeVariation = ThemeTypeVariations.SlotCountLabel;
-        _countLabel.MouseFilter = MouseFilterEnum.Ignore;
-        AddChild(_countLabel);
     }
 
     private void Refresh()

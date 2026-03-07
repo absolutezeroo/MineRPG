@@ -1,0 +1,48 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://src/MineRPG.Godot.UI/Inventory/InventorySlotNode.cs" id="1_slot"]
+[ext_resource type="Theme" path="res://Resources/Themes/GameTheme.tres" id="2_theme"]
+
+[node name="InventorySlot" type="PanelContainer"]
+custom_minimum_size = Vector2(50, 50)
+theme = ExtResource("2_theme")
+mouse_filter = 0
+script = ExtResource("1_slot")
+_iconTexture = NodePath("IconTexture")
+_iconColorFallback = NodePath("IconColorFallback")
+_countLabel = NodePath("CountLabel")
+
+[node name="IconTexture" type="TextureRect" parent="."]
+layout_mode = 2
+custom_minimum_size = Vector2(42, 42)
+offset_left = 4.0
+offset_top = 4.0
+offset_right = -4.0
+offset_bottom = -4.0
+expand_mode = 1
+stretch_mode = 6
+mouse_filter = 2
+visible = false
+
+[node name="IconColorFallback" type="ColorRect" parent="."]
+layout_mode = 2
+offset_left = 4.0
+offset_top = 4.0
+offset_right = -4.0
+offset_bottom = -4.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0)
+
+[node name="CountLabel" type="Label" parent="."]
+layout_mode = 2
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = -2.0
+offset_bottom = -1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_type_variation = &"SlotCountLabel"
+horizontal_alignment = 2
+vertical_alignment = 2
+mouse_filter = 2

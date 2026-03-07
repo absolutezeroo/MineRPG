@@ -12,15 +12,18 @@ namespace MineRPG.Godot.UI.Debug;
 /// Enhanced F3 debug HUD. Six sections: Position, World, Performance,
 /// Pipeline, Renderer, and Memory. Text formatting is delegated to
 /// <see cref="DebugHudFormatter"/>.
+/// Layout is defined in Scenes/UI/Debug/DebugHudPanel.tscn.
 /// </summary>
 public sealed partial class DebugHudPanel : Control
 {
     private const int StringBuilderCapacity = 512;
 
-    private readonly IDebugDataProvider _debugData;
-    private readonly PerformanceSampler _sampler;
-    private readonly PerformanceMonitor _performanceMonitor;
-    private readonly PipelineMetrics _pipelineMetrics;
+    [Export] private Label _positionLabel = null!;
+    [Export] private Label _worldLabel = null!;
+    [Export] private Label _performanceLabel = null!;
+    [Export] private Label _pipelineLabel = null!;
+    [Export] private Label _rendererLabel = null!;
+    [Export] private Label _memoryLabel = null!;
 
     private readonly StringBuilder _positionBuilder = new(StringBuilderCapacity);
     private readonly StringBuilder _worldBuilder = new(StringBuilderCapacity);
@@ -29,23 +32,20 @@ public sealed partial class DebugHudPanel : Control
     private readonly StringBuilder _rendererBuilder = new(StringBuilderCapacity);
     private readonly StringBuilder _memoryBuilder = new(StringBuilderCapacity);
 
-    private Label _positionLabel = null!;
-    private Label _worldLabel = null!;
-    private Label _performanceLabel = null!;
-    private Label _pipelineLabel = null!;
-    private Label _rendererLabel = null!;
-    private Label _memoryLabel = null!;
-
+    private IDebugDataProvider _debugData = null!;
+    private PerformanceSampler _sampler = null!;
+    private PerformanceMonitor _performanceMonitor = null!;
+    private PipelineMetrics _pipelineMetrics = null!;
     private Camera3D? _camera;
 
     /// <summary>
-    /// Creates a new DebugHudPanel with all required data sources.
+    /// Injects dependencies after scene instantiation. Must be called before AddChild.
     /// </summary>
     /// <param name="debugData">Debug data provider for world/player info.</param>
     /// <param name="sampler">Performance sampler for frame timing.</param>
     /// <param name="performanceMonitor">Core performance metrics.</param>
     /// <param name="pipelineMetrics">Extended pipeline metrics.</param>
-    public DebugHudPanel(
+    public void SetDependencies(
         IDebugDataProvider debugData,
         PerformanceSampler sampler,
         PerformanceMonitor performanceMonitor,
@@ -60,34 +60,6 @@ public sealed partial class DebugHudPanel : Control
     /// <summary>Sets the camera reference for look direction display.</summary>
     /// <param name="camera">The active 3D camera.</param>
     public void SetCamera(Camera3D? camera) => _camera = camera;
-
-    /// <inheritdoc />
-    public override void _Ready()
-    {
-        SetAnchorsPreset(LayoutPreset.FullRect);
-        MouseFilter = MouseFilterEnum.Ignore;
-
-        VBoxContainer leftColumn = new();
-        leftColumn.SetAnchorsPreset(LayoutPreset.TopLeft);
-        leftColumn.Position = new Vector2(DebugTheme.PanelPaddingX, DebugTheme.PanelPaddingY);
-        leftColumn.MouseFilter = MouseFilterEnum.Ignore;
-        AddChild(leftColumn);
-
-        VBoxContainer rightColumn = new();
-        rightColumn.SetAnchorsPreset(LayoutPreset.TopRight);
-        rightColumn.GrowHorizontal = GrowDirection.Begin;
-        rightColumn.Position = new Vector2(-DebugTheme.PanelPaddingX, DebugTheme.PanelPaddingY);
-        rightColumn.MouseFilter = MouseFilterEnum.Ignore;
-        AddChild(rightColumn);
-
-        _positionLabel = CreateSection(leftColumn, "Position");
-        _worldLabel = CreateSection(leftColumn, "World");
-        _performanceLabel = CreateSection(leftColumn, "Performance");
-
-        _pipelineLabel = CreateSection(rightColumn, "Pipeline");
-        _rendererLabel = CreateSection(rightColumn, "Renderer");
-        _memoryLabel = CreateSection(rightColumn, "Memory");
-    }
 
     /// <summary>
     /// Updates all six sections. Called by DebugManager from _Process.
@@ -112,34 +84,6 @@ public sealed partial class DebugHudPanel : Control
 
         DebugHudFormatter.FormatMemorySection(_memoryBuilder, _sampler);
         _memoryLabel.Text = _memoryBuilder.ToString();
-    }
-
-    private static Label CreateSection(VBoxContainer column, string headerText)
-    {
-        PanelContainer panel = new();
-        panel.MouseFilter = MouseFilterEnum.Ignore;
-        panel.AddThemeStyleboxOverride("panel", DebugTheme.CreatePanelStyle());
-        column.AddChild(panel);
-
-        VBoxContainer content = new();
-        content.MouseFilter = MouseFilterEnum.Ignore;
-        panel.AddChild(content);
-
-        Label header = new();
-        header.Text = $"--- {headerText} ---";
-        DebugTheme.ApplyLabelStyle(header, DebugTheme.TextAccent, DebugTheme.FontSizeNormal);
-        content.AddChild(header);
-
-        Label dataLabel = new();
-        DebugTheme.ApplyLabelStyle(dataLabel, DebugTheme.TextPrimary, DebugTheme.FontSizeSmall);
-        content.AddChild(dataLabel);
-
-        Control spacer = new();
-        spacer.CustomMinimumSize = new Vector2(0, DebugTheme.SectionSpacing);
-        spacer.MouseFilter = MouseFilterEnum.Ignore;
-        column.AddChild(spacer);
-
-        return dataLabel;
     }
 }
 #endif

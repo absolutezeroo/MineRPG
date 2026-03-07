@@ -16,13 +16,6 @@ public sealed partial class CrosshairNode : Control
     private static readonly Color CrosshairColor = new(1f, 1f, 1f, 0.85f);
 
     /// <inheritdoc />
-    public override void _Ready()
-    {
-        SetAnchorsPreset(LayoutPreset.FullRect);
-        MouseFilter = MouseFilterEnum.Ignore;
-    }
-
-    /// <inheritdoc />
     public override void _Notification(int what)
     {
         if (what == NotificationResized)

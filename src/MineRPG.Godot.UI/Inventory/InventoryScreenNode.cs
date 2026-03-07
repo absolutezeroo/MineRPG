@@ -13,23 +13,25 @@ namespace MineRPG.Godot.UI.Inventory;
 
 /// <summary>
 /// Root Control for the full-screen inventory overlay.
-/// Handles E / Escape input for toggling, creates slot grids programmatically,
+/// Layout is defined in Scenes/UI/Inventory.tscn.
+/// Handles E / Escape input for toggling, initializes slot grids,
 /// manages cursor item, and publishes <see cref="InventoryToggledEvent"/>.
 /// </summary>
 public sealed partial class InventoryScreenNode : Control
 {
+    [Export] private ColorRect _overlay = null!;
+    [Export] private ArmorPanelNode _armorPanel = null!;
+    [Export] private InventoryGridNode _mainGrid = null!;
+    [Export] private InventoryGridNode _hotbarGrid = null!;
+    [Export] private CursorItemNode _cursorItemNode = null!;
+    [Export] private ItemTooltipNode _tooltipNode = null!;
+
     private ILogger _logger = null!;
     private IEventBus _eventBus = null!;
     private PlayerInventory _playerInventory = null!;
     private CursorItemHolder _cursor = null!;
     private ItemRegistry _itemRegistry = null!;
     private ItemIconAtlas? _iconAtlas;
-
-    private InventoryGridNode _mainGrid = null!;
-    private InventoryGridNode _hotbarGrid = null!;
-    private ArmorPanelNode _armorPanel = null!;
-    private CursorItemNode _cursorItemNode = null!;
-    private ItemTooltipNode _tooltipNode = null!;
 
     private bool _isOpen;
 
@@ -50,7 +52,7 @@ public sealed partial class InventoryScreenNode : Control
             _iconAtlas = atlas;
         }
 
-        BuildContent();
+        InitializeChildren();
 
         Visible = false;
         _isOpen = false;
@@ -81,6 +83,43 @@ public sealed partial class InventoryScreenNode : Control
             Close();
             GetViewport().SetInputAsHandled();
         }
+    }
+
+    /// <inheritdoc />
+    public override void _ExitTree()
+    {
+        _armorPanel.SlotClicked -= OnSlotClicked;
+        _armorPanel.SlotHovered -= OnSlotHovered;
+        _armorPanel.SlotUnhovered -= OnSlotUnhovered;
+
+        _mainGrid.SlotClicked -= OnSlotClicked;
+        _mainGrid.SlotHovered -= OnSlotHovered;
+        _mainGrid.SlotUnhovered -= OnSlotUnhovered;
+
+        _hotbarGrid.SlotClicked -= OnSlotClicked;
+        _hotbarGrid.SlotHovered -= OnSlotHovered;
+        _hotbarGrid.SlotUnhovered -= OnSlotUnhovered;
+    }
+
+    private void InitializeChildren()
+    {
+        _armorPanel.Initialize(
+            _playerInventory.Armor, _playerInventory.Offhand, _itemRegistry, _iconAtlas);
+        _armorPanel.SlotClicked += OnSlotClicked;
+        _armorPanel.SlotHovered += OnSlotHovered;
+        _armorPanel.SlotUnhovered += OnSlotUnhovered;
+
+        _mainGrid.Initialize(_playerInventory.Main, 9, _itemRegistry, _iconAtlas);
+        _mainGrid.SlotClicked += OnSlotClicked;
+        _mainGrid.SlotHovered += OnSlotHovered;
+        _mainGrid.SlotUnhovered += OnSlotUnhovered;
+
+        _hotbarGrid.Initialize(_playerInventory.Hotbar, 9, _itemRegistry, _iconAtlas);
+        _hotbarGrid.SlotClicked += OnSlotClicked;
+        _hotbarGrid.SlotHovered += OnSlotHovered;
+        _hotbarGrid.SlotUnhovered += OnSlotUnhovered;
+
+        _cursorItemNode.Initialize(_cursor, _itemRegistry, _iconAtlas);
     }
 
     private void Open()
@@ -124,98 +163,6 @@ public sealed partial class InventoryScreenNode : Control
                 "InventoryScreenNode: Could not return {0}x {1} to inventory (full).",
                 remaining, heldItem.DefinitionId);
         }
-    }
-
-    private void BuildContent()
-    {
-        // Overlay background
-        ColorRect overlay = new();
-        overlay.SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
-        overlay.Color = GameTheme.Overlay;
-        overlay.MouseFilter = MouseFilterEnum.Stop;
-        AddChild(overlay);
-
-        // Center container
-        CenterContainer centerContainer = new();
-        centerContainer.SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
-        centerContainer.MouseFilter = MouseFilterEnum.Ignore;
-        AddChild(centerContainer);
-
-        // Main panel
-        PanelContainer mainPanel = new();
-        mainPanel.MouseFilter = MouseFilterEnum.Stop;
-        centerContainer.AddChild(mainPanel);
-
-        // Horizontal layout: armor | center column
-        HBoxContainer hbox = new();
-        hbox.AddThemeConstantOverride("separation", 16);
-        hbox.MouseFilter = MouseFilterEnum.Ignore;
-        mainPanel.AddChild(hbox);
-
-        // Armor column
-        _armorPanel = new ArmorPanelNode();
-        _armorPanel.Name = "ArmorPanel";
-        _armorPanel.MouseFilter = MouseFilterEnum.Ignore;
-        hbox.AddChild(_armorPanel);
-        _armorPanel.Initialize(_playerInventory.Armor, _playerInventory.Offhand, _itemRegistry, _iconAtlas);
-        _armorPanel.SlotClicked += OnSlotClicked;
-        _armorPanel.SlotHovered += OnSlotHovered;
-        _armorPanel.SlotUnhovered += OnSlotUnhovered;
-
-        // Center column
-        VBoxContainer centerColumn = new();
-        centerColumn.AddThemeConstantOverride("separation", 8);
-        centerColumn.MouseFilter = MouseFilterEnum.Ignore;
-        hbox.AddChild(centerColumn);
-
-        // Title
-        Label titleLabel = new();
-        titleLabel.Text = "Inventory";
-        titleLabel.HorizontalAlignment = HorizontalAlignment.Center;
-        titleLabel.ThemeTypeVariation = ThemeTypeVariations.PanelTitleLabel;
-        centerColumn.AddChild(titleLabel);
-
-        HSeparator sep1 = new();
-        centerColumn.AddChild(sep1);
-
-        // Main grid (3 rows x 9 cols = 27 slots)
-        _mainGrid = new InventoryGridNode();
-        _mainGrid.Name = "MainGrid";
-        centerColumn.AddChild(_mainGrid);
-        _mainGrid.Initialize(_playerInventory.Main, 9, _itemRegistry, _iconAtlas);
-        _mainGrid.SlotClicked += OnSlotClicked;
-        _mainGrid.SlotHovered += OnSlotHovered;
-        _mainGrid.SlotUnhovered += OnSlotUnhovered;
-
-        HSeparator sep2 = new();
-        centerColumn.AddChild(sep2);
-
-        // Hotbar label
-        Label hotbarLabel = new();
-        hotbarLabel.Text = "Hotbar";
-        hotbarLabel.HorizontalAlignment = HorizontalAlignment.Center;
-        hotbarLabel.ThemeTypeVariation = ThemeTypeVariations.SubduedBodyLabel;
-        centerColumn.AddChild(hotbarLabel);
-
-        // Hotbar grid (1 row x 9 cols)
-        _hotbarGrid = new InventoryGridNode();
-        _hotbarGrid.Name = "HotbarGrid";
-        centerColumn.AddChild(_hotbarGrid);
-        _hotbarGrid.Initialize(_playerInventory.Hotbar, 9, _itemRegistry, _iconAtlas);
-        _hotbarGrid.SlotClicked += OnSlotClicked;
-        _hotbarGrid.SlotHovered += OnSlotHovered;
-        _hotbarGrid.SlotUnhovered += OnSlotUnhovered;
-
-        // Cursor follower
-        _cursorItemNode = new CursorItemNode();
-        _cursorItemNode.Name = "CursorItem";
-        AddChild(_cursorItemNode);
-        _cursorItemNode.Initialize(_cursor, _itemRegistry, _iconAtlas);
-
-        // Tooltip
-        _tooltipNode = new ItemTooltipNode();
-        _tooltipNode.Name = "ItemTooltip";
-        AddChild(_tooltipNode);
     }
 
     private void OnSlotClicked(object? sender, SlotClickedEventArgs e)

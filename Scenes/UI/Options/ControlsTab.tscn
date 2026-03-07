@@ -1,0 +1,39 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://src/MineRPG.Godot.UI/Options/ControlsTabPanel.cs" id="1_script"]
+[ext_resource type="Theme" path="res://Resources/Themes/GameTheme.tres" id="2_theme"]
+
+[node name="ControlsTab" type="Control"]
+theme = ExtResource("2_theme")
+layout_mode = 2
+size_flags_horizontal = 3
+script = ExtResource("1_script")
+_bindingsContainer = NodePath("Layout/BindingsContainer")
+_resetButton = NodePath("Layout/ResetButton")
+
+[node name="Layout" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 10
+
+[node name="BindingsHeader" type="Label" parent="Layout"]
+layout_mode = 2
+theme_type_variation = &"SectionHeaderLabel"
+text = "KEY BINDINGS"
+
+[node name="BindingsContainer" type="VBoxContainer" parent="Layout"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="HSeparator" type="HSeparator" parent="Layout"]
+layout_mode = 2
+
+[node name="ResetButton" type="Button" parent="Layout"]
+layout_mode = 2
+custom_minimum_size = Vector2(180, 36)
+size_flags_horizontal = 4
+text = "Reset to Defaults"

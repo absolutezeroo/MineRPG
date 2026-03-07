@@ -1,0 +1,100 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://src/MineRPG.Godot.UI/Debug/DebugMenuPanel.cs" id="1_menu"]
+
+[sub_resource type="StyleBoxFlat" id="panel_style"]
+bg_color = Color(0.05, 0.05, 0.08, 0.85)
+content_margin_left = 8.0
+content_margin_top = 6.0
+content_margin_right = 8.0
+content_margin_bottom = 6.0
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_left = 3
+corner_radius_bottom_right = 3
+
+[node name="DebugMenuPanel" type="Control"]
+mouse_filter = 0
+script = ExtResource("1_menu")
+_panel = NodePath("Panel")
+_titleLabel = NodePath("Panel/Root/Title")
+_tabBar = NodePath("Panel/Root/TabBar")
+_scrollContainer = NodePath("Panel/Root/ScrollContent")
+_contentArea = NodePath("Panel/Root/ScrollContent/ContentArea")
+
+[node name="Panel" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("panel_style")
+
+[node name="Root" type="VBoxContainer" parent="Panel"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Title" type="Label" parent="Panel/Root"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.55, 0.85, 0.55, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.75)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 18
+mouse_filter = 2
+text = "Debug Menu (F1)"
+
+[node name="TabBar" type="HBoxContainer" parent="Panel/Root"]
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="RenderingTab" type="Button" parent="Panel/Root/TabBar"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 12
+text = "Rendering"
+
+[node name="WorldTab" type="Button" parent="Panel/Root/TabBar"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 12
+text = "World"
+
+[node name="PerfTab" type="Button" parent="Panel/Root/TabBar"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 12
+text = "Perf"
+
+[node name="BiomesTab" type="Button" parent="Panel/Root/TabBar"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 12
+text = "Biomes"
+
+[node name="EntitiesTab" type="Button" parent="Panel/Root/TabBar"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 12
+text = "Entities"
+
+[node name="SystemTab" type="Button" parent="Panel/Root/TabBar"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 12
+text = "System"
+
+[node name="HSeparator" type="HSeparator" parent="Panel/Root"]
+layout_mode = 2
+
+[node name="ScrollContent" type="ScrollContainer" parent="Panel/Root"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="ContentArea" type="VBoxContainer" parent="Panel/Root/ScrollContent"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3

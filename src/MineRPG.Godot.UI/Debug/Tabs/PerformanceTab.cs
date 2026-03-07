@@ -50,28 +50,28 @@ public sealed partial class PerformanceTab : VBoxContainer, IDebugTab
     {
         AddThemeConstantOverride("separation", 4);
 
-        DebugSection metricsSection = new("Live Metrics");
+        DebugSection metricsSection = DebugSection.Create("Live Metrics");
         AddChild(metricsSection);
 
         _metricsLabel = new Label();
         DebugTheme.ApplyLabelStyle(_metricsLabel, DebugTheme.TextPrimary, DebugTheme.FontSizeSmall);
         metricsSection.Content.AddChild(_metricsLabel);
 
-        DebugSection pipelineSection = new("Pipeline");
+        DebugSection pipelineSection = DebugSection.Create("Pipeline");
         AddChild(pipelineSection);
 
         _pipelineLabel = new Label();
         DebugTheme.ApplyLabelStyle(_pipelineLabel, DebugTheme.TextPrimary, DebugTheme.FontSizeSmall);
         pipelineSection.Content.AddChild(_pipelineLabel);
 
-        DebugSection memorySection = new("Memory");
+        DebugSection memorySection = DebugSection.Create("Memory");
         AddChild(memorySection);
 
         _memoryLabel = new Label();
         DebugTheme.ApplyLabelStyle(_memoryLabel, DebugTheme.TextPrimary, DebugTheme.FontSizeSmall);
         memorySection.Content.AddChild(_memoryLabel);
 
-        DebugSection spikeSection = new("Spike Log", false);
+        DebugSection spikeSection = DebugSection.Create("Spike Log", false);
         AddChild(spikeSection);
 
         _spikeLabel = new Label();

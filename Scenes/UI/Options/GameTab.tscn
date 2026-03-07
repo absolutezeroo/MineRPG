@@ -1,0 +1,75 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://src/MineRPG.Godot.UI/Options/GameTabPanel.cs" id="1_script"]
+[ext_resource type="Theme" path="res://Resources/Themes/GameTheme.tres" id="2_theme"]
+
+[node name="GameTab" type="Control"]
+theme = ExtResource("2_theme")
+layout_mode = 2
+size_flags_horizontal = 3
+script = ExtResource("1_script")
+_sensitivitySlider = NodePath("Layout/SensitivityRow/SensitivitySlider")
+_sensitivityValue = NodePath("Layout/SensitivityRow/SensitivityValue")
+_volumeSlider = NodePath("Layout/VolumeRow/VolumeSlider")
+_volumeValue = NodePath("Layout/VolumeRow/VolumeValue")
+
+[node name="Layout" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 10
+
+[node name="InputHeader" type="Label" parent="Layout"]
+layout_mode = 2
+theme_type_variation = &"SectionHeaderLabel"
+text = "INPUT"
+
+[node name="SensitivityRow" type="HBoxContainer" parent="Layout"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="SensitivityLabel" type="Label" parent="Layout/SensitivityRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(200, 0)
+text = "Mouse Sensitivity"
+
+[node name="SensitivitySlider" type="HSlider" parent="Layout/SensitivityRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(180, 24)
+size_flags_horizontal = 3
+min_value = 0.0005
+max_value = 0.01
+step = 0.0001
+
+[node name="SensitivityValue" type="Label" parent="Layout/SensitivityRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(70, 0)
+
+[node name="AudioHeader" type="Label" parent="Layout"]
+layout_mode = 2
+theme_type_variation = &"SectionHeaderLabel"
+text = "AUDIO"
+
+[node name="VolumeRow" type="HBoxContainer" parent="Layout"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="VolumeLabel" type="Label" parent="Layout/VolumeRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(200, 0)
+text = "Master Volume"
+
+[node name="VolumeSlider" type="HSlider" parent="Layout/VolumeRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(180, 24)
+size_flags_horizontal = 3
+min_value = 0.0
+max_value = 1.0
+step = 0.01
+
+[node name="VolumeValue" type="Label" parent="Layout/VolumeRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(70, 0)

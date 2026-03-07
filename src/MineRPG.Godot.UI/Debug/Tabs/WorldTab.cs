@@ -40,7 +40,7 @@ public sealed partial class WorldTab : VBoxContainer, IDebugTab
         AddThemeConstantOverride("separation", 4);
 
         // -- Player section --
-        DebugSection playerSection = new("Player");
+        DebugSection playerSection = DebugSection.Create("Player");
         AddChild(playerSection);
 
         _positionLabel = new Label();
@@ -48,7 +48,7 @@ public sealed partial class WorldTab : VBoxContainer, IDebugTab
         playerSection.Content.AddChild(_positionLabel);
 
         // -- Chunk Info section --
-        DebugSection chunkSection = new("Chunk Info");
+        DebugSection chunkSection = DebugSection.Create("Chunk Info");
         AddChild(chunkSection);
 
         _chunkInfoLabel = new Label();
@@ -56,7 +56,7 @@ public sealed partial class WorldTab : VBoxContainer, IDebugTab
         chunkSection.Content.AddChild(_chunkInfoLabel);
 
         // -- World Info section --
-        DebugSection worldSection = new("World Info");
+        DebugSection worldSection = DebugSection.Create("World Info");
         AddChild(worldSection);
 
         _worldInfoLabel = new Label();

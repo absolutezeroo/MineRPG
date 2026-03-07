@@ -19,9 +19,6 @@ public sealed partial class MainMenuNode : Control
     private IEventBus _eventBus = null!;
     private ILogger _logger = null!;
     private VBoxContainer _buttonStack = null!;
-    private Label _title = null!;
-    private Label _titleShadow = null!;
-    private Label _versionLabel = null!;
     private WorldSelectionPanelNode? _worldSelectionPanel;
 
     /// <inheritdoc />
@@ -30,23 +27,12 @@ public sealed partial class MainMenuNode : Control
         _eventBus = ServiceLocator.Instance.Get<IEventBus>();
         _logger = ServiceLocator.Instance.Get<ILogger>();
 
-        GameTheme.Apply(this);
-
-        _title = GetNode<Label>("Title");
-        _titleShadow = GetNode<Label>("TitleShadow");
         _buttonStack = GetNode<VBoxContainer>("CenterContainer/ButtonStack");
-        _versionLabel = GetNode<Label>("VersionLabel");
-
-        _title.ThemeTypeVariation = ThemeTypeVariations.HeroLabel;
-        _titleShadow.ThemeTypeVariation = ThemeTypeVariations.HeroShadowLabel;
-        _versionLabel.ThemeTypeVariation = ThemeTypeVariations.VersionLabel;
 
         Button singleplayerButton = GetNode<Button>("CenterContainer/ButtonStack/SingleplayerButton");
-        singleplayerButton.ThemeTypeVariation = ThemeTypeVariations.LargeMenuButton;
         singleplayerButton.Pressed += OnSingleplayerPressed;
 
         Button quitButton = GetNode<Button>("CenterContainer/ButtonStack/QuitButton");
-        quitButton.ThemeTypeVariation = ThemeTypeVariations.LargeMenuButton;
         quitButton.Pressed += OnQuitPressed;
 
         Input.MouseMode = Input.MouseModeEnum.Visible;

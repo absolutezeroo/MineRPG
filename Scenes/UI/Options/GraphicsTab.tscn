@@ -1,0 +1,185 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://src/MineRPG.Godot.UI/Options/GraphicsTabPanel.cs" id="1_script"]
+[ext_resource type="Theme" path="res://Resources/Themes/GameTheme.tres" id="2_theme"]
+
+[node name="GraphicsTab" type="Control"]
+theme = ExtResource("2_theme")
+layout_mode = 2
+size_flags_horizontal = 3
+script = ExtResource("1_script")
+_windowModeDropdown = NodePath("Layout/WindowModeRow/WindowModeDropdown")
+_vsyncToggle = NodePath("Layout/VSyncRow/VSyncToggle")
+_renderDistanceSlider = NodePath("Layout/RenderDistanceRow/RenderDistanceSlider")
+_renderDistanceValue = NodePath("Layout/RenderDistanceRow/RenderDistanceValue")
+_fovSlider = NodePath("Layout/FovRow/FovSlider")
+_fovValue = NodePath("Layout/FovRow/FovValue")
+_brightnessSlider = NodePath("Layout/BrightnessRow/BrightnessSlider")
+_brightnessValue = NodePath("Layout/BrightnessRow/BrightnessValue")
+_msaaDropdown = NodePath("Layout/MsaaRow/MsaaDropdown")
+_shadowDropdown = NodePath("Layout/ShadowRow/ShadowDropdown")
+_ssaoToggle = NodePath("Layout/SsaoRow/SsaoToggle")
+_afDropdown = NodePath("Layout/AfRow/AfDropdown")
+
+[node name="Layout" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 10
+
+[node name="DisplayHeader" type="Label" parent="Layout"]
+layout_mode = 2
+theme_type_variation = &"SectionHeaderLabel"
+text = "DISPLAY"
+
+[node name="WindowModeRow" type="HBoxContainer" parent="Layout"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="WindowModeLabel" type="Label" parent="Layout/WindowModeRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(200, 0)
+text = "Window Mode"
+
+[node name="WindowModeDropdown" type="OptionButton" parent="Layout/WindowModeRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(160, 28)
+
+[node name="VSyncRow" type="HBoxContainer" parent="Layout"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="VSyncLabel" type="Label" parent="Layout/VSyncRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(200, 0)
+text = "VSync"
+
+[node name="VSyncToggle" type="CheckButton" parent="Layout/VSyncRow"]
+layout_mode = 2
+
+[node name="RenderingHeader" type="Label" parent="Layout"]
+layout_mode = 2
+theme_type_variation = &"SectionHeaderLabel"
+text = "RENDERING"
+
+[node name="RenderDistanceRow" type="HBoxContainer" parent="Layout"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="RenderDistanceLabel" type="Label" parent="Layout/RenderDistanceRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(200, 0)
+text = "Render Distance"
+
+[node name="RenderDistanceSlider" type="HSlider" parent="Layout/RenderDistanceRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(180, 24)
+size_flags_horizontal = 3
+min_value = 4.0
+max_value = 64.0
+step = 1.0
+
+[node name="RenderDistanceValue" type="Label" parent="Layout/RenderDistanceRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(70, 0)
+
+[node name="FovRow" type="HBoxContainer" parent="Layout"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="FovLabel" type="Label" parent="Layout/FovRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(200, 0)
+text = "Field of View"
+
+[node name="FovSlider" type="HSlider" parent="Layout/FovRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(180, 24)
+size_flags_horizontal = 3
+min_value = 40.0
+max_value = 120.0
+step = 1.0
+
+[node name="FovValue" type="Label" parent="Layout/FovRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(70, 0)
+
+[node name="BrightnessRow" type="HBoxContainer" parent="Layout"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="BrightnessLabel" type="Label" parent="Layout/BrightnessRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(200, 0)
+text = "Brightness"
+
+[node name="BrightnessSlider" type="HSlider" parent="Layout/BrightnessRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(180, 24)
+size_flags_horizontal = 3
+min_value = 0.5
+max_value = 2.0
+step = 0.05
+
+[node name="BrightnessValue" type="Label" parent="Layout/BrightnessRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(70, 0)
+
+[node name="QualityHeader" type="Label" parent="Layout"]
+layout_mode = 2
+theme_type_variation = &"SectionHeaderLabel"
+text = "QUALITY"
+
+[node name="MsaaRow" type="HBoxContainer" parent="Layout"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="MsaaLabel" type="Label" parent="Layout/MsaaRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(200, 0)
+text = "MSAA"
+
+[node name="MsaaDropdown" type="OptionButton" parent="Layout/MsaaRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(160, 28)
+
+[node name="ShadowRow" type="HBoxContainer" parent="Layout"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="ShadowLabel" type="Label" parent="Layout/ShadowRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(200, 0)
+text = "Shadow Quality"
+
+[node name="ShadowDropdown" type="OptionButton" parent="Layout/ShadowRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(160, 28)
+
+[node name="SsaoRow" type="HBoxContainer" parent="Layout"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="SsaoLabel" type="Label" parent="Layout/SsaoRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(200, 0)
+text = "SSAO"
+
+[node name="SsaoToggle" type="CheckButton" parent="Layout/SsaoRow"]
+layout_mode = 2
+
+[node name="AfRow" type="HBoxContainer" parent="Layout"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="AfLabel" type="Label" parent="Layout/AfRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(200, 0)
+text = "Anisotropic Filtering"
+
+[node name="AfDropdown" type="OptionButton" parent="Layout/AfRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(160, 28)

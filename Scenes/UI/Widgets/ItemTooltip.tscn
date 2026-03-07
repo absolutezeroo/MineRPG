@@ -1,0 +1,47 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://src/MineRPG.Godot.UI/Inventory/ItemTooltipNode.cs" id="1_tooltip"]
+[ext_resource type="Theme" path="res://Resources/Themes/GameTheme.tres" id="2_theme"]
+
+[node name="ItemTooltip" type="PanelContainer"]
+custom_minimum_size = Vector2(160, 0)
+theme = ExtResource("2_theme")
+z_index = 101
+mouse_filter = 2
+visible = false
+script = ExtResource("1_tooltip")
+_nameLabel = NodePath("VBoxContainer/NameLabel")
+_categoryLabel = NodePath("VBoxContainer/CategoryLabel")
+_descriptionLabel = NodePath("VBoxContainer/DescriptionLabel")
+_statsLabel = NodePath("VBoxContainer/StatsLabel")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 4
+mouse_filter = 2
+
+[node name="NameLabel" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+theme_type_variation = &"TooltipNameLabel"
+autowrap_mode = 3
+mouse_filter = 2
+
+[node name="CategoryLabel" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+theme_type_variation = &"CaptionLabel"
+mouse_filter = 2
+
+[node name="HSeparator" type="HSeparator" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="DescriptionLabel" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+theme_type_variation = &"TooltipDescriptionLabel"
+autowrap_mode = 3
+mouse_filter = 2
+
+[node name="StatsLabel" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+theme_type_variation = &"TooltipStatsLabel"
+autowrap_mode = 3
+mouse_filter = 2

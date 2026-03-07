@@ -15,20 +15,18 @@ namespace MineRPG.Godot.UI.Inventory;
 /// Displays the item icon (atlas texture or placeholder color) and stack count.
 /// Fires events for mouse interaction (click, hover).
 /// Subscribes to <see cref="RPG.Inventory.Inventory.SlotChanged"/> to auto-refresh.
+/// Layout is defined in Scenes/UI/Widgets/InventorySlot.tscn.
 /// </summary>
 public sealed partial class InventorySlotNode : PanelContainer
 {
-    private const int SlotSize = 50;
-    private const int IconMargin = 4;
-    private const int IconSize = SlotSize - IconMargin * 2;
+    [Export] private TextureRect _iconTexture = null!;
+    [Export] private ColorRect _iconColorFallback = null!;
+    [Export] private Label _countLabel = null!;
 
     private InventoryContainer? _inventory;
     private int _slotIndex;
     private ItemRegistry _itemRegistry = null!;
     private ItemIconAtlas? _iconAtlas;
-    private TextureRect _iconTexture = null!;
-    private ColorRect _iconColorFallback = null!;
-    private Label _countLabel = null!;
     private StyleBoxFlat _normalStyle = null!;
     private StyleBoxFlat _hoverStyle = null!;
     private StyleBoxFlat _selectedStyle = null!;
@@ -70,7 +68,12 @@ public sealed partial class InventorySlotNode : PanelContainer
 
         _inventory.SlotChanged += OnSlotChanged;
 
-        BuildUI();
+        CreateStyles();
+        AddThemeStyleboxOverride("panel", _normalStyle);
+
+        MouseEntered += OnMouseEntered;
+        MouseExited += OnMouseExited;
+
         Refresh();
     }
 
@@ -93,11 +96,8 @@ public sealed partial class InventorySlotNode : PanelContainer
         }
     }
 
-    private void BuildUI()
+    private void CreateStyles()
     {
-        CustomMinimumSize = new Vector2(SlotSize, SlotSize);
-        MouseFilter = MouseFilterEnum.Stop;
-
         _normalStyle = new StyleBoxFlat();
         _normalStyle.BgColor = GameTheme.SlotBackground;
         _normalStyle.SetBorderWidthAll(GameTheme.BorderWidthThin);
@@ -115,39 +115,6 @@ public sealed partial class InventorySlotNode : PanelContainer
         _selectedStyle.SetBorderWidthAll(GameTheme.BorderWidth);
         _selectedStyle.BorderColor = GameTheme.SlotSelectedBorder;
         _selectedStyle.SetContentMarginAll(0);
-
-        AddThemeStyleboxOverride("panel", _normalStyle);
-
-        _iconTexture = new TextureRect();
-        _iconTexture.CustomMinimumSize = new Vector2(IconSize, IconSize);
-        _iconTexture.Position = new Vector2(IconMargin, IconMargin);
-        _iconTexture.Size = new Vector2(IconSize, IconSize);
-        _iconTexture.ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize;
-        _iconTexture.StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered;
-        _iconTexture.MouseFilter = MouseFilterEnum.Ignore;
-        _iconTexture.Visible = false;
-        AddChild(_iconTexture);
-
-        _iconColorFallback = new ColorRect();
-        _iconColorFallback.CustomMinimumSize = new Vector2(IconSize, IconSize);
-        _iconColorFallback.Position = new Vector2(IconMargin, IconMargin);
-        _iconColorFallback.Size = new Vector2(IconSize, IconSize);
-        _iconColorFallback.MouseFilter = MouseFilterEnum.Ignore;
-        _iconColorFallback.Color = Colors.Transparent;
-        AddChild(_iconColorFallback);
-
-        _countLabel = new Label();
-        _countLabel.HorizontalAlignment = HorizontalAlignment.Right;
-        _countLabel.VerticalAlignment = VerticalAlignment.Bottom;
-        _countLabel.SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
-        _countLabel.OffsetRight = -2;
-        _countLabel.OffsetBottom = -1;
-        _countLabel.ThemeTypeVariation = ThemeTypeVariations.SlotCountLabel;
-        _countLabel.MouseFilter = MouseFilterEnum.Ignore;
-        AddChild(_countLabel);
-
-        MouseEntered += OnMouseEntered;
-        MouseExited += OnMouseExited;
     }
 
     private void Refresh()

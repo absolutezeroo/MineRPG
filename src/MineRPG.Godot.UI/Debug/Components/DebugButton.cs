@@ -10,25 +10,25 @@ namespace MineRPG.Godot.UI.Debug.Components;
 /// </summary>
 public sealed partial class DebugButton : Button
 {
-    private readonly string _labelText;
-    private readonly Action _action;
+    private Action _action = null!;
 
     /// <summary>
-    /// Creates a debug button.
+    /// Creates and initializes a styled DebugButton.
     /// </summary>
     /// <param name="labelText">Button label text.</param>
     /// <param name="action">Action to invoke on click.</param>
-    public DebugButton(string labelText, Action action)
+    /// <returns>The configured button instance.</returns>
+    public static DebugButton Create(string labelText, Action action)
     {
-        _labelText = labelText;
-        _action = action;
+        DebugButton button = new();
+        button._action = action;
+        button.Text = labelText;
+        return button;
     }
 
     /// <inheritdoc />
     public override void _Ready()
     {
-        Text = _labelText;
-
         AddThemeStyleboxOverride("normal", DebugTheme.CreateButtonStyle(new Color(0.15f, 0.2f, 0.3f, 0.8f)));
         AddThemeStyleboxOverride("hover", DebugTheme.CreateButtonStyle(new Color(0.2f, 0.3f, 0.45f, 0.9f)));
         AddThemeStyleboxOverride("pressed", DebugTheme.CreateButtonStyle(new Color(0.1f, 0.15f, 0.25f, 0.9f)));

@@ -6,13 +6,17 @@ namespace MineRPG.Godot.UI.Debug.Components;
 /// <summary>
 /// A collapsible section with a title header for the debug menu.
 /// Click the header to expand/collapse the content.
+/// Layout is defined in Scenes/UI/Debug/Widgets/DebugSection.tscn.
 /// </summary>
 public sealed partial class DebugSection : VBoxContainer
 {
-    private readonly string _title;
-    private readonly bool _startExpanded;
+    private const string ScenePath = "res://Scenes/UI/Debug/Widgets/DebugSection.tscn";
 
-    private Button _headerButton = null!;
+    private static PackedScene? _sceneCache;
+
+    [Export] private Button _headerButton = null!;
+
+    private string _title = string.Empty;
     private bool _isExpanded;
 
     /// <summary>
@@ -21,26 +25,25 @@ public sealed partial class DebugSection : VBoxContainer
     public VBoxContainer Content { get; private set; } = null!;
 
     /// <summary>
-    /// Creates a debug section.
+    /// Creates and initializes a DebugSection from the scene template.
     /// </summary>
     /// <param name="title">Section title.</param>
     /// <param name="startExpanded">Whether the section starts expanded.</param>
-    public DebugSection(string title, bool startExpanded = true)
+    /// <returns>The configured section instance.</returns>
+    public static DebugSection Create(string title, bool startExpanded = true)
     {
-        _title = title;
-        _startExpanded = startExpanded;
+        _sceneCache ??= GD.Load<PackedScene>(ScenePath);
+        DebugSection instance = _sceneCache.Instantiate<DebugSection>();
+        instance._title = title;
+        instance._isExpanded = startExpanded;
+        return instance;
     }
 
     /// <inheritdoc />
     public override void _Ready()
     {
-        _isExpanded = _startExpanded;
-
-        _headerButton = new Button();
-        _headerButton.Flat = true;
-        _headerButton.Alignment = HorizontalAlignment.Left;
-        _headerButton.AddThemeColorOverride("font_color", DebugTheme.TextAccent);
-        _headerButton.AddThemeFontSizeOverride("font_size", DebugTheme.FontSizeSmall);
+        Content = GetNode<VBoxContainer>("Content");
+        Content.Visible = _isExpanded;
 
         StyleBoxEmpty emptyStyle = new();
         _headerButton.AddThemeStyleboxOverride("normal", emptyStyle);
@@ -50,14 +53,6 @@ public sealed partial class DebugSection : VBoxContainer
 
         _headerButton.Text = GetHeaderText();
         _headerButton.Pressed += OnHeaderPressed;
-        AddChild(_headerButton);
-
-        Content = new VBoxContainer();
-        Content.Visible = _isExpanded;
-        Content.AddThemeConstantOverride("separation", 2);
-        AddChild(Content);
-
-        AddThemeConstantOverride("separation", 2);
     }
 
     private void OnHeaderPressed()

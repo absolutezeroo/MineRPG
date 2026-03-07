@@ -1,8 +1,13 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://src/MineRPG.Godot.UI/Options/OptionsPanelNode.cs" id="1_options"]
+[ext_resource type="Theme" path="res://Resources/Themes/GameTheme.tres" id="2_theme"]
+[ext_resource type="PackedScene" path="res://Scenes/UI/Options/GameTab.tscn" id="3_game_tab"]
+[ext_resource type="PackedScene" path="res://Scenes/UI/Options/GraphicsTab.tscn" id="4_graphics_tab"]
+[ext_resource type="PackedScene" path="res://Scenes/UI/Options/ControlsTab.tscn" id="5_controls_tab"]
 
 [node name="Options" type="Control"]
+theme = ExtResource("2_theme")
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -11,6 +16,13 @@ grow_horizontal = 2
 grow_vertical = 2
 process_mode = 3
 script = ExtResource("1_options")
+_gameTabButton = NodePath("CenterContainer/PanelContainer/VBoxContainer/TabStrip/GameTab")
+_graphicsTabButton = NodePath("CenterContainer/PanelContainer/VBoxContainer/TabStrip/GraphicsTab")
+_controlsTabButton = NodePath("CenterContainer/PanelContainer/VBoxContainer/TabStrip/ControlsTab")
+_gameTabPanel = NodePath("CenterContainer/PanelContainer/VBoxContainer/ContentArea/ScrollContainer/TabContent/GameTab")
+_graphicsTabPanel = NodePath("CenterContainer/PanelContainer/VBoxContainer/ContentArea/ScrollContainer/TabContent/GraphicsTab")
+_controlsTabPanel = NodePath("CenterContainer/PanelContainer/VBoxContainer/ContentArea/ScrollContainer/TabContent/ControlsTab")
+_backButton = NodePath("CenterContainer/PanelContainer/VBoxContainer/BackButton")
 
 [node name="CenterContainer" type="CenterContainer" parent="."]
 layout_mode = 1
@@ -30,6 +42,7 @@ theme_override_constants/separation = 8
 
 [node name="Title" type="Label" parent="CenterContainer/PanelContainer/VBoxContainer"]
 layout_mode = 2
+theme_type_variation = &"PanelTitleLabel"
 text = "Options"
 horizontal_alignment = 1
 
@@ -66,6 +79,20 @@ layout_mode = 2
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 6
+
+[node name="GameTab" parent="CenterContainer/PanelContainer/VBoxContainer/ContentArea/ScrollContainer/TabContent" instance=ExtResource("3_game_tab")]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="GraphicsTab" parent="CenterContainer/PanelContainer/VBoxContainer/ContentArea/ScrollContainer/TabContent" instance=ExtResource("4_graphics_tab")]
+layout_mode = 2
+size_flags_horizontal = 3
+visible = false
+
+[node name="ControlsTab" parent="CenterContainer/PanelContainer/VBoxContainer/ContentArea/ScrollContainer/TabContent" instance=ExtResource("5_controls_tab")]
+layout_mode = 2
+size_flags_horizontal = 3
+visible = false
 
 [node name="BackButton" type="Button" parent="CenterContainer/PanelContainer/VBoxContainer"]
 layout_mode = 2

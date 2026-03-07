@@ -24,6 +24,9 @@ namespace MineRPG.Godot.UI.HUD;
 public sealed partial class HotbarNode : Control
 {
     private const int SlotCount = 9;
+    private const string SlotScenePath = "res://Scenes/UI/Widgets/InventorySlot.tscn";
+
+    [Export] private HBoxContainer _slotContainer = null!;
 
     private readonly InventorySlotNode[] _slotNodes = new InventorySlotNode[SlotCount];
 
@@ -54,15 +57,13 @@ public sealed partial class HotbarNode : Control
 
         _eventBus.Subscribe<InventoryToggledEvent>(OnInventoryToggled);
 
-        GameTheme.Apply(this);
-
-        HBoxContainer slotContainer = GetNode<HBoxContainer>("SlotContainer");
+        PackedScene slotScene = GD.Load<PackedScene>(SlotScenePath);
 
         for (int i = 0; i < SlotCount; i++)
         {
-            InventorySlotNode slotNode = new();
+            InventorySlotNode slotNode = slotScene.Instantiate<InventorySlotNode>();
             slotNode.Name = $"Slot{i}";
-            slotContainer.AddChild(slotNode);
+            _slotContainer.AddChild(slotNode);
             slotNode.Initialize(_playerInventory.Hotbar, i, itemRegistry, iconAtlas);
             _slotNodes[i] = slotNode;
         }

@@ -4,8 +4,6 @@ using Godot;
 using Godot.Collections;
 
 using MineRPG.Core.DataLoading;
-using MineRPG.Core.DI;
-using MineRPG.Core.Interfaces;
 using MineRPG.Game.Bootstrap.Input;
 
 namespace MineRPG.Godot.UI.Options;
@@ -14,10 +12,14 @@ namespace MineRPG.Godot.UI.Options;
 /// Options tab for Controls. Shows all rebindable actions with their current key.
 /// Clicking a row enters Listening mode; the next key press becomes the new binding.
 /// Press Escape while listening to cancel.
+/// Layout is defined in Scenes/UI/Options/ControlsTab.tscn; rebind rows are dynamic.
 /// </summary>
 public sealed partial class ControlsTabPanel : OptionsTabPanel
 {
     private static readonly RebindableActionData[] RebindableActions = InputActions.RebindableActions;
+
+    [Export] private VBoxContainer _bindingsContainer = null!;
+    [Export] private Button _resetButton = null!;
 
     private readonly Button[] _rebindButtons = new Button[RebindableActions.Length];
 
@@ -25,10 +27,43 @@ public sealed partial class ControlsTabPanel : OptionsTabPanel
     private int _listeningButtonIndex = -1;
 
     /// <inheritdoc />
-    protected override void BuildContent(VBoxContainer layout)
+    protected override void InitializeTab()
     {
-        layout.AddChild(CreateSectionHeader("KEY BINDINGS"));
+        BuildRebindRows();
+        _resetButton.Pressed += OnResetToDefaults;
+    }
 
+    /// <inheritdoc />
+    public override void _Input(InputEvent @event)
+    {
+        if (_listeningActionName is null)
+        {
+            return;
+        }
+
+        if (@event is InputEventKey keyEvt && keyEvt.PhysicalKeycode == Key.Escape && keyEvt.Pressed)
+        {
+            CancelListening();
+            GetViewport().SetInputAsHandled();
+            return;
+        }
+
+        if (@event is InputEventKey pressedKey && pressedKey.Pressed && !pressedKey.Echo)
+        {
+            ApplyRebind(pressedKey);
+            GetViewport().SetInputAsHandled();
+            return;
+        }
+
+        if (@event is InputEventMouseButton mouseEvt && mouseEvt.Pressed)
+        {
+            ApplyRebind(mouseEvt);
+            GetViewport().SetInputAsHandled();
+        }
+    }
+
+    private void BuildRebindRows()
+    {
         for (int i = 0; i < RebindableActions.Length; i++)
         {
             RebindableActionData rowData = RebindableActions[i];
@@ -50,54 +85,12 @@ public sealed partial class ControlsTabPanel : OptionsTabPanel
             row.AddChild(rebindButton);
 
             _rebindButtons[i] = rebindButton;
-            layout.AddChild(row);
-        }
-
-        layout.AddChild(new HSeparator());
-
-        Button resetButton = new();
-        resetButton.Text = "Reset to Defaults";
-        resetButton.CustomMinimumSize = new Vector2(180f, 36f);
-        resetButton.SizeFlagsHorizontal = SizeFlags.ShrinkCenter;
-        resetButton.Pressed += OnResetToDefaults;
-        layout.AddChild(resetButton);
-    }
-
-    /// <inheritdoc />
-    public override void _Input(InputEvent @event)
-    {
-        if (_listeningActionName is null)
-        {
-            return;
-        }
-
-        // Escape cancels listening
-        if (@event is InputEventKey keyEvt && keyEvt.PhysicalKeycode == Key.Escape && keyEvt.Pressed)
-        {
-            CancelListening();
-            GetViewport().SetInputAsHandled();
-            return;
-        }
-
-        // Accept key press (not release, not echo)
-        if (@event is InputEventKey pressedKey && pressedKey.Pressed && !pressedKey.Echo)
-        {
-            ApplyRebind(pressedKey);
-            GetViewport().SetInputAsHandled();
-            return;
-        }
-
-        // Accept mouse button press
-        if (@event is InputEventMouseButton mouseEvt && mouseEvt.Pressed)
-        {
-            ApplyRebind(mouseEvt);
-            GetViewport().SetInputAsHandled();
+            _bindingsContainer.AddChild(row);
         }
     }
 
     private void OnRebindButtonPressed(int index, string actionName)
     {
-        // Cancel any existing listening first
         if (_listeningActionName is not null && _listeningButtonIndex != index)
         {
             CancelListening();
@@ -123,16 +116,13 @@ public sealed partial class ControlsTabPanel : OptionsTabPanel
         string actionName = _listeningActionName;
         int buttonIndex = _listeningButtonIndex;
 
-        // Clear existing events and add the new one
         InputMap.ActionEraseEvents(actionName);
         InputMap.ActionAddEvent(actionName, inputEvent);
 
-        // Update button display
         Button button = _rebindButtons[buttonIndex];
         button.Text = GetCurrentBindingLabel(actionName);
         ApplyRebindButtonStyle(button, isListening: false);
 
-        // Persist the new binding
         SaveKeybinds();
 
         Logger.Info(
@@ -159,23 +149,19 @@ public sealed partial class ControlsTabPanel : OptionsTabPanel
 
     private void OnResetToDefaults()
     {
-        // Cancel any active listening before resetting
         if (_listeningActionName is not null)
         {
             CancelListening();
         }
 
-        // Reload InputMap from project.godot defaults
         InputMap.LoadFromProjectSettings();
 
-        // Refresh all button labels
         for (int i = 0; i < RebindableActions.Length; i++)
         {
             _rebindButtons[i].Text = GetCurrentBindingLabel(RebindableActions[i].ActionName);
             ApplyRebindButtonStyle(_rebindButtons[i], isListening: false);
         }
 
-        // Clear keybind overrides from settings
         Options.UpdateKeybindsAndSave(
             new System.Collections.Generic.Dictionary<string, KeybindData>());
 

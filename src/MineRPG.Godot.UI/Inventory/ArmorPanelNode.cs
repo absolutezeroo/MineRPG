@@ -16,8 +16,10 @@ namespace MineRPG.Godot.UI.Inventory;
 /// </summary>
 public sealed partial class ArmorPanelNode : VBoxContainer
 {
+    private const string SlotScenePath = "res://Scenes/UI/Widgets/InventorySlot.tscn";
     private static readonly string[] ArmorSlotLabels = ["Helmet", "Chest", "Legs", "Boots"];
 
+    private static PackedScene? _slotSceneCache;
     private InventorySlotNode[] _armorSlots = [];
     private InventorySlotNode? _offhandSlot;
 
@@ -44,6 +46,7 @@ public sealed partial class ArmorPanelNode : VBoxContainer
         ItemIconAtlas? iconAtlas = null)
     {
         AddThemeConstantOverride("separation", 4);
+        _slotSceneCache ??= GD.Load<PackedScene>(SlotScenePath);
 
         _armorSlots = new InventorySlotNode[PlayerInventory.ArmorSlotCount];
 
@@ -55,7 +58,7 @@ public sealed partial class ArmorPanelNode : VBoxContainer
             label.ThemeTypeVariation = ThemeTypeVariations.CaptionLabel;
             AddChild(label);
 
-            InventorySlotNode slotNode = new();
+            InventorySlotNode slotNode = _slotSceneCache.Instantiate<InventorySlotNode>();
             slotNode.Name = $"Armor{i}";
             AddChild(slotNode);
             slotNode.Initialize(armorInventory, i, itemRegistry, iconAtlas);
@@ -76,7 +79,7 @@ public sealed partial class ArmorPanelNode : VBoxContainer
         offhandLabel.ThemeTypeVariation = ThemeTypeVariations.CaptionLabel;
         AddChild(offhandLabel);
 
-        _offhandSlot = new InventorySlotNode();
+        _offhandSlot = _slotSceneCache.Instantiate<InventorySlotNode>();
         _offhandSlot.Name = "Offhand";
         AddChild(_offhandSlot);
         _offhandSlot.Initialize(offhandInventory, 0, itemRegistry, iconAtlas);

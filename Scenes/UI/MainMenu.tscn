@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://src/MineRPG.Godot.UI/Screens/MainMenuNode.cs" id="1_mainmenu"]
+[ext_resource type="Theme" path="res://Resources/Themes/GameTheme.tres" id="2_theme"]
 
 [node name="MainMenu" type="Control"]
 layout_mode = 3
@@ -9,6 +10,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme = ExtResource("2_theme")
 script = ExtResource("1_mainmenu")
 
 [node name="Background" type="ColorRect" parent="."]
@@ -30,6 +32,7 @@ offset_top = 60.0
 offset_right = 200.0
 offset_bottom = 130.0
 grow_horizontal = 2
+theme_type_variation = &"HeroLabel"
 text = "MineRPG"
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -44,6 +47,7 @@ offset_top = 62.0
 offset_right = 202.0
 offset_bottom = 132.0
 grow_horizontal = 2
+theme_type_variation = &"HeroShadowLabel"
 text = "MineRPG"
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -63,11 +67,13 @@ theme_override_constants/separation = 12
 [node name="SingleplayerButton" type="Button" parent="CenterContainer/ButtonStack"]
 layout_mode = 2
 custom_minimum_size = Vector2(300, 48)
+theme_type_variation = &"LargeMenuButton"
 text = "Singleplayer"
 
 [node name="QuitButton" type="Button" parent="CenterContainer/ButtonStack"]
 layout_mode = 2
 custom_minimum_size = Vector2(300, 48)
+theme_type_variation = &"LargeMenuButton"
 text = "Quit"
 
 [node name="VersionLabel" type="Label" parent="."]
@@ -81,5 +87,6 @@ offset_left = -200.0
 offset_top = -30.0
 grow_horizontal = 0
 grow_vertical = 0
+theme_type_variation = &"VersionLabel"
 text = "v0.1.0-alpha"
 horizontal_alignment = 2

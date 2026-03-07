@@ -1,0 +1,292 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://src/MineRPG.Godot.UI/Debug/DebugHudPanel.cs" id="1_hud"]
+
+[sub_resource type="StyleBoxFlat" id="panel_style_1"]
+bg_color = Color(0.05, 0.05, 0.08, 0.85)
+content_margin_left = 8.0
+content_margin_top = 6.0
+content_margin_right = 8.0
+content_margin_bottom = 6.0
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_left = 3
+corner_radius_bottom_right = 3
+
+[sub_resource type="StyleBoxFlat" id="panel_style_2"]
+bg_color = Color(0.05, 0.05, 0.08, 0.85)
+content_margin_left = 8.0
+content_margin_top = 6.0
+content_margin_right = 8.0
+content_margin_bottom = 6.0
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_left = 3
+corner_radius_bottom_right = 3
+
+[sub_resource type="StyleBoxFlat" id="panel_style_3"]
+bg_color = Color(0.05, 0.05, 0.08, 0.85)
+content_margin_left = 8.0
+content_margin_top = 6.0
+content_margin_right = 8.0
+content_margin_bottom = 6.0
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_left = 3
+corner_radius_bottom_right = 3
+
+[sub_resource type="StyleBoxFlat" id="panel_style_4"]
+bg_color = Color(0.05, 0.05, 0.08, 0.85)
+content_margin_left = 8.0
+content_margin_top = 6.0
+content_margin_right = 8.0
+content_margin_bottom = 6.0
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_left = 3
+corner_radius_bottom_right = 3
+
+[sub_resource type="StyleBoxFlat" id="panel_style_5"]
+bg_color = Color(0.05, 0.05, 0.08, 0.85)
+content_margin_left = 8.0
+content_margin_top = 6.0
+content_margin_right = 8.0
+content_margin_bottom = 6.0
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_left = 3
+corner_radius_bottom_right = 3
+
+[sub_resource type="StyleBoxFlat" id="panel_style_6"]
+bg_color = Color(0.05, 0.05, 0.08, 0.85)
+content_margin_left = 8.0
+content_margin_top = 6.0
+content_margin_right = 8.0
+content_margin_bottom = 6.0
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_left = 3
+corner_radius_bottom_right = 3
+
+[node name="DebugHudPanel" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_hud")
+_positionLabel = NodePath("LeftColumn/PositionPanel/PositionContent/PositionData")
+_worldLabel = NodePath("LeftColumn/WorldPanel/WorldContent/WorldData")
+_performanceLabel = NodePath("LeftColumn/PerformancePanel/PerformanceContent/PerformanceData")
+_pipelineLabel = NodePath("RightColumn/PipelinePanel/PipelineContent/PipelineData")
+_rendererLabel = NodePath("RightColumn/RendererPanel/RendererContent/RendererData")
+_memoryLabel = NodePath("RightColumn/MemoryPanel/MemoryContent/MemoryData")
+
+[node name="LeftColumn" type="VBoxContainer" parent="."]
+layout_mode = 0
+offset_left = 8.0
+offset_top = 6.0
+offset_right = 308.0
+offset_bottom = 406.0
+mouse_filter = 2
+
+[node name="PositionPanel" type="PanelContainer" parent="LeftColumn"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("panel_style_1")
+
+[node name="PositionContent" type="VBoxContainer" parent="LeftColumn/PositionPanel"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="PositionHeader" type="Label" parent="LeftColumn/PositionPanel/PositionContent"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.55, 0.85, 0.55, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.75)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 14
+mouse_filter = 2
+text = "--- Position ---"
+
+[node name="PositionData" type="Label" parent="LeftColumn/PositionPanel/PositionContent"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.75)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 12
+mouse_filter = 2
+
+[node name="Spacer1" type="Control" parent="LeftColumn"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 8)
+mouse_filter = 2
+
+[node name="WorldPanel" type="PanelContainer" parent="LeftColumn"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("panel_style_2")
+
+[node name="WorldContent" type="VBoxContainer" parent="LeftColumn/WorldPanel"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="WorldHeader" type="Label" parent="LeftColumn/WorldPanel/WorldContent"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.55, 0.85, 0.55, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.75)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 14
+mouse_filter = 2
+text = "--- World ---"
+
+[node name="WorldData" type="Label" parent="LeftColumn/WorldPanel/WorldContent"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.75)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 12
+mouse_filter = 2
+
+[node name="Spacer2" type="Control" parent="LeftColumn"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 8)
+mouse_filter = 2
+
+[node name="PerformancePanel" type="PanelContainer" parent="LeftColumn"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("panel_style_3")
+
+[node name="PerformanceContent" type="VBoxContainer" parent="LeftColumn/PerformancePanel"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="PerformanceHeader" type="Label" parent="LeftColumn/PerformancePanel/PerformanceContent"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.55, 0.85, 0.55, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.75)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 14
+mouse_filter = 2
+text = "--- Performance ---"
+
+[node name="PerformanceData" type="Label" parent="LeftColumn/PerformancePanel/PerformanceContent"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.75)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 12
+mouse_filter = 2
+
+[node name="RightColumn" type="VBoxContainer" parent="."]
+layout_mode = 0
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -308.0
+offset_top = 6.0
+offset_right = -8.0
+offset_bottom = 406.0
+grow_horizontal = 0
+mouse_filter = 2
+
+[node name="PipelinePanel" type="PanelContainer" parent="RightColumn"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("panel_style_4")
+
+[node name="PipelineContent" type="VBoxContainer" parent="RightColumn/PipelinePanel"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="PipelineHeader" type="Label" parent="RightColumn/PipelinePanel/PipelineContent"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.55, 0.85, 0.55, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.75)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 14
+mouse_filter = 2
+text = "--- Pipeline ---"
+
+[node name="PipelineData" type="Label" parent="RightColumn/PipelinePanel/PipelineContent"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.75)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 12
+mouse_filter = 2
+
+[node name="Spacer3" type="Control" parent="RightColumn"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 8)
+mouse_filter = 2
+
+[node name="RendererPanel" type="PanelContainer" parent="RightColumn"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("panel_style_5")
+
+[node name="RendererContent" type="VBoxContainer" parent="RightColumn/RendererPanel"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="RendererHeader" type="Label" parent="RightColumn/RendererPanel/RendererContent"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.55, 0.85, 0.55, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.75)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 14
+mouse_filter = 2
+text = "--- Renderer ---"
+
+[node name="RendererData" type="Label" parent="RightColumn/RendererPanel/RendererContent"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.75)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 12
+mouse_filter = 2
+
+[node name="Spacer4" type="Control" parent="RightColumn"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 8)
+mouse_filter = 2
+
+[node name="MemoryPanel" type="PanelContainer" parent="RightColumn"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("panel_style_6")
+
+[node name="MemoryContent" type="VBoxContainer" parent="RightColumn/MemoryPanel"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="MemoryHeader" type="Label" parent="RightColumn/MemoryPanel/MemoryContent"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.55, 0.85, 0.55, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.75)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 14
+mouse_filter = 2
+text = "--- Memory ---"
+
+[node name="MemoryData" type="Label" parent="RightColumn/MemoryPanel/MemoryContent"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.75)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 12
+mouse_filter = 2

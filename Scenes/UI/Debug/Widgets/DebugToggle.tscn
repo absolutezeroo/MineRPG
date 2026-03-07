@@ -1,0 +1,28 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/MineRPG.Godot.UI/Debug/Components/DebugToggle.cs" id="1_toggle"]
+
+[node name="DebugToggle" type="HBoxContainer"]
+mouse_filter = 0
+script = ExtResource("1_toggle")
+_nameLabel = NodePath("NameLabel")
+_stateLabel = NodePath("StateLabel")
+
+[node name="NameLabel" type="Label" parent="."]
+layout_mode = 2
+custom_minimum_size = Vector2(200, 0)
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.75)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 12
+mouse_filter = 2
+
+[node name="StateLabel" type="Label" parent="."]
+layout_mode = 2
+custom_minimum_size = Vector2(40, 0)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.75)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 12
+mouse_filter = 2

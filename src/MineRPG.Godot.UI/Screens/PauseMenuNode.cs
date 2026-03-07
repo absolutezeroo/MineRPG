@@ -23,7 +23,6 @@ public sealed partial class PauseMenuNode : Control
     private IEventBus _eventBus = null!;
     private ILogger _logger = null!;
     private VBoxContainer _buttonStack = null!;
-    private Label _title = null!;
     private OptionsPanelNode? _optionsPanel;
 
     /// <inheritdoc />
@@ -32,15 +31,10 @@ public sealed partial class PauseMenuNode : Control
         _eventBus = ServiceLocator.Instance.Get<IEventBus>();
         _logger = ServiceLocator.Instance.Get<ILogger>();
 
-        GameTheme.Apply(this);
-
         Visible = false;
 
-        _title = GetNode<Label>("CenterContainer/PanelContainer/VBoxContainer/Title");
         _buttonStack = GetNode<VBoxContainer>(
             "CenterContainer/PanelContainer/VBoxContainer/ButtonStack");
-
-        _title.ThemeTypeVariation = ThemeTypeVariations.ScreenTitleLabel;
 
         Button resumeButton = GetNode<Button>(
             "CenterContainer/PanelContainer/VBoxContainer/ButtonStack/ResumeButton");

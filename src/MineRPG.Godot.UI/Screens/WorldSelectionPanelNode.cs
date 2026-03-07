@@ -45,18 +45,12 @@ public sealed partial class WorldSelectionPanelNode : Control
         _savesRoot = Path.Combine(
             Path.GetDirectoryName(dataRoot) ?? dataRoot, "Saves");
 
-        GameTheme.Apply(this);
-
         _worldListContainer = GetNode<VBoxContainer>(
             "CenterContainer/PanelContainer/VBoxContainer/ScrollContainer/WorldList");
         _nameField = GetNode<LineEdit>(
             "CenterContainer/PanelContainer/VBoxContainer/CreateSection/CreateVBox/NameRow/NameField");
         _seedField = GetNode<LineEdit>(
             "CenterContainer/PanelContainer/VBoxContainer/CreateSection/CreateVBox/SeedRow/SeedField");
-
-        Label header = GetNode<Label>(
-            "CenterContainer/PanelContainer/VBoxContainer/Header");
-        header.ThemeTypeVariation = ThemeTypeVariations.PanelTitleLabel;
 
         Button createButton = GetNode<Button>(
             "CenterContainer/PanelContainer/VBoxContainer/CreateSection/CreateVBox/CreateButton");

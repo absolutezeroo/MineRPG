@@ -44,7 +44,7 @@ public sealed partial class BiomeTab : VBoxContainer, IDebugTab
         AddThemeConstantOverride("separation", 4);
 
         // -- Current biome --
-        DebugSection currentSection = new("Current Location");
+        DebugSection currentSection = DebugSection.Create("Current Location");
         AddChild(currentSection);
 
         _currentBiomeLabel = new Label();
@@ -52,7 +52,7 @@ public sealed partial class BiomeTab : VBoxContainer, IDebugTab
         currentSection.Content.AddChild(_currentBiomeLabel);
 
         // -- Coverage stats --
-        DebugSection coverageSection = new("Biome Coverage");
+        DebugSection coverageSection = DebugSection.Create("Biome Coverage");
         AddChild(coverageSection);
 
         _coverageLabel = new Label();

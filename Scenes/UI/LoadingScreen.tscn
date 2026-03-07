@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://src/MineRPG.Godot.UI/Screens/LoadingScreenNode.cs" id="1_loading"]
+[ext_resource type="Theme" path="res://Resources/Themes/GameTheme.tres" id="2_theme"]
 
 [node name="LoadingScreen" type="CanvasLayer"]
 layer = 128
@@ -10,6 +11,7 @@ script = ExtResource("1_loading")
 [node name="Root" type="Control" parent="."]
 layout_mode = 3
 anchors_preset = 15
+theme = ExtResource("2_theme")
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
@@ -42,6 +44,7 @@ theme_override_constants/separation = 12
 
 [node name="Title" type="Label" parent="Root/CenterContainer/PanelContainer/VBoxContainer"]
 layout_mode = 2
+theme_type_variation = &"LoadingTitleLabel"
 text = "Loading World..."
 horizontal_alignment = 1
 
@@ -51,5 +54,6 @@ custom_minimum_size = Vector2(420, 28)
 
 [node name="StatusLabel" type="Label" parent="Root/CenterContainer/PanelContainer/VBoxContainer"]
 layout_mode = 2
+theme_type_variation = &"SubduedBodyLabel"
 text = "Preparing..."
 horizontal_alignment = 1
