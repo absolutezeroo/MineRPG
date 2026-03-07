@@ -17,7 +17,7 @@ namespace MineRPG.Godot.UI.Options;
 /// </summary>
 public sealed partial class ControlsTabPanel : OptionsTabPanel
 {
-    private static readonly RebindRowData[] RebindableActions = BuildRebindableActions();
+    private static readonly RebindableActionData[] RebindableActions = InputActions.RebindableActions;
 
     private readonly Button[] _rebindButtons = new Button[RebindableActions.Length];
 
@@ -31,7 +31,7 @@ public sealed partial class ControlsTabPanel : OptionsTabPanel
 
         for (int i = 0; i < RebindableActions.Length; i++)
         {
-            RebindRowData rowData = RebindableActions[i];
+            RebindableActionData rowData = RebindableActions[i];
             int capturedIndex = i;
 
             HBoxContainer row = new();
@@ -205,24 +205,11 @@ public sealed partial class ControlsTabPanel : OptionsTabPanel
             isListening ? GameTheme.ListeningText : GameTheme.TextBody);
     }
 
-    private static RebindRowData[] BuildRebindableActions()
-    {
-        RebindableActionData[] source = InputActions.RebindableActions;
-        RebindRowData[] result = new RebindRowData[source.Length];
-
-        for (int i = 0; i < source.Length; i++)
-        {
-            result[i] = new RebindRowData(source[i].ActionName, source[i].DisplayLabel);
-        }
-
-        return result;
-    }
-
     private void SaveKeybinds()
     {
         System.Collections.Generic.Dictionary<string, KeybindData> keybinds = new();
 
-        foreach (RebindRowData row in RebindableActions)
+        foreach (RebindableActionData row in RebindableActions)
         {
             Array<InputEvent> events = InputMap.ActionGetEvents(row.ActionName);
 

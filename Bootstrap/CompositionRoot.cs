@@ -161,7 +161,7 @@ public static class CompositionRoot
         OptimizationFlags optimizationFlags = new();
         locator.Register<OptimizationFlags>(optimizationFlags);
 
-        DebugDataProvider debugDataProvider = new(playerData, chunkManager, biomeSelector, performanceMonitor);
+        DebugDataProvider debugDataProvider = new(playerData, chunkManager, terrainSampler, performanceMonitor);
         locator.Register<IDebugDataProvider>(debugDataProvider);
 
         ItemRegistry itemRegistry = new();

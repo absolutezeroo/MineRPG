@@ -18,7 +18,7 @@ namespace MineRPG.Game.Bootstrap.Debug;
 public sealed class DebugDataProvider(
     PlayerData playerData,
     IChunkManager chunkManager,
-    BiomeSelector biomeSelector,
+    TerrainSampler terrainSampler,
     PerformanceMonitor performanceMonitor) : IDebugDataProvider
 {
     /// <summary>
@@ -70,15 +70,16 @@ public sealed class DebugDataProvider(
 
     /// <summary>
     /// Gets the name of the biome the player is currently in.
+    /// Uses climate-based selection via TerrainSampler for accurate results.
     /// </summary>
     public string CurrentBiome
     {
         get
         {
-            BiomeDefinition biome = biomeSelector.Select(
+            TerrainColumn column = terrainSampler.SampleColumn(
                 (int)MathF.Floor(playerData.PositionX),
                 (int)MathF.Floor(playerData.PositionZ));
-            return biome.BiomeType.ToString();
+            return column.PrimaryBiome.DisplayName;
         }
     }
 

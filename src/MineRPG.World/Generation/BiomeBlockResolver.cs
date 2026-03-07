@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 
 using MineRPG.Core.Logging;
+using MineRPG.World.Biomes;
 using MineRPG.World.Blocks;
 
 namespace MineRPG.World.Generation;
@@ -39,6 +40,35 @@ public static class BiomeBlockResolver
             biome.UnderwaterBlock = ResolveBlock(
                 biome.UnderwaterBlockName, biome.UnderwaterBlock,
                 biome.Id, "underwaterBlock", blockRegistry, logger);
+
+            ResolveOreBlocks(biome, blockRegistry, logger);
+        }
+    }
+
+    private static void ResolveOreBlocks(
+        BiomeDefinition biome,
+        BlockRegistry blockRegistry,
+        ILogger logger)
+    {
+        for (int i = 0; i < biome.Ores.Count; i++)
+        {
+            OreEntry ore = biome.Ores[i];
+
+            if (string.IsNullOrEmpty(ore.BlockName))
+            {
+                continue;
+            }
+
+            if (blockRegistry.TryGetByName(ore.BlockName, out BlockDefinition definition))
+            {
+                ore.BlockId = definition.Id;
+            }
+            else
+            {
+                logger.Warning(
+                    "BiomeBlockResolver: Biome '{0}' ore references unknown block '{1}'.",
+                    biome.Id, ore.BlockName);
+            }
         }
     }
 

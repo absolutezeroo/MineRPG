@@ -98,18 +98,18 @@ public static class InputActions
     /// </summary>
     public static readonly RebindableActionData[] RebindableActions =
     [
-        new("move_forward", "Move Forward"),
-        new("move_back", "Move Backward"),
-        new("move_left", "Strafe Left"),
-        new("move_right", "Strafe Right"),
-        new("jump", "Jump"),
-        new("sprint", "Sprint"),
-        new("attack", "Break Block"),
-        new("interact", "Place Block"),
-        new("inventory_toggle", "Open Inventory"),
-        new("debug_toggle", "Debug Overlay"),
-        new("toggle_fly", "Toggle Fly"),
-        new("fly_speed_up", "Fly Speed Up"),
-        new("fly_speed_down", "Fly Speed Down"),
+        new(MoveForward, "Move Forward"),
+        new(MoveBack, "Move Backward"),
+        new(MoveLeft, "Strafe Left"),
+        new(MoveRight, "Strafe Right"),
+        new(Jump, "Jump"),
+        new(Sprint, "Sprint"),
+        new(Attack, "Break Block"),
+        new(Interact, "Place Block"),
+        new(InventoryToggle, "Open Inventory"),
+        new(DebugToggle, "Debug Overlay"),
+        new(ToggleFly, "Toggle Fly"),
+        new(FlySpeedUp, "Fly Speed Up"),
+        new(FlySpeedDown, "Fly Speed Down"),
     ];
 }

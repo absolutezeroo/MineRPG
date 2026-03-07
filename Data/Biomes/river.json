@@ -41,35 +41,59 @@
   "ores": [
     {
       "block_name": "Coal Ore",
-      "weight": 30
+      "min_height": 0,
+      "max_height": 128,
+      "vein_size": 12,
+      "frequency": 20
     },
     {
       "block_name": "Iron Ore",
-      "weight": 20
+      "min_height": 0,
+      "max_height": 64,
+      "vein_size": 9,
+      "frequency": 20
     },
     {
       "block_name": "Copper Ore",
-      "weight": 16
+      "min_height": 0,
+      "max_height": 96,
+      "vein_size": 10,
+      "frequency": 16
     },
     {
       "block_name": "Gold Ore",
-      "weight": 4
+      "min_height": 0,
+      "max_height": 32,
+      "vein_size": 9,
+      "frequency": 4
     },
     {
       "block_name": "Redstone Ore",
-      "weight": 8
+      "min_height": 0,
+      "max_height": 16,
+      "vein_size": 8,
+      "frequency": 8
     },
     {
       "block_name": "Lapis Ore",
-      "weight": 2
+      "min_height": 0,
+      "max_height": 30,
+      "vein_size": 6,
+      "frequency": 2
     },
     {
       "block_name": "Diamond Ore",
-      "weight": 2
+      "min_height": 0,
+      "max_height": 16,
+      "vein_size": 8,
+      "frequency": 2
     },
     {
       "block_name": "Emerald Ore",
-      "weight": 1
+      "min_height": 0,
+      "max_height": 32,
+      "vein_size": 1,
+      "frequency": 1
     }
   ],
   "structures": [],
