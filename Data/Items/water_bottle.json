@@ -1,0 +1,23 @@
+{
+  "id": "minerpg:water_bottle",
+  "displayName": "Water Bottle",
+  "description": "A bottle of fresh water that quenches thirst.",
+  "category": "consumable",
+  "rarity": "common",
+  "maxStackSize": 16,
+  "hasDurability": false,
+  "iconAtlasId": "water_bottle",
+  "sellValue": 1,
+  "buyValue": 3,
+  "tags": ["drink", "water"],
+  "consumable": {
+    "type": "drink",
+    "useTime": 1.0,
+    "healthRestore": 0,
+    "manaRestore": 0,
+    "hungerRestore": 0,
+    "saturationRestore": 0,
+    "thirstRestore": 6,
+    "effects": []
+  }
+}

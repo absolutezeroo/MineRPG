@@ -24,6 +24,7 @@ public sealed class SurvivalSystem : ITickable
 
     /// <summary>
     /// Creates a new survival system with all components.
+    /// Subscribes to <see cref="RespawnRequestedEvent"/> for deferred respawn.
     /// </summary>
     /// <param name="settings">Survival tuning parameters.</param>
     /// <param name="playerData">Player data for reading sprint and position state.</param>
@@ -47,6 +48,8 @@ public sealed class SurvivalSystem : ITickable
         Temperature = new TemperatureComponent(settings.Temperature, eventBus);
 
         Settings = settings;
+
+        _eventBus.Subscribe<RespawnRequestedEvent>(OnRespawnRequested);
     }
 
     /// <summary>The survival settings used by this system.</summary>
@@ -149,6 +152,25 @@ public sealed class SurvivalSystem : ITickable
             Health.TakeDamage(temperatureDamage);
         }
 
+        // 7.5. Fall damage
+        if (_playerData.PendingFallDistance > 0f)
+        {
+            float fallDamage = CalculateFallDamage(_playerData.PendingFallDistance);
+
+            if (fallDamage > 0f)
+            {
+                Health.TakeDamage(fallDamage);
+            }
+
+            _eventBus.Publish(new PlayerLandedEvent
+            {
+                FallDistance = _playerData.PendingFallDistance,
+                DamageTaken = fallDamage,
+            });
+
+            _playerData.PendingFallDistance = 0f;
+        }
+
         // 8. Dehydration damage
         float dehydrationDamage = Thirst.TickDehydrationDamage(deltaTime);
 
@@ -191,16 +213,29 @@ public sealed class SurvivalSystem : ITickable
             "SurvivalSystem: Player died at ({0:F1}, {1:F1}, {2:F1}).",
             _playerData.PositionX, _playerData.PositionY, _playerData.PositionZ);
 
+        // Drop all inventory items at death position
+        DropInventory();
+
         _eventBus.Publish(new PlayerDiedEvent
         {
             PositionX = _playerData.PositionX,
             PositionY = _playerData.PositionY,
             PositionZ = _playerData.PositionZ,
         });
+    }
 
-        // Drop all inventory items at death position
-        DropInventory();
+    private void OnRespawnRequested(RespawnRequestedEvent evt)
+    {
+        if (!_isDead)
+        {
+            return;
+        }
 
+        HandleRespawn();
+    }
+
+    private void HandleRespawn()
+    {
         // Reset all vitals
         Health.Reset();
         Hunger.Reset();
@@ -218,6 +253,8 @@ public sealed class SurvivalSystem : ITickable
         _playerData.VelocityY = 0f;
         _playerData.VelocityZ = 0f;
 
+        _isDead = false;
+
         _eventBus.Publish(new PlayerRespawnedEvent
         {
             SpawnX = _playerData.SpawnX,
@@ -225,11 +262,23 @@ public sealed class SurvivalSystem : ITickable
             SpawnZ = _playerData.SpawnZ,
         });
 
-        _isDead = false;
-
         _logger.Info(
             "SurvivalSystem: Player respawned at ({0:F1}, {1:F1}, {2:F1}).",
             _playerData.SpawnX, _playerData.SpawnY, _playerData.SpawnZ);
+    }
+
+    private float CalculateFallDamage(float fallDistance)
+    {
+        FallDamageSettings fallSettings = Settings.FallDamage;
+
+        if (_playerData.IsUnderwater && fallSettings.WaterNegatesFallDamage)
+        {
+            return 0f;
+        }
+
+        float rawDamage = (fallDistance - fallSettings.SafeFallDistance) * fallSettings.DamagePerBlock;
+
+        return MathF.Min(MathF.Max(0f, rawDamage), fallSettings.MaxFallDamage);
     }
 
     private void DropInventory()

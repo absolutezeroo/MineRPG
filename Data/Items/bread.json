@@ -1,0 +1,23 @@
+{
+  "id": "minerpg:bread",
+  "displayName": "Bread",
+  "description": "A freshly baked loaf of bread.",
+  "category": "consumable",
+  "rarity": "common",
+  "maxStackSize": 64,
+  "hasDurability": false,
+  "iconAtlasId": "bread",
+  "sellValue": 2,
+  "buyValue": 5,
+  "tags": ["food", "grain"],
+  "consumable": {
+    "type": "food",
+    "useTime": 1.6,
+    "healthRestore": 0,
+    "manaRestore": 0,
+    "hungerRestore": 5,
+    "saturationRestore": 6.0,
+    "thirstRestore": 0,
+    "effects": []
+  }
+}

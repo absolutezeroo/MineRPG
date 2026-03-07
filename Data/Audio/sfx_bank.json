@@ -6,6 +6,41 @@
       "volumeDb": 0,
       "pitchScale": 1.0,
       "pitchRandomness": 0.1
+    },
+    {
+      "key": "eat",
+      "path": "Assets/Audio/SFX/eat.wav",
+      "volumeDb": 0,
+      "pitchScale": 1.0,
+      "pitchRandomness": 0.15
+    },
+    {
+      "key": "drink",
+      "path": "Assets/Audio/SFX/drink.wav",
+      "volumeDb": 0,
+      "pitchScale": 1.0,
+      "pitchRandomness": 0.1
+    },
+    {
+      "key": "drowning_bubbles",
+      "path": "Assets/Audio/SFX/drowning_bubbles.wav",
+      "volumeDb": -3,
+      "pitchScale": 1.0,
+      "pitchRandomness": 0.05
+    },
+    {
+      "key": "low_health_heartbeat",
+      "path": "Assets/Audio/SFX/low_health_heartbeat.wav",
+      "volumeDb": -2,
+      "pitchScale": 1.0,
+      "pitchRandomness": 0.0
+    },
+    {
+      "key": "fall_damage",
+      "path": "Assets/Audio/SFX/fall_damage.wav",
+      "volumeDb": 0,
+      "pitchScale": 1.0,
+      "pitchRandomness": 0.1
     }
   ]
 }

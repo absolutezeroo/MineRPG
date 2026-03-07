@@ -72,6 +72,34 @@ public static class GameTheme
     public static readonly Color CategoryMisc = new(0.50f, 0.50f, 0.50f, 0.85f);
 
     // -------------------------------------------------------------------------
+    // Survival bar colors
+    // -------------------------------------------------------------------------
+
+    /// <summary>Survival bar fill: health (red).</summary>
+    public static readonly Color BarHealth = new(0.85f, 0.20f, 0.18f, 1.0f);
+
+    /// <summary>Survival bar fill: hunger (brown/orange).</summary>
+    public static readonly Color BarHunger = new(0.76f, 0.50f, 0.18f, 1.0f);
+
+    /// <summary>Survival bar fill: thirst (blue).</summary>
+    public static readonly Color BarThirst = new(0.20f, 0.55f, 0.90f, 1.0f);
+
+    /// <summary>Survival bar fill: stamina (yellow).</summary>
+    public static readonly Color BarStamina = new(0.90f, 0.80f, 0.20f, 1.0f);
+
+    /// <summary>Survival bar fill: breath (cyan).</summary>
+    public static readonly Color BarBreath = new(0.30f, 0.85f, 0.90f, 1.0f);
+
+    /// <summary>Survival bar fill: temperature hot (red-orange).</summary>
+    public static readonly Color BarTemperatureHot = new(0.95f, 0.40f, 0.15f, 1.0f);
+
+    /// <summary>Survival bar fill: temperature cold (ice blue).</summary>
+    public static readonly Color BarTemperatureCold = new(0.40f, 0.65f, 0.95f, 1.0f);
+
+    /// <summary>Survival bar empty background.</summary>
+    public static readonly Color BarBackground = new(0.12f, 0.12f, 0.12f, 0.70f);
+
+    // -------------------------------------------------------------------------
     // Inventory slot colors
     // -------------------------------------------------------------------------
 

@@ -1,0 +1,23 @@
+{
+  "id": "minerpg:mushroom_stew",
+  "displayName": "Mushroom Stew",
+  "description": "A hearty mushroom stew that fills the belly and slightly quenches thirst.",
+  "category": "consumable",
+  "rarity": "common",
+  "maxStackSize": 1,
+  "hasDurability": false,
+  "iconAtlasId": "mushroom_stew",
+  "sellValue": 4,
+  "buyValue": 12,
+  "tags": ["food", "mushroom"],
+  "consumable": {
+    "type": "food",
+    "useTime": 1.6,
+    "healthRestore": 0,
+    "manaRestore": 0,
+    "hungerRestore": 6,
+    "saturationRestore": 7.2,
+    "thirstRestore": 2,
+    "effects": []
+  }
+}

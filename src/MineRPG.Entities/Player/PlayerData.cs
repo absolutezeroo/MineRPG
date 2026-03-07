@@ -70,6 +70,15 @@ public sealed class PlayerData
     /// <summary>Normalized biome temperature at the player's position (-1 cold to 1 hot).</summary>
     public float CurrentBiomeTemperature { get; set; }
 
+    /// <summary>Whether the player is currently touching the ground. Set by the Godot bridge.</summary>
+    public bool IsOnFloor { get; set; }
+
+    /// <summary>
+    /// Vertical distance of the most recent fall in blocks. Set by the Godot bridge on landing,
+    /// consumed and cleared by <see cref="SurvivalSystem"/> during tick.
+    /// </summary>
+    public float PendingFallDistance { get; set; }
+
     /// <summary>World spawn X position.</summary>
     public float SpawnX { get; set; } = 8f;
 

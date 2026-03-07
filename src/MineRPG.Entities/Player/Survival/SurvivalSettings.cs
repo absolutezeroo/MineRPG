@@ -23,4 +23,7 @@ public sealed class SurvivalSettings
 
     /// <summary>Temperature and comfort zone settings.</summary>
     public TemperatureSettings Temperature { get; init; } = new();
+
+    /// <summary>Fall damage settings (safe distance, damage per block, etc.).</summary>
+    public FallDamageSettings FallDamage { get; init; } = new();
 }

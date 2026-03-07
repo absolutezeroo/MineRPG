@@ -43,6 +43,9 @@ public sealed partial class PlayerNode : CharacterBody3D
     private PlayerEnvironmentSensor? _environmentSensor;
     private ItemConsumptionService? _consumptionService;
 
+    private bool _wasOnFloor = true;
+    private float _fallStartY;
+
     /// <inheritdoc />
     public override void _Ready()
     {
@@ -149,6 +152,23 @@ public sealed partial class PlayerNode : CharacterBody3D
 
         MoveAndSlide();
 
+        bool isOnFloor = IsOnFloor();
+
+        if (!_playerData.IsFlying)
+        {
+            if (_wasOnFloor && !isOnFloor)
+            {
+                _fallStartY = Position.Y;
+            }
+            else if (!_wasOnFloor && isOnFloor)
+            {
+                _playerData.PendingFallDistance = _fallStartY - Position.Y;
+            }
+        }
+
+        _playerData.IsOnFloor = isOnFloor;
+        _wasOnFloor = isOnFloor;
+
         _playerData.PositionX = Position.X;
         _playerData.PositionY = Position.Y;
         _playerData.PositionZ = Position.Z;
@@ -186,6 +206,7 @@ public sealed partial class PlayerNode : CharacterBody3D
     {
         Position = new Vector3(evt.SpawnX, evt.SpawnY, evt.SpawnZ);
         Velocity = Vector3.Zero;
+        _wasOnFloor = true;
         _logger.Info("PlayerNode: Respawned at ({0:F1}, {1:F1}, {2:F1}).", evt.SpawnX, evt.SpawnY, evt.SpawnZ);
     }
 

@@ -45,5 +45,11 @@
     "coldDamageInterval": 3.0,
     "coldDamageAmount": 1.0,
     "adaptationRate": 0.05
+  },
+  "fallDamage": {
+    "safeFallDistance": 3.0,
+    "damagePerBlock": 1.0,
+    "maxFallDamage": 200.0,
+    "waterNegatesFallDamage": true
   }
 }

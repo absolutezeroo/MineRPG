@@ -1,0 +1,23 @@
+{
+  "id": "minerpg:milk_bucket",
+  "displayName": "Milk Bucket",
+  "description": "A bucket of fresh milk that restores thirst generously.",
+  "category": "consumable",
+  "rarity": "common",
+  "maxStackSize": 1,
+  "hasDurability": false,
+  "iconAtlasId": "milk_bucket",
+  "sellValue": 3,
+  "buyValue": 10,
+  "tags": ["drink", "milk"],
+  "consumable": {
+    "type": "drink",
+    "useTime": 1.0,
+    "healthRestore": 0,
+    "manaRestore": 0,
+    "hungerRestore": 0,
+    "saturationRestore": 0,
+    "thirstRestore": 8,
+    "effects": []
+  }
+}

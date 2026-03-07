@@ -1,0 +1,23 @@
+{
+  "id": "minerpg:golden_apple",
+  "displayName": "Golden Apple",
+  "description": "A magical golden apple that restores hunger and health.",
+  "category": "consumable",
+  "rarity": "rare",
+  "maxStackSize": 64,
+  "hasDurability": false,
+  "iconAtlasId": "golden_apple",
+  "sellValue": 50,
+  "buyValue": 150,
+  "tags": ["food", "fruit", "magic"],
+  "consumable": {
+    "type": "food",
+    "useTime": 1.6,
+    "healthRestore": 4,
+    "manaRestore": 0,
+    "hungerRestore": 4,
+    "saturationRestore": 9.6,
+    "thirstRestore": 0,
+    "effects": []
+  }
+}

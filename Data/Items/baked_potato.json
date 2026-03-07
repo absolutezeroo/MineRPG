@@ -1,0 +1,23 @@
+{
+  "id": "minerpg:baked_potato",
+  "displayName": "Baked Potato",
+  "description": "A warm baked potato that fills the stomach.",
+  "category": "consumable",
+  "rarity": "common",
+  "maxStackSize": 64,
+  "hasDurability": false,
+  "iconAtlasId": "baked_potato",
+  "sellValue": 2,
+  "buyValue": 5,
+  "tags": ["food", "vegetable"],
+  "consumable": {
+    "type": "food",
+    "useTime": 1.6,
+    "healthRestore": 0,
+    "manaRestore": 0,
+    "hungerRestore": 5,
+    "saturationRestore": 6.0,
+    "thirstRestore": 0,
+    "effects": []
+  }
+}

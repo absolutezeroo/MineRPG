@@ -2,6 +2,7 @@ using Godot;
 
 using MineRPG.Core.DI;
 using MineRPG.Core.Logging;
+using MineRPG.Godot.UI.Screens;
 
 #if DEBUG
 using MineRPG.Godot.UI.Debug;
@@ -62,6 +63,18 @@ public sealed partial class HUDNode : CanvasLayer
         Node inventory = inventoryScene.Instantiate();
         inventory.Name = "Inventory";
         AddChild(inventory);
+
+        SurvivalBarsNode survivalBars = new();
+        survivalBars.Name = "SurvivalBars";
+        AddChild(survivalBars);
+
+        DeathScreenNode deathScreen = new();
+        deathScreen.Name = "DeathScreen";
+        AddChild(deathScreen);
+
+        SurvivalAudioNode survivalAudio = new();
+        survivalAudio.Name = "SurvivalAudio";
+        AddChild(survivalAudio);
 
         Callable.From(InjectCamera).CallDeferred();
 

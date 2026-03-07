@@ -1,0 +1,23 @@
+{
+  "id": "minerpg:cooked_porkchop",
+  "displayName": "Cooked Porkchop",
+  "description": "A tender cooked porkchop that restores hunger.",
+  "category": "consumable",
+  "rarity": "common",
+  "maxStackSize": 64,
+  "hasDurability": false,
+  "iconAtlasId": "cooked_porkchop",
+  "sellValue": 3,
+  "buyValue": 8,
+  "tags": ["food", "meat"],
+  "consumable": {
+    "type": "food",
+    "useTime": 1.6,
+    "healthRestore": 0,
+    "manaRestore": 0,
+    "hungerRestore": 8,
+    "saturationRestore": 12.8,
+    "thirstRestore": 0,
+    "effects": []
+  }
+}
