@@ -6,7 +6,7 @@
   "rarity": "uncommon",
   "maxStackSize": 64,
   "hasDurability": false,
-  "iconAtlasId": "items/redstone_dust",
+  "iconAtlasId": "redstone_dust",
   "sellValue": 4,
   "buyValue": 12,
   "tags": ["crafting", "redstone"]

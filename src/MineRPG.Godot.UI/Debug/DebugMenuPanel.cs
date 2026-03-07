@@ -69,6 +69,14 @@ public sealed partial class DebugMenuPanel : Control
     {
         _logger = ServiceLocator.Instance.Get<ILogger>();
 
+        // [Export] node references may not auto-resolve from NodePath;
+        // fallback to GetNode for reliable resolution.
+        _panel ??= GetNode<PanelContainer>("Panel");
+        _titleLabel ??= GetNode<Label>("Panel/Root/Title");
+        _tabBar ??= GetNode<HBoxContainer>("Panel/Root/TabBar");
+        _scrollContainer ??= GetNode<ScrollContainer>("Panel/Root/ScrollContainer");
+        _contentArea ??= GetNode<VBoxContainer>("Panel/Root/ScrollContainer/ContentArea");
+
         // Size directly from viewport — parent Control under CanvasLayer has size 0
         Rect2 viewportRect = GetViewportRect();
         Position = Vector2.Zero;

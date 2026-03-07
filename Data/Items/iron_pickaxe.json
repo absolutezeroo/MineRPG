@@ -7,7 +7,7 @@
   "maxStackSize": 1,
   "hasDurability": true,
   "maxDurability": 250,
-  "iconAtlasId": "items/iron_pickaxe",
+  "iconAtlasId": "iron_pickaxe",
   "sellValue": 15,
   "buyValue": 45,
   "tags": [],

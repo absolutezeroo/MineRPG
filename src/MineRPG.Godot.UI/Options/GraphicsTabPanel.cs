@@ -32,6 +32,21 @@ public sealed partial class GraphicsTabPanel : OptionsTabPanel
     /// <inheritdoc />
     protected override void InitializeTab()
     {
+        // [Export] node references may not auto-resolve from NodePath;
+        // fallback to GetNode for reliable resolution.
+        _windowModeDropdown ??= GetNode<OptionButton>("Layout/WindowModeRow/WindowModeDropdown");
+        _vsyncToggle ??= GetNode<CheckButton>("Layout/VSyncRow/VSyncToggle");
+        _renderDistanceSlider ??= GetNode<HSlider>("Layout/RenderDistanceRow/RenderDistanceSlider");
+        _renderDistanceValue ??= GetNode<Label>("Layout/RenderDistanceRow/RenderDistanceValue");
+        _fovSlider ??= GetNode<HSlider>("Layout/FovRow/FovSlider");
+        _fovValue ??= GetNode<Label>("Layout/FovRow/FovValue");
+        _brightnessSlider ??= GetNode<HSlider>("Layout/BrightnessRow/BrightnessSlider");
+        _brightnessValue ??= GetNode<Label>("Layout/BrightnessRow/BrightnessValue");
+        _msaaDropdown ??= GetNode<OptionButton>("Layout/MsaaRow/MsaaDropdown");
+        _shadowDropdown ??= GetNode<OptionButton>("Layout/ShadowRow/ShadowDropdown");
+        _ssaoToggle ??= GetNode<CheckButton>("Layout/SsaoRow/SsaoToggle");
+        _afDropdown ??= GetNode<OptionButton>("Layout/AfRow/AfDropdown");
+
         PopulateDropdowns();
         SetInitialValues();
         ConnectSignals();

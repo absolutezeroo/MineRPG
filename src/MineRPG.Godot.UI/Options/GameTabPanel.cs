@@ -16,6 +16,13 @@ public sealed partial class GameTabPanel : OptionsTabPanel
     /// <inheritdoc />
     protected override void InitializeTab()
     {
+        // [Export] node references may not auto-resolve from NodePath;
+        // fallback to GetNode for reliable resolution.
+        _sensitivitySlider ??= GetNode<HSlider>("Layout/SensitivityRow/SensitivitySlider");
+        _sensitivityValue ??= GetNode<Label>("Layout/SensitivityRow/SensitivityValue");
+        _volumeSlider ??= GetNode<HSlider>("Layout/VolumeRow/VolumeSlider");
+        _volumeValue ??= GetNode<Label>("Layout/VolumeRow/VolumeValue");
+
         _sensitivitySlider.Value = Options.MouseSensitivity;
         _sensitivityValue.Text = Options.MouseSensitivity.ToString("F4");
         _sensitivitySlider.ValueChanged += OnSensitivityChanged;

@@ -7,7 +7,7 @@
   "maxStackSize": 1,
   "hasDurability": true,
   "maxDurability": 59,
-  "iconAtlasId": "items/wooden_shovel",
+  "iconAtlasId": "wooden_shovel",
   "sellValue": 2,
   "buyValue": 8,
   "tags": [],

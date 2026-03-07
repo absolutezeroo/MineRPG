@@ -6,7 +6,7 @@
   "rarity": "uncommon",
   "maxStackSize": 64,
   "hasDurability": false,
-  "iconAtlasId": "items/raw_gold",
+  "iconAtlasId": "raw_gold",
   "sellValue": 8,
   "buyValue": 25,
   "tags": ["ore", "crafting"]

@@ -42,6 +42,7 @@ public sealed partial class DebugSection : VBoxContainer
     /// <inheritdoc />
     public override void _Ready()
     {
+        _headerButton ??= GetNode<Button>("HeaderButton");
         Content = GetNode<VBoxContainer>("Content");
         Content.Visible = _isExpanded;
 

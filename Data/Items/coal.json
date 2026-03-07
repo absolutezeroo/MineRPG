@@ -6,7 +6,7 @@
   "rarity": "common",
   "maxStackSize": 64,
   "hasDurability": false,
-  "iconAtlasId": "items/coal",
+  "iconAtlasId": "coal",
   "sellValue": 2,
   "buyValue": 5,
   "tags": ["fuel", "crafting"]

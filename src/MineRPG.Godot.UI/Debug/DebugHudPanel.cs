@@ -61,6 +61,19 @@ public sealed partial class DebugHudPanel : Control
     /// <param name="camera">The active 3D camera.</param>
     public void SetCamera(Camera3D? camera) => _camera = camera;
 
+    /// <inheritdoc />
+    public override void _Ready()
+    {
+        // [Export] node references may not auto-resolve from NodePath;
+        // fallback to GetNode for reliable resolution.
+        _positionLabel ??= GetNode<Label>("LeftColumn/PositionPanel/PositionVBox/PositionData");
+        _worldLabel ??= GetNode<Label>("LeftColumn/WorldPanel/WorldVBox/WorldData");
+        _performanceLabel ??= GetNode<Label>("LeftColumn/PerformancePanel/PerformanceVBox/PerformanceData");
+        _pipelineLabel ??= GetNode<Label>("RightColumn/PipelinePanel/PipelineVBox/PipelineData");
+        _rendererLabel ??= GetNode<Label>("RightColumn/RendererPanel/RendererVBox/RendererData");
+        _memoryLabel ??= GetNode<Label>("RightColumn/MemoryPanel/MemoryVBox/MemoryData");
+    }
+
     /// <summary>
     /// Updates all six sections. Called by DebugManager from _Process.
     /// </summary>

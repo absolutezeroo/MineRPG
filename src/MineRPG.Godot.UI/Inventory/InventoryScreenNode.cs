@@ -52,6 +52,15 @@ public sealed partial class InventoryScreenNode : Control
             _iconAtlas = atlas;
         }
 
+        // [Export] node references may not auto-resolve from NodePath in .tscn;
+        // fallback to GetNode for reliable resolution.
+        _overlay ??= GetNode<ColorRect>("Overlay");
+        _armorPanel ??= GetNode<ArmorPanelNode>("CenterContainer/MainPanel/HBox/ArmorPanel");
+        _mainGrid ??= GetNode<InventoryGridNode>("CenterContainer/MainPanel/HBox/CenterColumn/MainGrid");
+        _hotbarGrid ??= GetNode<InventoryGridNode>("CenterContainer/MainPanel/HBox/CenterColumn/HotbarGrid");
+        _cursorItemNode ??= GetNode<CursorItemNode>("CursorItem");
+        _tooltipNode ??= GetNode<ItemTooltipNode>("ItemTooltip");
+
         InitializeChildren();
 
         Visible = false;

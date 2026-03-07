@@ -7,7 +7,7 @@
   "maxStackSize": 1,
   "hasDurability": true,
   "maxDurability": 225,
-  "iconAtlasId": "items/iron_leggings",
+  "iconAtlasId": "iron_leggings",
   "sellValue": 25,
   "buyValue": 75,
   "tags": [],

@@ -7,7 +7,7 @@
   "maxStackSize": 1,
   "hasDurability": true,
   "maxDurability": 59,
-  "iconAtlasId": "items/wooden_pickaxe",
+  "iconAtlasId": "wooden_pickaxe",
   "sellValue": 2,
   "buyValue": 8,
   "tags": [],

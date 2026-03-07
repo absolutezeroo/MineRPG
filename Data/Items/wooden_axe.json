@@ -7,7 +7,7 @@
   "maxStackSize": 1,
   "hasDurability": true,
   "maxDurability": 59,
-  "iconAtlasId": "items/wooden_axe",
+  "iconAtlasId": "wooden_axe",
   "sellValue": 2,
   "buyValue": 8,
   "tags": [],

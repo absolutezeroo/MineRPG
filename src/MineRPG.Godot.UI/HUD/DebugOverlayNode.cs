@@ -41,6 +41,12 @@ public sealed partial class DebugOverlayNode : Control
     /// <inheritdoc />
     public override void _Ready()
     {
+        // [Export] node references may not auto-resolve from NodePath;
+        // fallback to GetNode for reliable resolution.
+        _positionLabel ??= GetNode<Label>("LeftColumn/PositionPanel/PositionContent/PositionData");
+        _worldLabel ??= GetNode<Label>("LeftColumn/WorldPanel/WorldContent/WorldData");
+        _performanceLabel ??= GetNode<Label>("LeftColumn/PerformancePanel/PerformanceContent/PerformanceData");
+
         _debugData = ServiceLocator.Instance.Get<IDebugDataProvider>();
         _logger = ServiceLocator.Instance.Get<ILogger>();
 

@@ -7,7 +7,7 @@
   "maxStackSize": 1,
   "hasDurability": true,
   "maxDurability": 131,
-  "iconAtlasId": "items/stone_axe",
+  "iconAtlasId": "stone_axe",
   "sellValue": 5,
   "buyValue": 15,
   "tags": [],

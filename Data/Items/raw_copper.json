@@ -6,7 +6,7 @@
   "rarity": "common",
   "maxStackSize": 64,
   "hasDurability": false,
-  "iconAtlasId": "items/raw_copper",
+  "iconAtlasId": "raw_copper",
   "sellValue": 2,
   "buyValue": 8,
   "tags": ["ore", "crafting"]

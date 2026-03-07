@@ -47,6 +47,16 @@ public sealed partial class InventorySlotNode : PanelContainer
     /// <summary>The slot index within the bound inventory.</summary>
     public int SlotIndex => _slotIndex;
 
+    /// <inheritdoc />
+    public override void _Ready()
+    {
+        // [Export] node references may not auto-resolve from NodePath;
+        // fallback to GetNode for reliable resolution.
+        _iconTexture ??= GetNode<TextureRect>("IconTexture");
+        _iconColorFallback ??= GetNode<ColorRect>("IconColorFallback");
+        _countLabel ??= GetNode<Label>("CountLabel");
+    }
+
     /// <summary>
     /// Initializes the slot node, binding it to a specific inventory and slot index.
     /// Must be called after the node is added to the tree.

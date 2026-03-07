@@ -6,7 +6,7 @@
   "rarity": "uncommon",
   "maxStackSize": 64,
   "hasDurability": false,
-  "iconAtlasId": "items/lapis_lazuli",
+  "iconAtlasId": "lapis_lazuli",
   "sellValue": 5,
   "buyValue": 15,
   "tags": ["gem", "enchanting"]

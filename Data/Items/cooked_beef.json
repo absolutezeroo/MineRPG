@@ -6,7 +6,7 @@
   "rarity": "common",
   "maxStackSize": 64,
   "hasDurability": false,
-  "iconAtlasId": "items/cooked_beef",
+  "iconAtlasId": "cooked_beef",
   "sellValue": 3,
   "buyValue": 8,
   "tags": ["food", "meat"],

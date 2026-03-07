@@ -6,7 +6,7 @@
   "rarity": "common",
   "maxStackSize": 64,
   "hasDurability": false,
-  "iconAtlasId": "items/cobblestone",
+  "iconAtlasId": "cobblestone",
   "sellValue": 1,
   "buyValue": 2,
   "tags": ["building", "crafting"]

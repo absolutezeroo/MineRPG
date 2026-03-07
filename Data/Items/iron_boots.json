@@ -7,7 +7,7 @@
   "maxStackSize": 1,
   "hasDurability": true,
   "maxDurability": 195,
-  "iconAtlasId": "items/iron_boots",
+  "iconAtlasId": "iron_boots",
   "sellValue": 15,
   "buyValue": 45,
   "tags": [],

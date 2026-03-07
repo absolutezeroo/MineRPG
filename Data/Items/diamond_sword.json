@@ -7,7 +7,7 @@
   "maxStackSize": 1,
   "hasDurability": true,
   "maxDurability": 1561,
-  "iconAtlasId": "items/diamond_sword",
+  "iconAtlasId": "diamond_sword",
   "sellValue": 120,
   "buyValue": 350,
   "tags": [],

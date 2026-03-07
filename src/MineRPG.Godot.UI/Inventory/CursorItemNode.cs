@@ -26,6 +26,16 @@ public sealed partial class CursorItemNode : Control
     private ItemRegistry _itemRegistry = null!;
     private ItemIconAtlas? _iconAtlas;
 
+    /// <inheritdoc />
+    public override void _Ready()
+    {
+        // [Export] node references may not auto-resolve from NodePath;
+        // fallback to GetNode for reliable resolution.
+        _iconTexture ??= GetNode<TextureRect>("IconTexture");
+        _iconColorFallback ??= GetNode<ColorRect>("IconColorFallback");
+        _countLabel ??= GetNode<Label>("CountLabel");
+    }
+
     /// <summary>
     /// Binds this node to the given cursor holder and item registry.
     /// </summary>

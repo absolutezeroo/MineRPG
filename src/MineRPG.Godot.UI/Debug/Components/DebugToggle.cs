@@ -34,6 +34,8 @@ public sealed partial class DebugToggle : HBoxContainer
         DebugToggle instance = _sceneCache.Instantiate<DebugToggle>();
         instance._getter = getter;
         instance._setter = setter;
+        instance._nameLabel ??= instance.GetNode<Label>("NameLabel");
+        instance._stateLabel ??= instance.GetNode<Label>("StateLabel");
         instance._nameLabel.Text = labelText;
         return instance;
     }

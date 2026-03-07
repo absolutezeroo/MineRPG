@@ -6,7 +6,7 @@
   "rarity": "common",
   "maxStackSize": 64,
   "hasDurability": false,
-  "iconAtlasId": "items/oak_log",
+  "iconAtlasId": "oak_log",
   "sellValue": 1,
   "buyValue": 3,
   "tags": ["building", "crafting", "wood"]

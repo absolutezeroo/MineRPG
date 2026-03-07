@@ -29,6 +29,11 @@ public sealed partial class ControlsTabPanel : OptionsTabPanel
     /// <inheritdoc />
     protected override void InitializeTab()
     {
+        // [Export] node references may not auto-resolve from NodePath;
+        // fallback to GetNode for reliable resolution.
+        _bindingsContainer ??= GetNode<VBoxContainer>("Layout/BindingsContainer");
+        _resetButton ??= GetNode<Button>("Layout/ResetButton");
+
         BuildRebindRows();
         _resetButton.Pressed += OnResetToDefaults;
     }

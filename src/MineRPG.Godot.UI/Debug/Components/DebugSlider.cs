@@ -46,6 +46,9 @@ public sealed partial class DebugSlider : HBoxContainer
         instance._step = step;
         instance._getter = getter;
         instance._setter = setter;
+        instance._nameLabel ??= instance.GetNode<Label>("NameLabel");
+        instance._slider ??= instance.GetNode<HSlider>("Slider");
+        instance._valueLabel ??= instance.GetNode<Label>("ValueLabel");
         instance._nameLabel.Text = labelText;
         instance._slider.MinValue = minValue;
         instance._slider.MaxValue = maxValue;

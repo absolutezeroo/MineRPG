@@ -7,7 +7,7 @@
   "maxStackSize": 1,
   "hasDurability": true,
   "maxDurability": 165,
-  "iconAtlasId": "items/iron_helmet",
+  "iconAtlasId": "iron_helmet",
   "sellValue": 20,
   "buyValue": 60,
   "tags": [],

@@ -57,6 +57,10 @@ public sealed partial class HotbarNode : Control
 
         _eventBus.Subscribe<InventoryToggledEvent>(OnInventoryToggled);
 
+        // [Export] node references may not auto-resolve from NodePath in .tscn;
+        // fallback to GetNode for reliable resolution.
+        _slotContainer ??= GetNode<HBoxContainer>("SlotContainer");
+
         PackedScene slotScene = GD.Load<PackedScene>(SlotScenePath);
 
         for (int i = 0; i < SlotCount; i++)

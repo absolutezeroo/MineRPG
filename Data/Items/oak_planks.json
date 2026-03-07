@@ -6,7 +6,7 @@
   "rarity": "common",
   "maxStackSize": 64,
   "hasDurability": false,
-  "iconAtlasId": "items/oak_planks",
+  "iconAtlasId": "oak_planks",
   "sellValue": 1,
   "buyValue": 2,
   "tags": ["wood", "building"]

@@ -7,7 +7,7 @@
   "maxStackSize": 1,
   "hasDurability": true,
   "maxDurability": 240,
-  "iconAtlasId": "items/iron_chestplate",
+  "iconAtlasId": "iron_chestplate",
   "sellValue": 30,
   "buyValue": 90,
   "tags": [],

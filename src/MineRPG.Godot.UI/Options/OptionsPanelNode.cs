@@ -35,6 +35,16 @@ public sealed partial class OptionsPanelNode : Control
     {
         _logger = ServiceLocator.Instance.Get<ILogger>();
 
+        // [Export] node references may not auto-resolve from NodePath;
+        // fallback to GetNode for reliable resolution.
+        _gameTabButton ??= GetNode<Button>("CenterContainer/PanelContainer/VBoxContainer/TabStrip/GameTab");
+        _graphicsTabButton ??= GetNode<Button>("CenterContainer/PanelContainer/VBoxContainer/TabStrip/GraphicsTab");
+        _controlsTabButton ??= GetNode<Button>("CenterContainer/PanelContainer/VBoxContainer/TabStrip/ControlsTab");
+        _gameTabPanel ??= GetNode<GameTabPanel>("CenterContainer/PanelContainer/VBoxContainer/ContentArea/ScrollContainer/TabContent/GameTab");
+        _graphicsTabPanel ??= GetNode<GraphicsTabPanel>("CenterContainer/PanelContainer/VBoxContainer/ContentArea/ScrollContainer/TabContent/GraphicsTab");
+        _controlsTabPanel ??= GetNode<ControlsTabPanel>("CenterContainer/PanelContainer/VBoxContainer/ContentArea/ScrollContainer/TabContent/ControlsTab");
+        _backButton ??= GetNode<Button>("CenterContainer/PanelContainer/VBoxContainer/BackButton");
+
         _tabButtons = [_gameTabButton, _graphicsTabButton, _controlsTabButton];
         _tabContents = [_gameTabPanel, _graphicsTabPanel, _controlsTabPanel];
 

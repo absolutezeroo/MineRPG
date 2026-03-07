@@ -7,7 +7,7 @@
   "maxStackSize": 1,
   "hasDurability": true,
   "maxDurability": 131,
-  "iconAtlasId": "items/stone_shovel",
+  "iconAtlasId": "stone_shovel",
   "sellValue": 5,
   "buyValue": 15,
   "tags": [],

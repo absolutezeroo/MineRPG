@@ -6,7 +6,7 @@
   "rarity": "uncommon",
   "maxStackSize": 16,
   "hasDurability": false,
-  "iconAtlasId": "items/speed_potion",
+  "iconAtlasId": "speed_potion",
   "sellValue": 25,
   "buyValue": 75,
   "tags": ["potion", "magic"],

@@ -22,6 +22,13 @@ public sealed partial class ItemTooltipNode : PanelContainer
     /// <inheritdoc />
     public override void _Ready()
     {
+        // [Export] node references may not auto-resolve from NodePath;
+        // fallback to GetNode for reliable resolution.
+        _nameLabel ??= GetNode<Label>("VBoxContainer/NameLabel");
+        _categoryLabel ??= GetNode<Label>("VBoxContainer/CategoryLabel");
+        _descriptionLabel ??= GetNode<Label>("VBoxContainer/DescriptionLabel");
+        _statsLabel ??= GetNode<Label>("VBoxContainer/StatsLabel");
+
         StyleBoxFlat tooltipStyle = new();
         tooltipStyle.BgColor = GameTheme.TooltipBackground;
         tooltipStyle.SetBorderWidthAll(GameTheme.BorderWidthThin);
