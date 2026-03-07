@@ -1,12 +1,11 @@
 {
-  "id": 11,
-  "name": "Gold Ore",
+  "id": "minerpg:gold_ore",
+  "displayName": "Gold Ore",
   "flags": 1,
   "hardness": 3.0,
   "requiredToolType": "pickaxe",
   "requiredHarvestLevel": 3,
-  "dropItemId": "raw_gold",
-  "dropCount": 1,
+  "lootTableId": "minerpg:gold_ore",
   "textures": {
     "all": "gold_ore"
   }

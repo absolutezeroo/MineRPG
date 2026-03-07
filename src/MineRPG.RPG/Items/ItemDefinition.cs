@@ -1,7 +1,7 @@
 namespace MineRPG.RPG.Items;
 
 /// <summary>
-/// Immutable definition of an item type, loaded from Data/Items/*.json at startup.
+/// Data-driven definition of an item type, loaded from Data/Items/*.json at startup.
 /// Describes the static properties shared by all instances of this item.
 /// Registered in an <see cref="ItemRegistry"/> keyed by <see cref="Id"/>.
 /// </summary>
@@ -40,8 +40,14 @@ public sealed class ItemDefinition
     /// <summary>Optional 3D model identifier for in-hand rendering.</summary>
     public string? ModelId { get; init; }
 
-    /// <summary>Block ID to place when this item is used. Null if not a block item.</summary>
-    public string? PlacesBlockId { get; init; }
+    /// <summary>
+    /// Namespaced block ID this item places when used. Null if not a block item.
+    /// For items with category Block, this is auto-linked by matching ID at startup.
+    /// Set by ItemBlockLinker, not from JSON.
+    /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    [Newtonsoft.Json.JsonIgnore]
+    public string? LinkedBlockId { get; set; }
 
     /// <summary>Tool-specific properties. Null if this item is not a tool.</summary>
     public ToolProperties? Tool { get; init; }

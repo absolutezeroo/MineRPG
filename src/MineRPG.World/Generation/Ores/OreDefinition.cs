@@ -4,7 +4,8 @@ namespace MineRPG.World.Generation.Ores;
 
 /// <summary>
 /// Data-driven definition of an ore type and its distribution parameters.
-/// References blocks by their stable numeric ID.
+/// References blocks by namespaced string ID.
+/// The runtime ushort ID is resolved by <see cref="BiomeDefinitionResolver"/>.
 /// </summary>
 public sealed class OreDefinition
 {
@@ -12,9 +13,13 @@ public sealed class OreDefinition
     [JsonProperty("id")]
     public string Id { get; init; } = "";
 
-    /// <summary>Block ID for the ore block (matches BlockDefinition.Id).</summary>
+    /// <summary>Namespaced block ID for the ore block (e.g., "minerpg:coal_ore").</summary>
     [JsonProperty("block_id")]
-    public ushort BlockId { get; init; }
+    public string BlockId { get; init; } = "";
+
+    /// <summary>Runtime-resolved ushort ID for the ore block. Set by BiomeDefinitionResolver.</summary>
+    [JsonIgnore]
+    public ushort RuntimeBlockId { get; internal set; }
 
     /// <summary>Minimum Y for ore generation.</summary>
     [JsonProperty("min_height")]

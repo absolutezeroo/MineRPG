@@ -1,14 +1,13 @@
 {
-  "id": 5,
-  "name": "Wood",
+  "id": "minerpg:oak_log",
+  "displayName": "Oak Log",
   "flags": 1,
   "hardness": 2.0,
   "requiredToolType": "axe",
   "requiredHarvestLevel": 0,
-  "dropItemId": "oak_log",
-  "dropCount": 1,
+  "lootTableId": "minerpg:oak_log",
   "textures": {
-    "top": "wood_log",
+    "top": "wood_log_top",
     "bottom": "wood_log_top",
     "side": "wood_log"
   }

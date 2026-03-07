@@ -1,12 +1,11 @@
 {
-  "id": 14,
-  "name": "Diamond Ore",
+  "id": "minerpg:diamond_ore",
+  "displayName": "Diamond Ore",
   "flags": 1,
   "hardness": 3.0,
   "requiredToolType": "pickaxe",
   "requiredHarvestLevel": 3,
-  "dropItemId": "diamond",
-  "dropCount": 1,
+  "lootTableId": "minerpg:diamond_ore",
   "textures": {
     "all": "diamond_ore"
   }

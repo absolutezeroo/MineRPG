@@ -1,0 +1,13 @@
+{
+  "lootTableId": "minerpg:redstone_ore",
+  "minRolls": 1,
+  "maxRolls": 1,
+  "entries": [
+    {
+      "itemId": "minerpg:redstone_dust",
+      "weight": 1,
+      "minCount": 4,
+      "maxCount": 5
+    }
+  ]
+}

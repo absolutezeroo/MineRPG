@@ -1,6 +1,6 @@
 {
-  "id": 7,
-  "name": "Leaves",
+  "id": "minerpg:oak_leaves",
+  "displayName": "Oak Leaves",
   "flags": 3,
   "hardness": 0.2,
   "textures": {

@@ -17,6 +17,7 @@ using MineRPG.Godot.World.Rendering;
 using MineRPG.RPG.Drops;
 using MineRPG.RPG.Inventory;
 using MineRPG.RPG.Items;
+using MineRPG.RPG.Loot;
 using MineRPG.World.Blocks;
 using MineRPG.World.Chunks;
 using MineRPG.World.Spatial;
@@ -53,10 +54,11 @@ public sealed partial class GameplayBootstrap : Node
 
         HotbarController hotbarController = ServiceLocator.Instance.Get<HotbarController>();
         ItemRegistry itemRegistry = ServiceLocator.Instance.Get<ItemRegistry>();
+        LootResolver lootResolver = ServiceLocator.Instance.Get<LootResolver>();
 
         BlockInteractionService blockInteraction = new(
-            raycaster, worldNode, blockRegistry, itemRegistry, hotbarController,
-            playerData, miningState, eventBus, logger);
+            raycaster, worldNode, blockRegistry, itemRegistry, lootResolver,
+            hotbarController, playerData, miningState, eventBus, logger);
 
         ServiceLocator.Instance.Register<IBlockInteractionService>(blockInteraction);
 

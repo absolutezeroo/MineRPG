@@ -93,8 +93,10 @@ public sealed class ChunkMeshBuilderTests
     public void Build_LiquidBlock_ProducesLiquidMesh()
     {
         // Arrange
+        bool found = _blockRegistry.TryGet("minerpg:water", out BlockDefinition? waterDef);
+        found.Should().BeTrue("water block must be registered");
         ChunkData chunk = new ChunkData(ChunkCoord.Zero);
-        chunk.SetBlock(8, 64, 8, 6); // Water (ID 6, Transparent + Liquid)
+        chunk.SetBlock(8, 64, 8, waterDef!.RuntimeId);
         ChunkData?[] neighbors = new ChunkData?[4];
 
         // Act

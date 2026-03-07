@@ -1,5 +1,5 @@
 {
-  "id": "dirt",
+  "id": "minerpg:dirt",
   "displayName": "Dirt",
   "description": "A clump of earth.",
   "category": "block",
@@ -7,7 +7,6 @@
   "maxStackSize": 64,
   "hasDurability": false,
   "iconAtlasId": "items/dirt",
-  "placesBlockId": "Dirt",
   "sellValue": 0,
   "buyValue": 1,
   "tags": ["building"]

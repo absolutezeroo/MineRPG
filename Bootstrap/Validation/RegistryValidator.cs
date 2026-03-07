@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using MineRPG.Core.Logging;
 using MineRPG.Core.Registry;
 using MineRPG.RPG.Items;
+using MineRPG.RPG.Loot;
 using MineRPG.World.Blocks;
 
 namespace MineRPG.Game.Bootstrap.Validation;
@@ -21,16 +22,19 @@ public static class RegistryValidator
     /// <param name="blockRegistry">The block registry (frozen).</param>
     /// <param name="itemRegistry">The item registry (frozen).</param>
     /// <param name="tagRegistry">The tag registry (frozen).</param>
+    /// <param name="lootTableRegistry">The loot table registry (frozen).</param>
     /// <param name="logger">Logger for error and info output.</param>
     public static void Validate(
         BlockRegistry blockRegistry,
         ItemRegistry itemRegistry,
         TagRegistry tagRegistry,
+        LootTableRegistry lootTableRegistry,
         ILogger logger)
     {
         int errorCount = 0;
 
-        errorCount += ValidateBlockDropReferences(blockRegistry, itemRegistry, logger);
+        errorCount += ValidateBlockLootTableReferences(blockRegistry, lootTableRegistry, logger);
+        errorCount += ValidateLootTableEntryReferences(lootTableRegistry, itemRegistry, logger);
         errorCount += ValidateTagReferences(tagRegistry, logger);
         errorCount += ValidateToolEffectiveOnTags(itemRegistry, tagRegistry, logger);
 
@@ -45,9 +49,9 @@ public static class RegistryValidator
         }
     }
 
-    private static int ValidateBlockDropReferences(
+    private static int ValidateBlockLootTableReferences(
         BlockRegistry blockRegistry,
-        ItemRegistry itemRegistry,
+        LootTableRegistry lootTableRegistry,
         ILogger logger)
     {
         int errorCount = 0;
@@ -57,17 +61,51 @@ public static class RegistryValidator
         {
             BlockDefinition block = blocks[i];
 
-            if (string.IsNullOrEmpty(block.DropItemId))
+            if (string.IsNullOrEmpty(block.LootTableId))
             {
                 continue;
             }
 
-            if (!itemRegistry.Contains(block.DropItemId))
+            if (!lootTableRegistry.TryGet(block.LootTableId, out _))
             {
                 logger.Error(
-                    "RegistryValidator: Block '{0}' references unknown drop item '{1}'.",
-                    block.Name, block.DropItemId);
+                    "RegistryValidator: Block '{0}' references unknown loot table '{1}'.",
+                    block.DisplayName, block.LootTableId);
                 errorCount++;
+            }
+        }
+
+        return errorCount;
+    }
+
+    private static int ValidateLootTableEntryReferences(
+        LootTableRegistry lootTableRegistry,
+        ItemRegistry itemRegistry,
+        ILogger logger)
+    {
+        int errorCount = 0;
+        IReadOnlyList<LootTableDefinition> tables = lootTableRegistry.Inner.GetAll();
+
+        for (int i = 0; i < tables.Count; i++)
+        {
+            LootTableDefinition table = tables[i];
+
+            for (int j = 0; j < table.Entries.Count; j++)
+            {
+                LootEntry entry = table.Entries[j];
+
+                if (entry.IsEmpty)
+                {
+                    continue;
+                }
+
+                if (!itemRegistry.Contains(entry.ItemId!))
+                {
+                    logger.Error(
+                        "RegistryValidator: LootTable '{0}' entry {1} references unknown item '{2}'.",
+                        table.LootTableId, j, entry.ItemId);
+                    errorCount++;
+                }
             }
         }
 

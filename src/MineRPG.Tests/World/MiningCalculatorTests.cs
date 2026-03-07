@@ -14,8 +14,8 @@ public sealed class MiningCalculatorTests
     {
         return new BlockDefinition
         {
-            Id = 1,
-            Name = "TestBlock",
+            Id = "minerpg:test_block",
+            DisplayName = "TestBlock",
             Flags = BlockFlags.Solid,
             Hardness = hardness,
             RequiredToolType = requiredToolType,

@@ -1,12 +1,11 @@
 {
-  "id": 15,
-  "name": "Emerald Ore",
+  "id": "minerpg:emerald_ore",
+  "displayName": "Emerald Ore",
   "flags": 1,
   "hardness": 3.0,
   "requiredToolType": "pickaxe",
   "requiredHarvestLevel": 3,
-  "dropItemId": "emerald",
-  "dropCount": 1,
+  "lootTableId": "minerpg:emerald_ore",
   "textures": {
     "all": "emerald_ore"
   }

@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+
 using MineRPG.Core.Events;
 using MineRPG.Core.Events.Definitions;
 using MineRPG.Core.Interfaces.Gameplay;
@@ -6,6 +9,7 @@ using MineRPG.Entities.Player;
 using MineRPG.Godot.World;
 using MineRPG.RPG.Drops;
 using MineRPG.RPG.Items;
+using MineRPG.RPG.Loot;
 using MineRPG.World.Blocks;
 using MineRPG.World.Mining;
 using MineRPG.World.Spatial;
@@ -33,11 +37,13 @@ public sealed class BlockInteractionService : IBlockInteractionService
     private readonly WorldNode _worldNode;
     private readonly BlockRegistry _blockRegistry;
     private readonly ItemRegistry _itemRegistry;
+    private readonly LootResolver _lootResolver;
     private readonly HotbarController _hotbarController;
     private readonly PlayerData _playerData;
     private readonly MiningState _miningState;
     private readonly IEventBus _eventBus;
     private readonly ILogger _logger;
+    private readonly Random _random = new();
 
     private float _currentMineTime;
     private bool _currentIsCorrectTool;
@@ -49,6 +55,7 @@ public sealed class BlockInteractionService : IBlockInteractionService
     /// <param name="worldNode">World node for breaking and placing blocks.</param>
     /// <param name="blockRegistry">Block definition registry.</param>
     /// <param name="itemRegistry">Item definition registry for resolving placeable blocks.</param>
+    /// <param name="lootResolver">Loot resolver for determining block drops.</param>
     /// <param name="hotbarController">Hotbar controller for reading the equipped tool.</param>
     /// <param name="playerData">Player state container.</param>
     /// <param name="miningState">Mining progress state tracker.</param>
@@ -59,6 +66,7 @@ public sealed class BlockInteractionService : IBlockInteractionService
         WorldNode worldNode,
         BlockRegistry blockRegistry,
         ItemRegistry itemRegistry,
+        LootResolver lootResolver,
         HotbarController hotbarController,
         PlayerData playerData,
         MiningState miningState,
@@ -69,6 +77,7 @@ public sealed class BlockInteractionService : IBlockInteractionService
         _worldNode = worldNode;
         _blockRegistry = blockRegistry;
         _itemRegistry = itemRegistry;
+        _lootResolver = lootResolver;
         _hotbarController = hotbarController;
         _playerData = playerData;
         _miningState = miningState;
@@ -127,7 +136,7 @@ public sealed class BlockInteractionService : IBlockInteractionService
 
             _logger.Debug(
                 "Mining started at ({0},{1},{2}), block={3}, mineTime={4:F2}s, correctTool={5}",
-                hitX, hitY, hitZ, block.Name, _currentMineTime, _currentIsCorrectTool);
+                hitX, hitY, hitZ, block.DisplayName, _currentMineTime, _currentIsCorrectTool);
         }
 
         _miningState.Advance(deltaTime, _currentMineTime);
@@ -163,7 +172,7 @@ public sealed class BlockInteractionService : IBlockInteractionService
 
             _logger.Debug(
                 "Block mined at ({0},{1},{2}), blockId={3}",
-                hitX, hitY, hitZ, minedBlockId);
+                hitX, hitY, hitZ, block.Id);
         }
     }
 
@@ -197,16 +206,16 @@ public sealed class BlockInteractionService : IBlockInteractionService
             return false;
         }
 
-        if (string.IsNullOrEmpty(itemDef.PlacesBlockId))
+        if (string.IsNullOrEmpty(itemDef.LinkedBlockId))
         {
             return false;
         }
 
-        if (!_blockRegistry.TryGetByName(itemDef.PlacesBlockId, out BlockDefinition block))
+        if (!_blockRegistry.TryGet(itemDef.LinkedBlockId, out BlockDefinition block))
         {
             _logger.Warning(
-                "TryPlaceBlock: item '{0}' references block '{1}' not found in BlockRegistry.",
-                heldItem.DefinitionId, itemDef.PlacesBlockId);
+                "TryPlaceBlock: item '{0}' linked block '{1}' not found in BlockRegistry.",
+                heldItem.DefinitionId, itemDef.LinkedBlockId);
             return false;
         }
 
@@ -226,7 +235,7 @@ public sealed class BlockInteractionService : IBlockInteractionService
             return false;
         }
 
-        _worldNode.PlaceBlock(target, block.Id);
+        _worldNode.PlaceBlock(target, block.RuntimeId);
 
         _playerData.Inventory?.Hotbar.RemoveAt(_playerData.SelectedHotbarSlot, 1);
 
@@ -234,33 +243,33 @@ public sealed class BlockInteractionService : IBlockInteractionService
     }
 
     /// <summary>
-    /// Spawns a world drop from a broken block.
-    /// Only drops when the correct tool was used.
-    /// The drop pops out visually and is auto-collected by proximity.
+    /// Resolves drops from the loot table system and spawns world drops.
     /// </summary>
     private void DropItemsFromBlock(BlockDefinition block)
     {
-        if (string.IsNullOrEmpty(block.DropItemId))
+        if (string.IsNullOrEmpty(block.LootTableId))
         {
             return;
         }
 
-        if (!_currentIsCorrectTool)
-        {
-            return;
-        }
+        IReadOnlyList<ItemInstance> drops = _lootResolver.Resolve(block.LootTableId, _random);
 
-        _eventBus.Publish(new ItemDropSpawnedEvent
+        for (int i = 0; i < drops.Count; i++)
         {
-            X = _miningState.TargetX + 0.5f,
-            Y = _miningState.TargetY + 0.5f,
-            Z = _miningState.TargetZ + 0.5f,
-            ItemDefinitionId = block.DropItemId!,
-            Count = block.DropCount,
-            VelocityX = DropVelocity.BlockBreak.X,
-            VelocityY = DropVelocity.BlockBreak.Y,
-            VelocityZ = DropVelocity.BlockBreak.Z,
-        });
+            ItemInstance drop = drops[i];
+
+            _eventBus.Publish(new ItemDropSpawnedEvent
+            {
+                X = _miningState.TargetX + 0.5f,
+                Y = _miningState.TargetY + 0.5f,
+                Z = _miningState.TargetZ + 0.5f,
+                ItemDefinitionId = drop.DefinitionId,
+                Count = drop.Count,
+                VelocityX = DropVelocity.BlockBreak.X,
+                VelocityY = DropVelocity.BlockBreak.Y,
+                VelocityZ = DropVelocity.BlockBreak.Z,
+            });
+        }
     }
 
     /// <summary>

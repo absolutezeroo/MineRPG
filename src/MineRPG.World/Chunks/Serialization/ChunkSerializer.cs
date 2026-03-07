@@ -23,7 +23,7 @@ namespace MineRPG.World.Chunks.Serialization;
 public sealed class ChunkSerializer : IChunkSerializer
 {
     private static readonly byte[] Magic = "MCRK"u8.ToArray();
-    private const ushort FormatVersion = 1;
+    private const ushort FormatVersion = 2;
     private const int MagicSize = 4;
     private const int VersionSize = 2;
     private const int CoordSize = 4;

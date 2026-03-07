@@ -6,6 +6,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="MineRPG.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="../MineRPG.Core/MineRPG.Core.csproj" />
   </ItemGroup>
 

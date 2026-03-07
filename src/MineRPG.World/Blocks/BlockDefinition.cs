@@ -4,19 +4,22 @@ namespace MineRPG.World.Blocks;
 
 /// <summary>
 /// Data-driven block definition. Loaded from Data/Blocks/*.json at startup.
+/// The canonical key is <see cref="Id"/> (a namespaced string like "minerpg:stone").
+/// A compact runtime <see cref="RuntimeId"/> is assigned by <see cref="BlockRegistry"/>
+/// and used in <see cref="MineRPG.World.Chunks.ChunkData"/> for memory-efficient storage.
 /// Per-face UVs are computed at load time by BlockRegistry from the Textures config.
 /// </summary>
 public sealed class BlockDefinition
 {
     private const int FaceUvLength = 24;
 
-    /// <summary>Unique numeric block identifier.</summary>
+    /// <summary>Canonical namespaced identifier (e.g., "minerpg:stone").</summary>
     [JsonProperty("id")]
-    public ushort Id { get; init; }
+    public string Id { get; init; } = "";
 
-    /// <summary>Human-readable block name.</summary>
-    [JsonProperty("name")]
-    public string Name { get; init; } = "";
+    /// <summary>Human-readable display name shown in the UI.</summary>
+    [JsonProperty("displayName")]
+    public string DisplayName { get; init; } = "";
 
     /// <summary>Behavioral flags for this block type.</summary>
     [JsonProperty("flags")]
@@ -45,17 +48,12 @@ public sealed class BlockDefinition
     [JsonProperty("textures")]
     public BlockFaceTextures? Textures { get; init; }
 
-    /// <summary>Reference key into the loot table registry.</summary>
-    [JsonProperty("lootTableRef")]
-    public string? LootTableRef { get; init; }
-
-    /// <summary>Item ID dropped when the block is broken. Null means no drop.</summary>
-    [JsonProperty("dropItemId")]
-    public string? DropItemId { get; init; }
-
-    /// <summary>Number of items dropped when the block is broken.</summary>
-    [JsonProperty("dropCount")]
-    public int DropCount { get; init; } = 1;
+    /// <summary>
+    /// Reference key into the loot table registry. Convention: matches this block's
+    /// namespaced ID (e.g., "minerpg:stone"). Null means no loot table (no drops).
+    /// </summary>
+    [JsonProperty("lootTableId")]
+    public string? LootTableId { get; init; }
 
     /// <summary>Red tint component (0..1).</summary>
     [JsonProperty("tintR")]
@@ -68,6 +66,14 @@ public sealed class BlockDefinition
     /// <summary>Blue tint component (0..1).</summary>
     [JsonProperty("tintB")]
     public float TintB { get; init; } = 1f;
+
+    /// <summary>
+    /// Runtime-assigned sequential ushort ID. Set by <see cref="BlockRegistry"/> during load.
+    /// Never read from JSON. Air is always 0.
+    /// Used by ChunkData, meshing, generation, and all hot paths.
+    /// </summary>
+    [JsonIgnore]
+    public ushort RuntimeId { get; internal set; }
 
     /// <summary>
     /// Per-face UV coordinates, computed by BlockRegistry.
@@ -85,6 +91,6 @@ public sealed class BlockDefinition
     /// <summary>Whether this block has the Liquid flag.</summary>
     public bool IsLiquid => (Flags & BlockFlags.Liquid) != 0;
 
-    /// <summary>Whether this block is air (ID 0).</summary>
-    public bool IsAir => Id == 0;
+    /// <summary>Whether this block is air (RuntimeId 0).</summary>
+    public bool IsAir => RuntimeId == 0;
 }

@@ -1,12 +1,11 @@
 {
-  "id": 17,
-  "name": "Coal Ore",
+  "id": "minerpg:coal_ore",
+  "displayName": "Coal Ore",
   "flags": 1,
   "hardness": 3.0,
   "requiredToolType": "pickaxe",
   "requiredHarvestLevel": 1,
-  "dropItemId": "coal",
-  "dropCount": 1,
+  "lootTableId": "minerpg:coal_ore",
   "textures": {
     "all": "coal_ore"
   }

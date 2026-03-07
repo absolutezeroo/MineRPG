@@ -1,0 +1,12 @@
+{
+  "id": "minerpg:cobblestone",
+  "displayName": "Cobblestone",
+  "flags": 1,
+  "hardness": 6.0,
+  "requiredToolType": "pickaxe",
+  "requiredHarvestLevel": 1,
+  "lootTableId": "minerpg:cobblestone",
+  "textures": {
+    "all": "cobblestone"
+  }
+}

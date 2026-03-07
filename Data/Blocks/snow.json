@@ -1,12 +1,11 @@
 {
-  "id": 16,
-  "name": "Snow",
+  "id": "minerpg:snow",
+  "displayName": "Snow",
   "flags": 1,
   "hardness": 0.2,
   "requiredToolType": "shovel",
   "requiredHarvestLevel": 0,
-  "dropItemId": "snowball",
-  "dropCount": 4,
+  "lootTableId": "minerpg:snow",
   "textures": {
     "all": "snow"
   }

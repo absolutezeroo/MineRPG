@@ -1,0 +1,13 @@
+{
+  "lootTableId": "minerpg:emerald_ore",
+  "minRolls": 1,
+  "maxRolls": 1,
+  "entries": [
+    {
+      "itemId": "minerpg:emerald",
+      "weight": 1,
+      "minCount": 1,
+      "maxCount": 1
+    }
+  ]
+}

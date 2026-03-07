@@ -32,10 +32,10 @@
   "baseHeight": 70,
   "heightVariation": 10.0,
   "terrainScale": 1.0,
-  "surfaceBlock": 3,
-  "subSurfaceBlock": 2,
-  "stoneBlock": 1,
-  "underwaterBlock": 0,
+  "surfaceBlock": "minerpg:grass",
+  "subSurfaceBlock": "minerpg:dirt",
+  "stoneBlock": "minerpg:stone",
+  "underwaterBlock": "",
   "subSurfaceDepth": 4,
   "vegetation": [
     {
@@ -57,56 +57,56 @@
       "max_height": 128,
       "vein_size": 12,
       "frequency": 20,
-      "block_id": 17
+      "block_id": "minerpg:coal_ore"
     },
     {
       "min_height": 0,
       "max_height": 64,
       "vein_size": 9,
       "frequency": 20,
-      "block_id": 9
+      "block_id": "minerpg:iron_ore"
     },
     {
       "min_height": 0,
       "max_height": 96,
       "vein_size": 10,
       "frequency": 16,
-      "block_id": 10
+      "block_id": "minerpg:copper_ore"
     },
     {
       "min_height": 0,
       "max_height": 32,
       "vein_size": 9,
       "frequency": 4,
-      "block_id": 11
+      "block_id": "minerpg:gold_ore"
     },
     {
       "min_height": 0,
       "max_height": 16,
       "vein_size": 8,
       "frequency": 8,
-      "block_id": 12
+      "block_id": "minerpg:redstone_ore"
     },
     {
       "min_height": 0,
       "max_height": 30,
       "vein_size": 6,
       "frequency": 2,
-      "block_id": 13
+      "block_id": "minerpg:lapis_ore"
     },
     {
       "min_height": 0,
       "max_height": 16,
       "vein_size": 8,
       "frequency": 2,
-      "block_id": 14
+      "block_id": "minerpg:diamond_ore"
     },
     {
       "min_height": 0,
       "max_height": 32,
       "vein_size": 1,
       "frequency": 1,
-      "block_id": 15
+      "block_id": "minerpg:emerald_ore"
     }
   ],
   "structures": [],

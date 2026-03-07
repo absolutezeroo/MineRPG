@@ -39,12 +39,12 @@ public sealed class WorldGenerator : IWorldGenerator
         _terrainSampler = terrainSampler ?? throw new ArgumentNullException(nameof(terrainSampler));
         _caveCarver = caveCarver ?? throw new ArgumentNullException(nameof(caveCarver));
 
-        _waterBlockId = _blockRegistry.TryGetByName("Water", out BlockDefinition? waterDefinition)
-            ? waterDefinition.Id : (ushort)0;
-        _sandBlockId = _blockRegistry.TryGetByName("Sand", out BlockDefinition? sandDefinition)
-            ? sandDefinition.Id : (ushort)0;
-        _bedrockBlockId = _blockRegistry.TryGetByName("Bedrock", out BlockDefinition? bedrockDefinition)
-            ? bedrockDefinition.Id : (ushort)1;
+        _waterBlockId = _blockRegistry.TryGet("minerpg:water", out BlockDefinition? waterDefinition)
+            ? waterDefinition.RuntimeId : (ushort)0;
+        _sandBlockId = _blockRegistry.TryGet("minerpg:sand", out BlockDefinition? sandDefinition)
+            ? sandDefinition.RuntimeId : (ushort)0;
+        _bedrockBlockId = _blockRegistry.TryGet("minerpg:bedrock", out BlockDefinition? bedrockDefinition)
+            ? bedrockDefinition.RuntimeId : (ushort)0;
     }
 
     /// <summary>

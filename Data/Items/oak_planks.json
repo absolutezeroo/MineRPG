@@ -1,5 +1,5 @@
 {
-  "id": "oak_planks",
+  "id": "minerpg:oak_planks",
   "displayName": "Oak Planks",
   "description": "Wooden planks crafted from oak logs.",
   "category": "block",
@@ -9,6 +9,5 @@
   "iconAtlasId": "items/oak_planks",
   "sellValue": 1,
   "buyValue": 2,
-  "tags": ["wood", "building"],
-  "placesBlockId": "oak_planks"
+  "tags": ["wood", "building"]
 }

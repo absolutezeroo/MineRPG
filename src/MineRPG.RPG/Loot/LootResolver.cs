@@ -8,19 +8,34 @@ namespace MineRPG.RPG.Loot;
 public sealed class LootResolver : ILootResolver
 {
     private readonly ItemRegistry _items;
+    private readonly LootTableRegistry _lootTables;
 
     /// <summary>
-    /// Creates a loot resolver with the given item registry.
+    /// Creates a loot resolver with the given registries.
     /// </summary>
     /// <param name="items">The item registry for creating item instances.</param>
-    public LootResolver(ItemRegistry items)
+    /// <param name="lootTables">The loot table registry for looking up tables by ID.</param>
+    public LootResolver(ItemRegistry items, LootTableRegistry lootTables)
     {
         _items = items ?? throw new ArgumentNullException(nameof(items));
+        _lootTables = lootTables ?? throw new ArgumentNullException(nameof(lootTables));
     }
 
     /// <inheritdoc />
-    public IReadOnlyList<ItemInstance> Resolve(string lootTableRef, Random rng) =>
-        [];
+    public IReadOnlyList<ItemInstance> Resolve(string lootTableRef, Random rng)
+    {
+        if (string.IsNullOrEmpty(lootTableRef))
+        {
+            return [];
+        }
+
+        if (!_lootTables.TryGet(lootTableRef, out LootTableDefinition table))
+        {
+            return [];
+        }
+
+        return Resolve(table, LootContext.Default, rng);
+    }
 
     /// <summary>
     /// Resolves a loot table definition into concrete item drops.
@@ -90,12 +105,19 @@ public sealed class LootResolver : ILootResolver
         LootContext context,
         Random rng)
     {
-        // Filter eligible entries
+        // Evaluate conditions once and cache results to avoid consuming
+        // RNG state twice (randomChance conditions use rng.NextDouble()).
+        Span<bool> eligible = entries.Count <= 64
+            ? stackalloc bool[entries.Count]
+            : new bool[entries.Count];
+
         int totalWeight = 0;
 
         for (int i = 0; i < entries.Count; i++)
         {
-            if (AreConditionsMet(entries[i], context, rng))
+            eligible[i] = AreConditionsMet(entries[i], context, rng);
+
+            if (eligible[i])
             {
                 totalWeight += entries[i].Weight;
             }
@@ -111,7 +133,7 @@ public sealed class LootResolver : ILootResolver
 
         for (int i = 0; i < entries.Count; i++)
         {
-            if (!AreConditionsMet(entries[i], context, rng))
+            if (!eligible[i])
             {
                 continue;
             }
@@ -166,7 +188,8 @@ public sealed class LootResolver : ILootResolver
                     break;
 
                 default:
-                    break;
+                    throw new InvalidOperationException(
+                        $"Unknown loot condition type '{condition.Type}'");
             }
         }
 

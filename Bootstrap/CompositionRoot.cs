@@ -20,6 +20,7 @@ using MineRPG.Godot.World.Rendering;
 using MineRPG.Godot.World.Storage;
 using MineRPG.RPG.Inventory;
 using MineRPG.RPG.Items;
+using MineRPG.RPG.Loot;
 using MineRPG.World.Blocks;
 using MineRPG.World.Chunks;
 using MineRPG.World.Chunks.Serialization;
@@ -98,6 +99,8 @@ public static class CompositionRoot
         locator.Register<IChunkManager>(chunkManager);
 
         IReadOnlyList<BiomeDefinition> biomes = dataLoader.LoadAll<BiomeDefinition>("Biomes");
+        BiomeDefinitionResolver.Resolve(biomes, blockRegistry, logger);
+
         BiomeSelector biomeSelector = new(biomes, worldSeed);
         locator.Register<BiomeSelector>(biomeSelector);
 
@@ -175,6 +178,16 @@ public static class CompositionRoot
         itemRegistry.Freeze();
         locator.Register<ItemRegistry>(itemRegistry);
 
+        ItemBlockLinker.Link(itemRegistry, blockRegistry, logger);
+
+        LootTableRegistry lootTableRegistry = new();
+        lootTableRegistry.Load(dataLoader, "LootTables/Blocks", logger);
+        lootTableRegistry.Freeze();
+        locator.Register<LootTableRegistry>(lootTableRegistry);
+
+        LootResolver lootResolver = new(itemRegistry, lootTableRegistry);
+        locator.Register<LootResolver>(lootResolver);
+
         ImageTexture itemIconTexture = ItemIconAtlasBuilder.Build(itemRegistry.IconAtlasLayout, logger);
         ItemIconAtlas itemIconAtlas = new(itemIconTexture, itemRegistry.IconAtlasLayout);
         locator.Register<ItemIconAtlas>(itemIconAtlas);
@@ -194,7 +207,7 @@ public static class CompositionRoot
 
         logger.Info("CompositionRoot: Loaded {0} tag definitions.", tagDefinitions.Count);
 
-        RegistryValidator.Validate(blockRegistry, itemRegistry, tagRegistry, logger);
+        RegistryValidator.Validate(blockRegistry, itemRegistry, tagRegistry, lootTableRegistry, logger);
 
         PlayerInventory playerInventory = new(itemRegistry);
         playerData.Inventory = playerInventory;

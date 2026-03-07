@@ -1,12 +1,11 @@
 {
-  "id": 1,
-  "name": "Stone",
+  "id": "minerpg:stone",
+  "displayName": "Stone",
   "flags": 1,
   "hardness": 5.0,
   "requiredToolType": "pickaxe",
   "requiredHarvestLevel": 1,
-  "dropItemId": "cobblestone",
-  "dropCount": 1,
+  "lootTableId": "minerpg:stone",
   "textures": {
     "all": "stone"
   }

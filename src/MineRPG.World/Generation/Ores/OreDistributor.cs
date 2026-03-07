@@ -37,7 +37,7 @@ public sealed class OreDistributor
     {
         foreach (OreDefinition ore in _oreDefinitions)
         {
-            if (ore.BlockId == 0)
+            if (ore.RuntimeBlockId == 0)
             {
                 continue;
             }
@@ -55,7 +55,7 @@ public sealed class OreDistributor
 
                 VeinGenerator.Generate(
                     data, localX, y, localZ,
-                    ore.BlockId, ore.VeinSize, _stoneBlockId, random);
+                    ore.RuntimeBlockId, ore.VeinSize, _stoneBlockId, random);
             }
         }
     }

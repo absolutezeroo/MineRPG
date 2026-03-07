@@ -1,0 +1,13 @@
+{
+  "lootTableId": "minerpg:sand",
+  "minRolls": 1,
+  "maxRolls": 1,
+  "entries": [
+    {
+      "itemId": "minerpg:sand",
+      "weight": 1,
+      "minCount": 1,
+      "maxCount": 1
+    }
+  ]
+}

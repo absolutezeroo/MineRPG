@@ -97,7 +97,7 @@ public sealed partial class BlockInspectorPanel : Control
         _builder.Append("Position: ").Append(hitPos.X).Append(", ")
             .Append(hitPos.Y).Append(", ").Append(hitPos.Z).AppendLine();
         _builder.Append("Block ID: ").Append(blockId).AppendLine();
-        _builder.Append("Name: ").Append(definition.Name).AppendLine();
+        _builder.Append("Name: ").Append(definition.DisplayName).AppendLine();
         _builder.Append("Hardness: ").Append(definition.Hardness.ToString("F1")).AppendLine();
         _builder.Append("Flags: ").Append(definition.Flags);
 
@@ -108,10 +108,10 @@ public sealed partial class BlockInspectorPanel : Control
                 .Append(" (harvestLevel ").Append(definition.RequiredHarvestLevel).Append(')');
         }
 
-        if (definition.LootTableRef is not null)
+        if (definition.LootTableId is not null)
         {
             _builder.AppendLine();
-            _builder.Append("Loot: ").Append(definition.LootTableRef);
+            _builder.Append("Loot: ").Append(definition.LootTableId);
         }
 
         _dataLabel.Text = _builder.ToString();

@@ -15,14 +15,14 @@ public sealed class LootResolverTests
 
         registry.Register(new ItemDefinition
         {
-            Id = "iron_ingot",
+            Id = "minerpg:iron_ingot",
             MaxStackSize = 64,
             Category = ItemCategory.Material,
         });
 
         registry.Register(new ItemDefinition
         {
-            Id = "diamond",
+            Id = "minerpg:diamond",
             MaxStackSize = 64,
             Category = ItemCategory.Material,
             Rarity = ItemRarity.Rare,
@@ -30,7 +30,7 @@ public sealed class LootResolverTests
 
         registry.Register(new ItemDefinition
         {
-            Id = "iron_sword",
+            Id = "minerpg:iron_sword",
             MaxStackSize = 1,
             Category = ItemCategory.Weapon,
             HasDurability = true,
@@ -41,11 +41,19 @@ public sealed class LootResolverTests
         return registry;
     }
 
+    private static LootTableRegistry CreateEmptyLootTableRegistry()
+    {
+        LootTableRegistry lootTableRegistry = new LootTableRegistry();
+        lootTableRegistry.Freeze();
+        return lootTableRegistry;
+    }
+
     [Fact]
     public void Resolve_WithEmptyTable_ReturnsEmpty()
     {
         ItemRegistry registry = CreateRegistry();
-        LootResolver resolver = new LootResolver(registry);
+        LootTableRegistry lootTables = CreateEmptyLootTableRegistry();
+        LootResolver resolver = new LootResolver(registry, lootTables);
 
         LootTableDefinition table = new LootTableDefinition
         {
@@ -64,7 +72,8 @@ public sealed class LootResolverTests
     public void Resolve_WithGuaranteedDrop_ReturnsItem()
     {
         ItemRegistry registry = CreateRegistry();
-        LootResolver resolver = new LootResolver(registry);
+        LootTableRegistry lootTables = CreateEmptyLootTableRegistry();
+        LootResolver resolver = new LootResolver(registry, lootTables);
 
         LootTableDefinition table = new LootTableDefinition
         {
@@ -75,7 +84,7 @@ public sealed class LootResolverTests
             {
                 new LootEntry
                 {
-                    ItemId = "iron_ingot",
+                    ItemId = "minerpg:iron_ingot",
                     Weight = 100,
                     MinCount = 1,
                     MaxCount = 1,
@@ -86,7 +95,7 @@ public sealed class LootResolverTests
         IReadOnlyList<ItemInstance> drops = resolver.Resolve(table, default, new Random(42));
 
         drops.Should().HaveCount(1);
-        drops[0].DefinitionId.Should().Be("iron_ingot");
+        drops[0].DefinitionId.Should().Be("minerpg:iron_ingot");
         drops[0].Count.Should().Be(1);
     }
 
@@ -94,7 +103,8 @@ public sealed class LootResolverTests
     public void Resolve_WithEmptyEntry_CanDropNothing()
     {
         ItemRegistry registry = CreateRegistry();
-        LootResolver resolver = new LootResolver(registry);
+        LootTableRegistry lootTables = CreateEmptyLootTableRegistry();
+        LootResolver resolver = new LootResolver(registry, lootTables);
 
         LootTableDefinition table = new LootTableDefinition
         {
@@ -116,7 +126,8 @@ public sealed class LootResolverTests
     public void Resolve_WithLootingBonus_IncreasesRolls()
     {
         ItemRegistry registry = CreateRegistry();
-        LootResolver resolver = new LootResolver(registry);
+        LootTableRegistry lootTables = CreateEmptyLootTableRegistry();
+        LootResolver resolver = new LootResolver(registry, lootTables);
 
         LootTableDefinition table = new LootTableDefinition
         {
@@ -128,7 +139,7 @@ public sealed class LootResolverTests
             {
                 new LootEntry
                 {
-                    ItemId = "iron_ingot",
+                    ItemId = "minerpg:iron_ingot",
                     Weight = 100,
                     MinCount = 1,
                     MaxCount = 1,
@@ -148,7 +159,8 @@ public sealed class LootResolverTests
     public void Resolve_WithCondition_FiltersEntries()
     {
         ItemRegistry registry = CreateRegistry();
-        LootResolver resolver = new LootResolver(registry);
+        LootTableRegistry lootTables = CreateEmptyLootTableRegistry();
+        LootResolver resolver = new LootResolver(registry, lootTables);
 
         LootTableDefinition table = new LootTableDefinition
         {
@@ -159,7 +171,7 @@ public sealed class LootResolverTests
             {
                 new LootEntry
                 {
-                    ItemId = "diamond",
+                    ItemId = "minerpg:diamond",
                     Weight = 100,
                     MinCount = 1,
                     MaxCount = 1,
@@ -185,7 +197,8 @@ public sealed class LootResolverTests
     public void Resolve_WithDurableItem_SetsMaxDurability()
     {
         ItemRegistry registry = CreateRegistry();
-        LootResolver resolver = new LootResolver(registry);
+        LootTableRegistry lootTables = CreateEmptyLootTableRegistry();
+        LootResolver resolver = new LootResolver(registry, lootTables);
 
         LootTableDefinition table = new LootTableDefinition
         {
@@ -196,7 +209,7 @@ public sealed class LootResolverTests
             {
                 new LootEntry
                 {
-                    ItemId = "iron_sword",
+                    ItemId = "minerpg:iron_sword",
                     Weight = 100,
                     MinCount = 1,
                     MaxCount = 1,
@@ -209,5 +222,54 @@ public sealed class LootResolverTests
         drops.Should().HaveCount(1);
         drops[0].HasDurability.Should().BeTrue();
         drops[0].CurrentDurability.Should().Be(250);
+    }
+
+    [Fact]
+    public void Resolve_ByStringRef_UsesLootTableRegistry()
+    {
+        ItemRegistry registry = CreateRegistry();
+        LootTableRegistry lootTables = new LootTableRegistry();
+
+        LootTableDefinition table = new LootTableDefinition
+        {
+            LootTableId = "minerpg:stone",
+            MinRolls = 1,
+            MaxRolls = 1,
+            Entries = new[]
+            {
+                new LootEntry
+                {
+                    ItemId = "minerpg:iron_ingot",
+                    Weight = 100,
+                    MinCount = 1,
+                    MaxCount = 1,
+                },
+            },
+        };
+        lootTables.Inner.Register("minerpg:stone", table);
+        lootTables.Freeze();
+
+        LootResolver resolver = new LootResolver(registry, lootTables);
+
+        // Act
+        IReadOnlyList<ItemInstance> drops = resolver.Resolve("minerpg:stone", new Random(42));
+
+        // Assert
+        drops.Should().HaveCount(1);
+        drops[0].DefinitionId.Should().Be("minerpg:iron_ingot");
+    }
+
+    [Fact]
+    public void Resolve_ByStringRef_WithUnknownId_ReturnsEmpty()
+    {
+        ItemRegistry registry = CreateRegistry();
+        LootTableRegistry lootTables = CreateEmptyLootTableRegistry();
+        LootResolver resolver = new LootResolver(registry, lootTables);
+
+        // Act
+        IReadOnlyList<ItemInstance> drops = resolver.Resolve("minerpg:nonexistent", new Random(42));
+
+        // Assert
+        drops.Should().BeEmpty();
     }
 }

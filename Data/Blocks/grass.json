@@ -1,12 +1,11 @@
 {
-  "id": 3,
-  "name": "Grass",
+  "id": "minerpg:grass",
+  "displayName": "Grass",
   "flags": 1,
   "hardness": 0.6,
   "requiredToolType": "shovel",
   "requiredHarvestLevel": 0,
-  "dropItemId": "dirt",
-  "dropCount": 1,
+  "lootTableId": "minerpg:grass",
   "textures": {
     "top": "grass_top",
     "bottom": "dirt",

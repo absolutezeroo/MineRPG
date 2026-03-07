@@ -17,12 +17,13 @@ namespace MineRPG.Tests.World;
 public sealed class WorldGeneratorTests
 {
     private readonly WorldGenerator _generator;
+    private readonly BlockRegistry _blockRegistry;
 
     public WorldGeneratorTests()
     {
         ILogger logger = NullLogger.Instance;
         JsonDataLoader loader = new JsonDataLoader(logger, FindDataRoot());
-        BlockRegistry blockRegistry = new BlockRegistry(loader, logger);
+        _blockRegistry = new BlockRegistry(loader, logger);
 
         IReadOnlyList<BiomeDefinition> biomes = loader.LoadAll<BiomeDefinition>("Biomes");
 
@@ -31,7 +32,7 @@ public sealed class WorldGeneratorTests
         TerrainSampler terrainSampler = new TerrainSampler(biomeSelector, seed);
         CaveCarver caveCarver = new CaveCarver(terrainSampler);
 
-        _generator = new WorldGenerator(blockRegistry, terrainSampler, caveCarver);
+        _generator = new WorldGenerator(_blockRegistry, terrainSampler, caveCarver);
     }
 
     [Fact]
@@ -71,13 +72,17 @@ public sealed class WorldGeneratorTests
         // Act
         _generator.Generate(entry, CancellationToken.None);
 
-        // Assert - y=0 should be bedrock (ID 8) everywhere
+        // Assert - y=0 should be bedrock everywhere
+        bool found = _blockRegistry.TryGet("minerpg:bedrock", out BlockDefinition? bedrockDef);
+        found.Should().BeTrue("bedrock block must be registered");
+        ushort bedrockId = bedrockDef!.RuntimeId;
+
         for (int x = 0; x < ChunkData.SizeX; x++)
         {
             for (int z = 0; z < ChunkData.SizeZ; z++)
             {
                 ushort blockId = entry.Data.GetBlock(x, 0, z);
-                blockId.Should().Be(8, $"bedrock expected at ({x}, 0, {z})");
+                blockId.Should().Be(bedrockId, $"bedrock expected at ({x}, 0, {z})");
             }
         }
     }

@@ -1,10 +1,9 @@
 {
-  "id": 8,
-  "name": "Bedrock",
+  "id": "minerpg:bedrock",
+  "displayName": "Bedrock",
   "flags": 1,
   "hardness": -1.0,
   "textures": {
     "all": "bedrock"
-  },
-  "lootTableRef": null
+  }
 }

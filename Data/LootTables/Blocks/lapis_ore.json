@@ -1,0 +1,13 @@
+{
+  "lootTableId": "minerpg:lapis_ore",
+  "minRolls": 1,
+  "maxRolls": 1,
+  "entries": [
+    {
+      "itemId": "minerpg:lapis_lazuli",
+      "weight": 1,
+      "minCount": 4,
+      "maxCount": 9
+    }
+  ]
+}

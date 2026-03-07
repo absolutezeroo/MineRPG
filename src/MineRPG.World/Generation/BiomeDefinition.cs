@@ -10,7 +10,8 @@ namespace MineRPG.World.Generation;
 /// <summary>
 /// Data-driven biome configuration supporting 6D climate targeting.
 /// Loaded from Data/Biomes/*.json. Adding a new biome requires only a JSON file.
-/// Block references use stable numeric IDs matching BlockDefinition.Id.
+/// Block references use namespaced string IDs (e.g., "minerpg:grass") in JSON.
+/// Runtime ushort IDs are resolved by <see cref="BiomeDefinitionResolver"/> after load.
 /// </summary>
 public sealed class BiomeDefinition
 {
@@ -51,21 +52,37 @@ public sealed class BiomeDefinition
     [JsonProperty("terrainScale")]
     public float TerrainScale { get; init; } = 1f;
 
-    /// <summary>Block ID for the top surface layer.</summary>
+    /// <summary>Namespaced block ID for the top surface layer (e.g., "minerpg:grass").</summary>
     [JsonProperty("surfaceBlock")]
-    public ushort SurfaceBlock { get; init; }
+    public string SurfaceBlockId { get; init; } = "";
 
-    /// <summary>Block ID for the sub-surface layer (filler).</summary>
+    /// <summary>Namespaced block ID for the sub-surface layer (e.g., "minerpg:dirt").</summary>
     [JsonProperty("subSurfaceBlock")]
-    public ushort SubSurfaceBlock { get; init; }
+    public string SubSurfaceBlockId { get; init; } = "";
 
-    /// <summary>Block ID for the stone layer.</summary>
+    /// <summary>Namespaced block ID for the stone layer (e.g., "minerpg:stone").</summary>
     [JsonProperty("stoneBlock")]
-    public ushort StoneBlock { get; init; }
+    public string StoneBlockId { get; init; } = "";
 
-    /// <summary>Block ID for underwater floor surfaces.</summary>
+    /// <summary>Namespaced block ID for underwater floor surfaces.</summary>
     [JsonProperty("underwaterBlock")]
-    public ushort UnderwaterBlock { get; init; }
+    public string UnderwaterBlockId { get; init; } = "";
+
+    /// <summary>Runtime-resolved ushort ID for the surface block. Set by BiomeDefinitionResolver.</summary>
+    [JsonIgnore]
+    public ushort SurfaceBlock { get; internal set; }
+
+    /// <summary>Runtime-resolved ushort ID for the sub-surface block. Set by BiomeDefinitionResolver.</summary>
+    [JsonIgnore]
+    public ushort SubSurfaceBlock { get; internal set; }
+
+    /// <summary>Runtime-resolved ushort ID for the stone block. Set by BiomeDefinitionResolver.</summary>
+    [JsonIgnore]
+    public ushort StoneBlock { get; internal set; }
+
+    /// <summary>Runtime-resolved ushort ID for the underwater block. Set by BiomeDefinitionResolver.</summary>
+    [JsonIgnore]
+    public ushort UnderwaterBlock { get; internal set; }
 
     /// <summary>Thickness of the sub-surface layer (dirt/sand). Default 4.</summary>
     [JsonProperty("subSurfaceDepth")]

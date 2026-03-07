@@ -1,12 +1,11 @@
 {
-  "id": 12,
-  "name": "Redstone Ore",
+  "id": "minerpg:redstone_ore",
+  "displayName": "Redstone Ore",
   "flags": 1,
   "hardness": 3.0,
   "requiredToolType": "pickaxe",
   "requiredHarvestLevel": 3,
-  "dropItemId": "redstone_dust",
-  "dropCount": 4,
+  "lootTableId": "minerpg:redstone_ore",
   "textures": {
     "all": "redstone_ore"
   }

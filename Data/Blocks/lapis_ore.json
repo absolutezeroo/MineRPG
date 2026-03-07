@@ -1,12 +1,11 @@
 {
-  "id": 13,
-  "name": "Lapis Ore",
+  "id": "minerpg:lapis_ore",
+  "displayName": "Lapis Ore",
   "flags": 1,
   "hardness": 3.0,
   "requiredToolType": "pickaxe",
   "requiredHarvestLevel": 2,
-  "dropItemId": "lapis_lazuli",
-  "dropCount": 4,
+  "lootTableId": "minerpg:lapis_ore",
   "textures": {
     "all": "lapis_ore"
   }

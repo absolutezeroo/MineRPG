@@ -1,6 +1,6 @@
 {
-  "id": 6,
-  "name": "Water",
+  "id": "minerpg:water",
+  "displayName": "Water",
   "flags": 6,
   "hardness": 0.0,
   "textures": {

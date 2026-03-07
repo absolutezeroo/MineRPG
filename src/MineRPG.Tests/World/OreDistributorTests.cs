@@ -12,26 +12,26 @@ namespace MineRPG.Tests.World;
 public sealed class OreDistributorTests
 {
     private const ushort StoneBlockId = 1;
-    private const ushort IronOreId = 20;
-    private const ushort DiamondOreId = 21;
+    private const ushort IronOreRuntimeId = 20;
+    private const ushort DiamondOreRuntimeId = 21;
 
     [Fact]
     public void Distribute_PlacesOresInChunk()
     {
         // Arrange
-        List<OreDefinition> ores = new List<OreDefinition>
+        OreDefinition ironOre = new OreDefinition
         {
-            new OreDefinition
-            {
-                BlockId = IronOreId,
-                MinHeight = 10,
-                MaxHeight = 80,
-                PeakHeight = 40,
-                VeinSize = 8,
-                Frequency = 20,
-                Distribution = OreDistribution.Triangle,
-            },
+            BlockId = "minerpg:iron_ore",
+            MinHeight = 10,
+            MaxHeight = 80,
+            PeakHeight = 40,
+            VeinSize = 8,
+            Frequency = 20,
+            Distribution = OreDistribution.Triangle,
         };
+        ironOre.RuntimeBlockId = IronOreRuntimeId;
+
+        List<OreDefinition> ores = new List<OreDefinition> { ironOre };
         OreDistributor distributor = new OreDistributor(ores, StoneBlockId);
 
         ChunkData data = new ChunkData(new ChunkCoord(0, 0));
@@ -62,7 +62,7 @@ public sealed class OreDistributorTests
             {
                 for (int y = 0; y < ChunkData.SizeY; y++)
                 {
-                    if (data.GetBlock(x, y, z) == IronOreId)
+                    if (data.GetBlock(x, y, z) == IronOreRuntimeId)
                     {
                         oreCount++;
                     }
@@ -77,19 +77,19 @@ public sealed class OreDistributorTests
     public void Distribute_RespectsHeightRange()
     {
         // Arrange
-        List<OreDefinition> ores = new List<OreDefinition>
+        OreDefinition diamondOre = new OreDefinition
         {
-            new OreDefinition
-            {
-                BlockId = DiamondOreId,
-                MinHeight = 5,
-                MaxHeight = 16,
-                PeakHeight = 8,
-                VeinSize = 4,
-                Frequency = 10,
-                Distribution = OreDistribution.Triangle,
-            },
+            BlockId = "minerpg:diamond_ore",
+            MinHeight = 5,
+            MaxHeight = 16,
+            PeakHeight = 8,
+            VeinSize = 4,
+            Frequency = 10,
+            Distribution = OreDistribution.Triangle,
         };
+        diamondOre.RuntimeBlockId = DiamondOreRuntimeId;
+
+        List<OreDefinition> ores = new List<OreDefinition> { diamondOre };
         OreDistributor distributor = new OreDistributor(ores, StoneBlockId);
 
         ChunkData data = new ChunkData(new ChunkCoord(0, 0));
@@ -120,7 +120,7 @@ public sealed class OreDistributorTests
             {
                 for (int y = 25; y < ChunkData.SizeY; y++)
                 {
-                    if (data.GetBlock(x, y, z) == DiamondOreId)
+                    if (data.GetBlock(x, y, z) == DiamondOreRuntimeId)
                     {
                         highDiamondCount++;
                     }
@@ -132,22 +132,21 @@ public sealed class OreDistributorTests
     }
 
     [Fact]
-    public void Distribute_ZeroBlockId_SkipsOre()
+    public void Distribute_ZeroRuntimeBlockId_SkipsOre()
     {
-        // Arrange
-        List<OreDefinition> ores = new List<OreDefinition>
+        // Arrange — RuntimeBlockId defaults to 0 when not resolved
+        OreDefinition unresolvedOre = new OreDefinition
         {
-            new OreDefinition
-            {
-                BlockId = 0,
-                MinHeight = 0,
-                MaxHeight = 100,
-                PeakHeight = 50,
-                VeinSize = 8,
-                Frequency = 20,
-                Distribution = OreDistribution.Uniform,
-            },
+            BlockId = "minerpg:unknown_ore",
+            MinHeight = 0,
+            MaxHeight = 100,
+            PeakHeight = 50,
+            VeinSize = 8,
+            Frequency = 20,
+            Distribution = OreDistribution.Uniform,
         };
+
+        List<OreDefinition> ores = new List<OreDefinition> { unresolvedOre };
         OreDistributor distributor = new OreDistributor(ores, StoneBlockId);
         ChunkData data = new ChunkData(new ChunkCoord(0, 0));
         Random random = new Random(42);

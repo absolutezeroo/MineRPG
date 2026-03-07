@@ -1,5 +1,5 @@
 {
-  "id": "cobblestone",
+  "id": "minerpg:cobblestone",
   "displayName": "Cobblestone",
   "description": "A rough block of stone, useful for building and crafting.",
   "category": "block",
@@ -7,7 +7,6 @@
   "maxStackSize": 64,
   "hasDurability": false,
   "iconAtlasId": "items/cobblestone",
-  "placesBlockId": "Stone",
   "sellValue": 1,
   "buyValue": 2,
   "tags": ["building", "crafting"]

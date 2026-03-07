@@ -1,12 +1,11 @@
 {
-  "id": 4,
-  "name": "Sand",
+  "id": "minerpg:sand",
+  "displayName": "Sand",
   "flags": 1,
   "hardness": 0.4,
   "requiredToolType": "shovel",
   "requiredHarvestLevel": 0,
-  "dropItemId": "sand",
-  "dropCount": 1,
+  "lootTableId": "minerpg:sand",
   "textures": {
     "all": "sand"
   }

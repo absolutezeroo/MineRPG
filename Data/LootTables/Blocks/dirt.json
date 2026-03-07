@@ -1,0 +1,13 @@
+{
+  "lootTableId": "minerpg:dirt",
+  "minRolls": 1,
+  "maxRolls": 1,
+  "entries": [
+    {
+      "itemId": "minerpg:dirt",
+      "weight": 1,
+      "minCount": 1,
+      "maxCount": 1
+    }
+  ]
+}

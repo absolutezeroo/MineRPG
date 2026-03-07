@@ -1,12 +1,11 @@
 {
-  "id": 9,
-  "name": "Iron Ore",
+  "id": "minerpg:iron_ore",
+  "displayName": "Iron Ore",
   "flags": 1,
   "hardness": 3.0,
   "requiredToolType": "pickaxe",
   "requiredHarvestLevel": 2,
-  "dropItemId": "raw_iron",
-  "dropCount": 1,
+  "lootTableId": "minerpg:iron_ore",
   "textures": {
     "all": "iron_ore"
   }

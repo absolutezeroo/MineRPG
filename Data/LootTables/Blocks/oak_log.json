@@ -1,0 +1,13 @@
+{
+  "lootTableId": "minerpg:oak_log",
+  "minRolls": 1,
+  "maxRolls": 1,
+  "entries": [
+    {
+      "itemId": "minerpg:oak_log",
+      "weight": 1,
+      "minCount": 1,
+      "maxCount": 1
+    }
+  ]
+}

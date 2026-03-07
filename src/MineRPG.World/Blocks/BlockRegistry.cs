@@ -8,27 +8,36 @@ using MineRPG.Core.Registry;
 namespace MineRPG.World.Blocks;
 
 /// <summary>
-/// Loads all block definitions from Data/Blocks/, builds a TextureAtlasLayout
-/// from unique texture names, computes per-face UVs, and stores blocks keyed by ID.
-/// The air block (ID=0) is always synthesized.
+/// Loads all block definitions from Data/Blocks/, assigns sequential runtime ushort IDs,
+/// builds a TextureAtlasLayout, and computes per-face UVs.
+/// Air ("minerpg:air") is always synthesized at RuntimeId=0.
+/// The <see cref="Get(ushort)"/> method is the hot-path O(1) lookup used by meshing
+/// and generation. The <see cref="TryGet(string, out BlockDefinition)"/> method is the
+/// cold-path dictionary lookup used at startup for configuration and linking.
 /// </summary>
 public sealed class BlockRegistry
 {
-    private const ushort AirBlockId = 0;
+    private const ushort AirRuntimeId = 0;
+    private const string AirBlockId = "minerpg:air";
     private const int UvComponentsPerFace = 4;
+    private const int InitialTableCapacity = 256;
 
-    private readonly Registry<ushort, BlockDefinition> _inner = new();
-    private readonly Dictionary<string, BlockDefinition> _nameIndex =
-        new(StringComparer.OrdinalIgnoreCase);
+    private readonly Registry<string, BlockDefinition> _inner = new();
+    private BlockDefinition[] _runtimeTable = new BlockDefinition[InitialTableCapacity];
+    private ushort _nextRuntimeId = 1;
 
-    /// <summary>The underlying registry of block definitions keyed by numeric ID.</summary>
-    public IRegistry<ushort, BlockDefinition> Inner => _inner;
+    /// <summary>The underlying string-keyed registry of block definitions.</summary>
+    public IRegistry<string, BlockDefinition> Inner => _inner;
 
     /// <summary>The computed texture atlas layout for all block textures.</summary>
     public TextureAtlasLayout AtlasLayout { get; }
 
+    /// <summary>Total number of registered block types, including air.</summary>
+    public int Count => _inner.Count + 1;
+
     /// <summary>
-    /// Initializes the block registry by loading all block definitions and computing atlas UVs.
+    /// Initializes the block registry by loading all block definitions, assigning
+    /// runtime IDs, and computing atlas UVs.
     /// </summary>
     /// <param name="dataLoader">Data loader for reading block JSON files.</param>
     /// <param name="logger">Logger for diagnostics.</param>
@@ -37,43 +46,62 @@ public sealed class BlockRegistry
         BlockDefinition air = new BlockDefinition
         {
             Id = AirBlockId,
-            Name = "Air",
+            DisplayName = "Air",
             Flags = BlockFlags.Transparent,
+            RuntimeId = AirRuntimeId,
         };
-        _inner.Register(AirBlockId, air);
-        _nameIndex["Air"] = air;
+        _runtimeTable[AirRuntimeId] = air;
 
         IReadOnlyList<BlockDefinition> definitions = dataLoader.LoadAll<BlockDefinition>("Blocks");
 
         foreach (BlockDefinition definition in definitions)
         {
-            if (definition.Id == AirBlockId)
+            if (string.IsNullOrEmpty(definition.Id))
             {
-                logger.Warning("BlockRegistry: JSON file defines ID=0 (reserved for Air) - skipping.");
+                logger.Warning("BlockRegistry: Block definition with empty ID skipped.");
                 continue;
             }
 
+            if (string.Equals(definition.Id, AirBlockId, StringComparison.OrdinalIgnoreCase))
+            {
+                logger.Warning(
+                    "BlockRegistry: JSON defines '{0}' (reserved for Air) — skipping.",
+                    AirBlockId);
+                continue;
+            }
+
+            definition.RuntimeId = _nextRuntimeId;
+
+            if (_nextRuntimeId >= _runtimeTable.Length)
+            {
+                Array.Resize(ref _runtimeTable, _runtimeTable.Length * 2);
+            }
+
+            _runtimeTable[_nextRuntimeId] = definition;
+            _nextRuntimeId++;
+
             _inner.Register(definition.Id, definition);
-            _nameIndex[definition.Name] = definition;
         }
 
         // Collect unique texture names from all blocks
         HashSet<string> textureNames = new(StringComparer.OrdinalIgnoreCase);
 
-        foreach (BlockDefinition definition in _inner.GetAll())
+        for (int i = 0; i < _nextRuntimeId; i++)
         {
-            if (definition.Textures is null)
+            BlockDefinition block = _runtimeTable[i];
+
+            if (block?.Textures is null)
             {
                 continue;
             }
 
-            string?[] resolved = definition.Textures.Resolve();
+            string?[] resolved = block.Textures.Resolve();
 
-            for (int i = 0; i < BlockFaceTextures.FaceCount; i++)
+            for (int face = 0; face < BlockFaceTextures.FaceCount; face++)
             {
-                if (resolved[i] is not null)
+                if (resolved[face] is not null)
                 {
-                    textureNames.Add(resolved[i]!);
+                    textureNames.Add(resolved[face]!);
                 }
             }
         }
@@ -81,43 +109,77 @@ public sealed class BlockRegistry
         AtlasLayout = new TextureAtlasLayout(textureNames);
 
         // Compute per-face UVs for each block
-        foreach (BlockDefinition definition in _inner.GetAll())
+        for (int i = 0; i < _nextRuntimeId; i++)
         {
-            ComputeFaceUvs(definition);
+            if (_runtimeTable[i] is not null)
+            {
+                ComputeFaceUvs(_runtimeTable[i]);
+            }
         }
 
         _inner.Freeze();
 
-        logger.Info("BlockRegistry: Loaded {0} block types (including air), {1} unique textures.",
-            _inner.Count, AtlasLayout.TextureNames.Count);
+        logger.Info(
+            "BlockRegistry: Loaded {0} block types (including air), {1} unique textures.",
+            _nextRuntimeId, AtlasLayout.TextureNames.Count);
     }
 
     /// <summary>
-    /// Gets a block definition by ID. Returns the air block if the ID is not registered.
+    /// Gets a block definition by runtime ushort ID. Returns the air block if out of range.
+    /// Hot-path: O(1) array lookup, zero allocation.
     /// </summary>
-    /// <param name="id">The block ID to look up.</param>
+    /// <param name="runtimeId">The runtime block ID.</param>
     /// <returns>The block definition, or air if not found.</returns>
-    public BlockDefinition Get(ushort id)
-        => _inner.TryGet(id, out BlockDefinition? definition) ? definition : _inner.Get(AirBlockId);
+    public BlockDefinition Get(ushort runtimeId)
+    {
+        if (runtimeId >= _nextRuntimeId)
+        {
+            return _runtimeTable[AirRuntimeId];
+        }
+
+        return _runtimeTable[runtimeId] ?? _runtimeTable[AirRuntimeId];
+    }
 
     /// <summary>
-    /// Gets a block definition by name. Throws if not found.
+    /// Attempts to get a block definition by namespaced string ID.
+    /// Cold-path: used at startup for configuration and linking only.
     /// </summary>
-    /// <param name="name">The block name to look up (case-insensitive).</param>
-    /// <returns>The matching block definition.</returns>
-    public BlockDefinition GetByName(string name)
-        => _nameIndex.TryGetValue(name, out BlockDefinition? definition)
-            ? definition
-            : throw new KeyNotFoundException($"Block '{name}' not found in registry.");
+    /// <param name="id">The namespaced block ID (e.g., "minerpg:stone").</param>
+    /// <param name="definition">The found definition, or null.</param>
+    /// <returns>True if found.</returns>
+    public bool TryGet(string id, out BlockDefinition definition)
+        => _inner.TryGet(id, out definition!);
 
     /// <summary>
-    /// Attempts to get a block definition by name.
+    /// Gets a block definition by namespaced string ID. Throws if not found.
+    /// Cold-path: used at startup only.
     /// </summary>
-    /// <param name="name">The block name to look up (case-insensitive).</param>
-    /// <param name="definition">The found block definition, if any.</param>
-    /// <returns>True if the block was found, false otherwise.</returns>
-    public bool TryGetByName(string name, out BlockDefinition definition)
-        => _nameIndex.TryGetValue(name, out definition!);
+    /// <param name="id">The namespaced block ID.</param>
+    /// <returns>The block definition.</returns>
+    public BlockDefinition GetById(string id)
+    {
+        if (!_inner.TryGet(id, out BlockDefinition? definition) || definition is null)
+        {
+            throw new KeyNotFoundException($"Block '{id}' not found in registry.");
+        }
+
+        return definition;
+    }
+
+    /// <summary>
+    /// Returns all registered block definitions including air.
+    /// </summary>
+    /// <returns>An enumerable of all block definitions.</returns>
+    public IEnumerable<BlockDefinition> GetAll()
+    {
+        for (int i = 0; i < _nextRuntimeId; i++)
+        {
+            if (_runtimeTable[i] is not null)
+            {
+                yield return _runtimeTable[i];
+            }
+        }
+    }
 
     private void ComputeFaceUvs(BlockDefinition definition)
     {

@@ -5,6 +5,9 @@ namespace MineRPG.RPG.Loot;
 /// </summary>
 public readonly struct LootContext
 {
+    /// <summary>Default context with no modifiers.</summary>
+    public static readonly LootContext Default;
+
     /// <summary>Looting enchantment level of the killing tool (0 if none).</summary>
     public int LootingLevel { get; init; }
 

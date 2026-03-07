@@ -1,5 +1,5 @@
 {
-  "id": "sand",
+  "id": "minerpg:sand",
   "displayName": "Sand",
   "description": "Fine grains of sand, used for glass and concrete.",
   "category": "block",
@@ -7,7 +7,6 @@
   "maxStackSize": 64,
   "hasDurability": false,
   "iconAtlasId": "items/sand",
-  "placesBlockId": "Sand",
   "sellValue": 0,
   "buyValue": 1,
   "tags": ["building", "crafting"]

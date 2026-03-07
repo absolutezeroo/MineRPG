@@ -1,5 +1,5 @@
 {
-  "id": "speed_potion",
+  "id": "minerpg:speed_potion",
   "displayName": "Potion of Speed",
   "description": "Grants a burst of speed for 60 seconds.",
   "category": "consumable",

@@ -1,12 +1,11 @@
 {
-  "id": 2,
-  "name": "Dirt",
+  "id": "minerpg:dirt",
+  "displayName": "Dirt",
   "flags": 1,
   "hardness": 0.5,
   "requiredToolType": "shovel",
   "requiredHarvestLevel": 0,
-  "dropItemId": "dirt",
-  "dropCount": 1,
+  "lootTableId": "minerpg:dirt",
   "textures": {
     "all": "dirt"
   }
