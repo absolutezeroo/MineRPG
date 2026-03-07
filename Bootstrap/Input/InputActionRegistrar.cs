@@ -20,6 +20,8 @@ public static class InputActionRegistrar
         int registered = 0;
 
         registered += RegisterKey(InputActions.InventoryToggle, Key.E, logger);
+        registered += RegisterKey(InputActions.DropItem, Key.Q, logger);
+        registered += RegisterCtrlKey(InputActions.DropStack, Key.Q, logger);
 
 #if DEBUG
         registered += RegisterKey(InputActions.DebugMenu, Key.F1, logger);
@@ -67,6 +69,24 @@ public static class InputActionRegistrar
         InputMap.ActionAddEvent(actionName, keyEvent);
 
         logger.Debug("InputActionRegistrar: Registered '{0}' -> Shift+{1}", actionName, key);
+        return 1;
+    }
+
+    private static int RegisterCtrlKey(StringName actionName, Key key, ILogger logger)
+    {
+        if (InputMap.HasAction(actionName))
+        {
+            return 0;
+        }
+
+        InputMap.AddAction(actionName);
+
+        InputEventKey keyEvent = new();
+        keyEvent.PhysicalKeycode = key;
+        keyEvent.CtrlPressed = true;
+        InputMap.ActionAddEvent(actionName, keyEvent);
+
+        logger.Debug("InputActionRegistrar: Registered '{0}' -> Ctrl+{1}", actionName, key);
         return 1;
     }
 }

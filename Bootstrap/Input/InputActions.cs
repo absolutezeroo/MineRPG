@@ -48,6 +48,12 @@ public static class InputActions
     /// <summary>Toggle inventory action (E).</summary>
     public static readonly StringName InventoryToggle = new("inventory_toggle");
 
+    /// <summary>Drop one item from the selected hotbar slot (Q).</summary>
+    public static readonly StringName DropItem = new("drop_item");
+
+    /// <summary>Drop the entire stack from the selected hotbar slot (Ctrl+Q).</summary>
+    public static readonly StringName DropStack = new("drop_stack");
+
     /// <summary>Toggle debug overlay action (F3).</summary>
     public static readonly StringName DebugToggle = new("debug_toggle");
 
@@ -107,6 +113,8 @@ public static class InputActions
         new(Attack, "Break Block"),
         new(Interact, "Place Block"),
         new(InventoryToggle, "Open Inventory"),
+        new(DropItem, "Drop Item"),
+        new(DropStack, "Drop Stack"),
         new(DebugToggle, "Debug Overlay"),
         new(ToggleFly, "Toggle Fly"),
         new(FlySpeedUp, "Fly Speed Up"),

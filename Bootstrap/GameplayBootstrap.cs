@@ -7,8 +7,12 @@ using MineRPG.Core.Events.Definitions;
 using MineRPG.Core.Interfaces.Gameplay;
 using MineRPG.Core.Logging;
 using MineRPG.Entities.Player;
+using MineRPG.Godot.Entities.Drops;
 using MineRPG.Godot.World;
 using MineRPG.Godot.World.Rendering;
+using MineRPG.RPG.Drops;
+using MineRPG.RPG.Inventory;
+using MineRPG.RPG.Items;
 using MineRPG.World.Blocks;
 using MineRPG.World.Spatial;
 
@@ -54,6 +58,7 @@ public sealed partial class GameplayBootstrap : Node
         WireOcclusionCuller(worldNode, logger);
         WireRegionManager(worldNode, logger);
         WireClipmapRenderer(worldNode, logger);
+        WireDropManager(worldNode, logger);
 
         eventBus.Publish(new GameInitializedEvent());
 
@@ -163,6 +168,23 @@ public sealed partial class GameplayBootstrap : Node
         ServiceLocator.Instance.Register(clipmap);
 
         logger.Info("GameplayBootstrap: ClipmapRenderer wired.");
+    }
+
+    private static void WireDropManager(WorldNode worldNode, ILogger logger)
+    {
+        ItemRegistry itemRegistry = ServiceLocator.Instance.Get<ItemRegistry>();
+        PlayerInventory playerInventory = ServiceLocator.Instance.Get<PlayerInventory>();
+        IEventBus eventBus = ServiceLocator.Instance.Get<IEventBus>();
+
+        ItemDropManager dropManager = new(itemRegistry);
+        ServiceLocator.Instance.Register<ItemDropManager>(dropManager);
+
+        DroppedItemManagerNode dropManagerNode = new();
+        dropManagerNode.Name = "DroppedItemManager";
+        worldNode.AddChild(dropManagerNode);
+        dropManagerNode.Initialize(dropManager, playerInventory, itemRegistry, eventBus, logger);
+
+        logger.Info("GameplayBootstrap: DroppedItemManagerNode wired.");
     }
 
     private static Camera3D? FindCamera(WorldNode worldNode)

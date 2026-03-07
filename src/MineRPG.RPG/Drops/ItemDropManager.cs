@@ -34,7 +34,8 @@ public sealed class ItemDropManager
     /// <param name="worldZ">World Z coordinate.</param>
     /// <param name="item">The item to drop.</param>
     /// <param name="velocity">Initial drop velocity.</param>
-    public void SpawnDrop(
+    /// <returns>The newly created dropped item.</returns>
+    public DroppedItem SpawnDrop(
         float worldX,
         float worldY,
         float worldZ,
@@ -48,6 +49,7 @@ public sealed class ItemDropManager
 
         DroppedItem drop = new DroppedItem(item, worldX, worldY, worldZ, velocity);
         _drops.Add(drop);
+        return drop;
     }
 
     /// <summary>

@@ -4,6 +4,7 @@ using MineRPG.Core.Interfaces.Gameplay;
 using MineRPG.Core.Logging;
 using MineRPG.Entities.Player;
 using MineRPG.Godot.World;
+using MineRPG.RPG.Drops;
 using MineRPG.RPG.Items;
 using MineRPG.World.Blocks;
 using MineRPG.World.Mining;
@@ -203,6 +204,7 @@ public sealed class BlockInteractionService : IBlockInteractionService
     /// <summary>
     /// Drops items from a broken block into the player's inventory.
     /// Only drops when the correct tool was used.
+    /// Surplus items that do not fit are spawned as world drops.
     /// </summary>
     private void DropItemsFromBlock(BlockDefinition block)
     {
@@ -221,8 +223,20 @@ public sealed class BlockInteractionService : IBlockInteractionService
 
         if (surplus > 0)
         {
+            _eventBus.Publish(new ItemDropSpawnedEvent
+            {
+                X = _miningState.TargetX + 0.5f,
+                Y = _miningState.TargetY + 1.0f,
+                Z = _miningState.TargetZ + 0.5f,
+                ItemDefinitionId = block.DropItemId!,
+                Count = surplus,
+                VelocityX = DropVelocity.BlockBreak.X,
+                VelocityY = DropVelocity.BlockBreak.Y,
+                VelocityZ = DropVelocity.BlockBreak.Z,
+            });
+
             _logger.Debug(
-                "Inventory full, {0}x {1} could not be picked up",
+                "Inventory full — spawned {0}x {1} as world drop",
                 surplus, block.DropItemId);
         }
     }

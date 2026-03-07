@@ -39,8 +39,4 @@
     <EmbeddedResource Remove="docs\**" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Content Include="Todos\OPTIMISATION_ROADMAP.md" />
-  </ItemGroup>
-
 </Project>
