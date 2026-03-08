@@ -38,6 +38,9 @@ ehthumbs.db
 
 # Claude Code
 .claude/
+_bmad/
+_bmad-output/
+*.tgz
 
 # Save data (generated at runtime)
 Saves/
