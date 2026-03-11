@@ -27,6 +27,7 @@ internal sealed class WorldBlockEditor
     private readonly ILogger _logger;
     private readonly Dictionary<ChunkCoord, ChunkNode> _chunkNodes;
     private readonly ChunkLoadingScheduler? _scheduler;
+    private readonly List<int> _affectedSubChunksCache = new();
 
     /// <summary>
     /// Creates a block editor with all required dependencies.
@@ -206,10 +207,10 @@ internal sealed class WorldBlockEditor
         if (useIncremental)
         {
             int localY = worldY % ChunkData.SizeY;
-            List<int> affectedSubChunks = new();
-            IncrementalMeshUpdater.GetAffectedSubChunks(localY, affectedSubChunks);
+            _affectedSubChunksCache.Clear();
+            IncrementalMeshUpdater.GetAffectedSubChunks(localY, _affectedSubChunksCache);
 
-            foreach (int subChunkIndex in affectedSubChunks)
+            foreach (int subChunkIndex in _affectedSubChunksCache)
             {
                 chunkNode.ApplySubChunkMesh(subChunkIndex, mesh.SubChunks[subChunkIndex]);
             }

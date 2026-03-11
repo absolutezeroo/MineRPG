@@ -178,6 +178,62 @@ public sealed class ChunkSerializerTests
     }
 
     [Fact]
+    public void RoundTrip_MultipleBlockTypes_PreservesEveryBlock()
+    {
+        // Arrange — 10 distinct StateIds in a recognizable pattern
+        ChunkData original = new ChunkData(new ChunkCoord(2, 3));
+
+        for (int x = 0; x < ChunkData.SizeX; x++)
+        {
+            for (int z = 0; z < ChunkData.SizeZ; z++)
+            {
+                for (int y = 0; y < 10; y++)
+                {
+                    original.SetBlock(x, y, z, (ushort)(y + 1));
+                }
+            }
+        }
+
+        // Act
+        byte[] bytes = _serializer.Serialize(original);
+        ChunkData restored = new ChunkData(new ChunkCoord(2, 3));
+        _serializer.Deserialize(bytes, restored);
+
+        // Assert — verify every block position
+        for (int x = 0; x < ChunkData.SizeX; x++)
+        {
+            for (int z = 0; z < ChunkData.SizeZ; z++)
+            {
+                for (int y = 0; y < 10; y++)
+                {
+                    restored.GetBlock(x, y, z).Should().Be((ushort)(y + 1),
+                        "block at ({0},{1},{2}) should be preserved", x, y, z);
+                }
+
+                // Above the pattern should be air
+                restored.GetBlock(x, 10, z).Should().Be(0);
+            }
+        }
+    }
+
+    [Fact]
+    public void RoundTrip_SingleBlockChanged_PreservesModification()
+    {
+        // Arrange — mostly empty chunk with one changed block
+        ChunkData original = new ChunkData(new ChunkCoord(-1, -1));
+        original.SetBlock(8, 128, 8, 42);
+
+        // Act
+        byte[] bytes = _serializer.Serialize(original);
+        ChunkData restored = new ChunkData(new ChunkCoord(-1, -1));
+        _serializer.Deserialize(bytes, restored);
+
+        // Assert
+        restored.GetBlock(8, 128, 8).Should().Be(42);
+        restored.GetBlock(0, 0, 0).Should().Be(0);
+    }
+
+    [Fact]
     public void Serialize_Performance_CompletesUnder5ms()
     {
         // Arrange - realistic terrain chunk

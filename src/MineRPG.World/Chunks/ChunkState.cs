@@ -1,7 +1,9 @@
 namespace MineRPG.World.Chunks;
 
 /// <summary>
-/// Lifecycle state of a chunk in the loading pipeline.
+/// Chunk lifecycle states. The numeric order matters — code uses ordinal
+/// comparisons (&gt;=, &lt;) to check readiness. States from RelightPending onward
+/// have valid voxel data. States from Generated onward are eligible for meshing.
 /// </summary>
 public enum ChunkState
 {
@@ -14,7 +16,10 @@ public enum ChunkState
     /// <summary>Chunk terrain is being generated.</summary>
     Generating,
 
-    /// <summary>Chunk terrain generation is complete.</summary>
+    /// <summary>Chunk terrain data is complete but light propagation is pending.</summary>
+    RelightPending,
+
+    /// <summary>Chunk terrain generation is complete (including lighting).</summary>
     Generated,
 
     /// <summary>Chunk mesh is being built.</summary>

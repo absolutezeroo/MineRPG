@@ -27,6 +27,7 @@ internal sealed class ChunkWorkerPool : IDisposable
     private readonly ConcurrentQueue<RemeshWork> _remeshQueue = new();
     private readonly ConcurrentQueue<ChunkEntry> _generationQueue = new();
     private readonly ConcurrentDictionary<ChunkCoord, CancellationTokenSource> _pendingCts = new();
+    private readonly ConcurrentDictionary<ChunkCoord, byte> _pendingGenerations = new();
 
     private readonly SemaphoreSlim _workSignal;
     private readonly CancellationTokenSource _shutdownCts;
@@ -92,7 +93,8 @@ internal sealed class ChunkWorkerPool : IDisposable
 
         _generationProcessor = new GenerationWorkProcessor(
             chunkManager, generator, meshBuilder, logger,
-            persistence, performanceMonitor, optimizationFlags, LoadResultQueue, _pendingCts);
+            persistence, performanceMonitor, optimizationFlags, LoadResultQueue, _pendingCts,
+            _pendingGenerations);
 
         _remeshProcessor = new RemeshWorkProcessor(
             chunkManager, meshBuilder, logger,
@@ -123,6 +125,12 @@ internal sealed class ChunkWorkerPool : IDisposable
     /// <param name="entry">The chunk entry to generate.</param>
     public void EnqueueGeneration(ChunkEntry entry)
     {
+        // Prevent double-scheduling the same coord (e.g. ForceLoadAround + OnPlayerChunkChanged)
+        if (!_pendingGenerations.TryAdd(entry.Coord, 0))
+        {
+            return;
+        }
+
         entry.SetState(ChunkState.Generating);
 
         if (_pendingCts.TryRemove(entry.Coord, out CancellationTokenSource? oldCts))
@@ -178,6 +186,8 @@ internal sealed class ChunkWorkerPool : IDisposable
     /// <param name="coord">The chunk coordinate.</param>
     public void CancelGeneration(ChunkCoord coord)
     {
+        _pendingGenerations.TryRemove(coord, out _);
+
         if (_pendingCts.TryRemove(coord, out CancellationTokenSource? cts))
         {
             cts.Cancel();
@@ -207,6 +217,7 @@ internal sealed class ChunkWorkerPool : IDisposable
         }
 
         _shutdownCts.Cancel();
+        _pendingGenerations.Clear();
 
         int wakeCount = _workers.Length + SaveQueue.Count;
 

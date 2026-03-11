@@ -132,8 +132,9 @@ public sealed class ChunkManager : IChunkManager
 
         for (int i = 0; i < NeighborCount; i++)
         {
+            // RelightPending and above have valid voxel data
             if (_chunks.TryGetValue(neighborCoords[i], out ChunkEntry? entry)
-                && entry.State >= ChunkState.Generated)
+                && entry.State >= ChunkState.RelightPending)
             {
                 neighbors[i] = entry.Data;
             }

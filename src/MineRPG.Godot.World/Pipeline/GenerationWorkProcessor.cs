@@ -31,6 +31,7 @@ internal sealed class GenerationWorkProcessor
     private readonly OptimizationFlags? _optimizationFlags;
     private readonly ConcurrentQueue<ChunkEntry> _loadResultQueue;
     private readonly ConcurrentDictionary<ChunkCoord, CancellationTokenSource> _pendingCts;
+    private readonly ConcurrentDictionary<ChunkCoord, byte> _pendingGenerations;
 
     private volatile int _playerChunkX;
     private volatile int _playerChunkZ;
@@ -47,6 +48,7 @@ internal sealed class GenerationWorkProcessor
     /// <param name="optimizationFlags">Optional optimization flags for LOD and packing.</param>
     /// <param name="loadResultQueue">Queue to deliver completed entries.</param>
     /// <param name="pendingCts">Shared pending cancellation token dictionary.</param>
+    /// <param name="pendingGenerations">Shared dedup dictionary for in-flight generation coords.</param>
     public GenerationWorkProcessor(
         IChunkManager chunkManager,
         IWorldGenerator generator,
@@ -56,7 +58,8 @@ internal sealed class GenerationWorkProcessor
         PerformanceMonitor? performanceMonitor,
         OptimizationFlags? optimizationFlags,
         ConcurrentQueue<ChunkEntry> loadResultQueue,
-        ConcurrentDictionary<ChunkCoord, CancellationTokenSource> pendingCts)
+        ConcurrentDictionary<ChunkCoord, CancellationTokenSource> pendingCts,
+        ConcurrentDictionary<ChunkCoord, byte> pendingGenerations)
     {
         _chunkManager = chunkManager;
         _generator = generator;
@@ -67,6 +70,7 @@ internal sealed class GenerationWorkProcessor
         _optimizationFlags = optimizationFlags;
         _loadResultQueue = loadResultQueue;
         _pendingCts = pendingCts;
+        _pendingGenerations = pendingGenerations;
     }
 
     /// <summary>
@@ -110,11 +114,18 @@ internal sealed class GenerationWorkProcessor
                 }
             }
 
+            entry.SetState(ChunkState.RelightPending);
+            entry.RecomputeSubChunkInfo();
             entry.SetState(ChunkState.Generated);
             _performanceMonitor?.IncrementChunksGenerated();
-            entry.RecomputeSubChunkInfo();
             entry.VisibilityMatrix = VisibilityMatrixBuilder.Build(entry.Data, entry.SubChunks);
             entry.SetState(ChunkState.Meshing);
+
+            // ═══════════════════════════════════════════════════════════════════
+            // SHARED MESH PIPELINE — duplicated in: GenerationWorkProcessor, RemeshWorkProcessor
+            // (LOD downsample → neighbor lookup → mesh build → scale → pack)
+            // Any modification MUST be applied to both files in the same commit.
+            // ═══════════════════════════════════════════════════════════════════
 
             // Determine LOD level based on distance (read flag once to avoid tearing)
             bool lodEnabled = _optimizationFlags is null || _optimizationFlags.LodEnabled;
@@ -186,6 +197,8 @@ internal sealed class GenerationWorkProcessor
         }
         finally
         {
+            _pendingGenerations.TryRemove(entry.Coord, out _);
+
             if (_pendingCts.TryRemove(entry.Coord, out CancellationTokenSource? removedCts))
             {
                 removedCts.Dispose();

@@ -139,7 +139,7 @@ public sealed class ChunkLoadingService
 
             if (_chunkManager.TryGet(coord, out ChunkEntry? existing)
                 && existing != null
-                && existing.State >= ChunkState.Generated)
+                && existing.State >= ChunkState.RelightPending)
             {
                 continue;
             }

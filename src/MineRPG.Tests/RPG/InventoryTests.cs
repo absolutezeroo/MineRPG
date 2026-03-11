@@ -307,4 +307,109 @@ public sealed class InventoryTests
 
         eventCount.Should().BeGreaterThan(0);
     }
+
+    [Fact]
+    public void TryAdd_FullInventory_ReturnsFullRemainder()
+    {
+        ItemDefinition stoneDef = CreateMaterial("stone", 64);
+        ItemRegistry registry = CreateRegistry(stoneDef);
+        Inventory inventory = new Inventory(2, registry);
+
+        // Fill both slots to max
+        inventory.TryAdd(new ItemInstance("stone", 64));
+        inventory.TryAdd(new ItemInstance("stone", 64));
+
+        // Try to add more — all should be returned
+        int remaining = inventory.TryAdd(new ItemInstance("stone", 30));
+
+        remaining.Should().Be(30);
+    }
+
+    [Fact]
+    public void TryAdd_SplitsAcrossStacks()
+    {
+        ItemDefinition stoneDef = CreateMaterial("stone", 64);
+        ItemRegistry registry = CreateRegistry(stoneDef);
+        Inventory inventory = new Inventory(3, registry);
+
+        // Fill slot 0 partially
+        inventory.TryAdd(new ItemInstance("stone", 60));
+        inventory.GetSlot(0)!.Count.Should().Be(60);
+
+        // Add 10 more — should fill slot 0 to 64, spill 6 into slot 1
+        int remaining = inventory.TryAdd(new ItemInstance("stone", 10));
+
+        remaining.Should().Be(0);
+        inventory.GetSlot(0)!.Count.Should().Be(64);
+        inventory.GetSlot(1)!.Count.Should().Be(6);
+    }
+
+    [Fact]
+    public void RemoveAt_MoreThanCount_ReturnsActualAmount()
+    {
+        ItemDefinition stoneDef = CreateMaterial("stone");
+        ItemRegistry registry = CreateRegistry(stoneDef);
+        Inventory inventory = new Inventory(3, registry);
+
+        inventory.TryAdd(new ItemInstance("stone", 3));
+
+        // Try to remove 10 from a slot with only 3
+        ItemInstance? taken = inventory.RemoveAt(0, 10);
+
+        taken.Should().NotBeNull();
+        taken!.Count.Should().Be(3);
+        inventory.GetSlot(0).Should().BeNull();
+    }
+
+    [Fact]
+    public void RemoveAt_EmptySlot_ReturnsNull()
+    {
+        ItemDefinition stoneDef = CreateMaterial("stone");
+        ItemRegistry registry = CreateRegistry(stoneDef);
+        Inventory inventory = new Inventory(3, registry);
+
+        ItemInstance? taken = inventory.RemoveAt(0, 5);
+
+        taken.Should().BeNull();
+    }
+
+    [Fact]
+    public void Remove_AcrossMultipleSlots()
+    {
+        ItemDefinition stoneDef = CreateMaterial("stone", 10);
+        ItemRegistry registry = CreateRegistry(stoneDef);
+        Inventory inventory = new Inventory(3, registry);
+
+        inventory.TryAdd(new ItemInstance("stone", 10));
+        inventory.TryAdd(new ItemInstance("stone", 10));
+        inventory.TryAdd(new ItemInstance("stone", 5));
+
+        // Remove 15 across slots
+        int removed = inventory.Remove("stone", 15);
+
+        removed.Should().Be(15);
+        inventory.CountItem("stone").Should().Be(10);
+    }
+
+    [Fact]
+    public void IsEmpty_WhenNoItems_ReturnsTrue()
+    {
+        ItemDefinition stoneDef = CreateMaterial("stone");
+        ItemRegistry registry = CreateRegistry(stoneDef);
+        Inventory inventory = new Inventory(3, registry);
+
+        inventory.IsEmpty().Should().BeTrue();
+    }
+
+    [Fact]
+    public void IsEmpty_WhenHasItems_ReturnsFalse()
+    {
+        ItemDefinition stoneDef = CreateMaterial("stone");
+        ItemRegistry registry = CreateRegistry(stoneDef);
+        Inventory inventory = new Inventory(3, registry);
+
+        inventory.TryAdd(new ItemInstance("stone", 1));
+
+        inventory.IsEmpty().Should().BeFalse();
+    }
 }

@@ -75,6 +75,12 @@ internal sealed class RemeshWorkProcessor
             work.Entry.SubChunks = snapshotData.ComputeSubChunkInfo();
             work.Entry.VisibilityMatrix = VisibilityMatrixBuilder.Build(snapshotData, work.Entry.SubChunks);
 
+            // ═══════════════════════════════════════════════════════════════════
+            // SHARED MESH PIPELINE — duplicated in: GenerationWorkProcessor, RemeshWorkProcessor
+            // (LOD downsample → neighbor lookup → mesh build → scale → pack)
+            // Any modification MUST be applied to both files in the same commit.
+            // ═══════════════════════════════════════════════════════════════════
+
             // Use downsampled data if LOD > 0 (capture LOD once to avoid tearing)
             ChunkData meshSourceData = snapshotData;
             LodLevel currentLod = work.Entry.CurrentLod;
