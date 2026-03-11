@@ -35,6 +35,7 @@ internal sealed class ChunkResultDrainer
     private readonly OptimizationFlags? _optimizationFlags;
     private RegionManager? _regionManager;
     private RegionLayerBuilder? _regionLayerBuilder;
+    private readonly ChunkCoord[] _neighborBuffer = new ChunkCoord[4];
 
     /// <summary>
     /// Creates a result drainer.
@@ -196,13 +197,16 @@ internal sealed class ChunkResultDrainer
 
     private void ScheduleNeighborRemeshes(ChunkCoord coord, bool isFromBlockEdit)
     {
-        ChunkCoord[] neighborCoords = [coord.East, coord.West, coord.South, coord.North];
+        _neighborBuffer[0] = coord.East;
+        _neighborBuffer[1] = coord.West;
+        _neighborBuffer[2] = coord.South;
+        _neighborBuffer[3] = coord.North;
 
         ConcurrentQueue<ChunkEntry> targetQueue = isFromBlockEdit
             ? _workerPool.BlockEditResultQueue
             : _workerPool.LoadResultQueue;
 
-        foreach (ChunkCoord neighborCoord in neighborCoords)
+        foreach (ChunkCoord neighborCoord in _neighborBuffer)
         {
             if (!_chunkManager.TryGet(neighborCoord, out ChunkEntry? neighbor) || neighbor is null)
             {

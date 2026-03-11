@@ -112,6 +112,47 @@ Log levels: `Debug` (dev only), `Info` (notable events), `Warning` (recoverable 
 
 ---
 
+## Anti-Regression Rules
+
+### Per-Frame Allocation Ban
+Before committing, grep the diff for `new List`, `new Dictionary`, `new T[]` in methods
+called each frame (Update, Poll, Process, Tick, Schedule, _Process). If found outside
+constructors or `static readonly` fields, it's a bug. Convert to a private field with
+Clear()+reuse.
+
+### ChunkState Ordinal Invariant
+`ChunkState` values are compared with `>=` and `<`. When adding a new state:
+1. Decide where it falls in the lifecycle ordering
+2. Grep ALL `ChunkState.` comparisons and verify correctness
+3. Document the ordering invariant in the enum comment
+
+States from `RelightPending` onward have valid voxel data.
+States from `Generated` onward are eligible for meshing.
+
+### Mesh Pipeline Duplication Protocol
+When duplicating code across work processors (unavoidable for thread isolation):
+1. Add `// SHARED MESH PIPELINE` header with list of all copies
+2. Add entry in CLAUDE.md "Known Code Duplication" table
+3. Any edit to one copy MUST be applied to all copies in the same commit
+
+---
+
+## Known Code Duplication
+
+The following mesh pipeline logic is duplicated across 2 work processors
+because each runs on separate background threads with independent data snapshots.
+**Any change to one MUST be replicated to the other in the same commit.**
+
+| Pipeline Stage | GenerationWorkProcessor | RemeshWorkProcessor |
+|----------------|------------------------|---------------------|
+| LOD downsample | ✓ | ✓ |
+| Neighbor lookup | ✓ | ✓ |
+| Mesh build | ✓ | ✓ |
+| LOD scale | ✓ | ✓ |
+| Vertex packing | ✓ | ✓ |
+
+---
+
 ## Reference Documents (auto-imported)
 
 @STYLEGUIDE.md

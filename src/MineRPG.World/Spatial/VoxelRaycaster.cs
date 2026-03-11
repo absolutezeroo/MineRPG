@@ -135,7 +135,8 @@ public sealed class VoxelRaycaster : IVoxelRaycaster
             return 0;
         }
 
-        if (entry.State < ChunkState.Generated)
+        // RelightPending and above have valid voxel data
+        if (entry.State < ChunkState.RelightPending)
         {
             return 0;
         }
